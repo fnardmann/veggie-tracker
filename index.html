@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Veggie Tracker</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <div>
+        <h1>Veggie Tracker</h1>
+        <p>Eat 30 different vegetables every week</p>
+      </div>
+      <div class="header-stats">
+        <div class="stat-pill" id="headerDailyStreak">0 day streak</div>
+        <div class="stat-pill" id="headerWeeklyStreak">0 week streak</div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- Row 1: Add + Today + Weekly Progress -->
+    <div class="grid-3">
+      <section class="card">
+        <h2>Log Vegetable</h2>
+        <div class="form-group">
+          <label for="dateInput">Date</label>
+          <input type="date" id="dateInput">
+        </div>
+        <div class="form-group">
+          <label for="veggieInput">Vegetable</label>
+          <input type="text" id="veggieInput" placeholder="e.g. Broccoli" list="veggie-list" autocomplete="off">
+          <datalist id="veggie-list"></datalist>
+        </div>
+        <button id="addBtn" class="btn-primary">Add</button>
+        <div id="addMsg" class="add-msg"></div>
+        <div class="quick-add-section">
+          <p class="section-label">Quick add (today):</p>
+          <div id="quickAdd" class="quick-add-chips"></div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2 id="todayHeading">Today</h2>
+        <div id="todayList" class="entry-list"></div>
+      </section>
+
+      <section class="card">
+        <h2>This Week</h2>
+        <div class="doughnut-wrapper">
+          <canvas id="weeklyProgressChart"></canvas>
+          <div class="doughnut-center">
+            <span id="weeklyCount">0</span>
+            <span class="doughnut-label">/30</span>
+          </div>
+        </div>
+        <div id="weeklyVeggies" class="veggie-chips"></div>
+      </section>
+    </div>
+
+    <!-- Row 2: Charts -->
+    <div class="grid-3">
+      <section class="card">
+        <h2>Daily — last 14 days</h2>
+        <div class="chart-container">
+          <canvas id="dailyChart"></canvas>
+        </div>
+      </section>
+      <section class="card">
+        <h2>Weekly — last 12 weeks</h2>
+        <div class="chart-container">
+          <canvas id="weeklyChart"></canvas>
+        </div>
+      </section>
+      <section class="card">
+        <h2>Monthly — last 12 months</h2>
+        <div class="chart-container">
+          <canvas id="monthlyChart"></canvas>
+        </div>
+      </section>
+    </div>
+
+    <!-- Row 3: Streaks + History -->
+    <div class="grid-2">
+      <section class="card">
+        <h2>Streaks</h2>
+        <div class="streak-overview">
+          <div class="streak-card">
+            <div class="streak-num" id="dailyStreak">0</div>
+            <div class="streak-desc">Day streak<br><small>eating any veg</small></div>
+          </div>
+          <div class="streak-card">
+            <div class="streak-num" id="weeklyStreak">0</div>
+            <div class="streak-desc">Week streak<br><small>hitting 30 goal</small></div>
+          </div>
+        </div>
+        <h3>Per Vegetable</h3>
+        <div id="veggieStreaks"></div>
+      </section>
+
+      <section class="card">
+        <div class="history-header">
+          <h2>History</h2>
+          <div class="history-actions">
+            <button id="exportBtn" class="btn-secondary">Export</button>
+            <label class="btn-secondary" for="importInput">Import</label>
+            <input type="file" id="importInput" accept=".json" style="display:none">
+          </div>
+        </div>
+        <div id="historyList"></div>
+      </section>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
