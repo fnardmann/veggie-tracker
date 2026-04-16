@@ -3,7 +3,8 @@
 const STORAGE_KEY = 'veggie-tracker-v1';
 const WEEKLY_GOAL = 30;
 
-const VEGETABLES = [
+const FOODS = [
+  // Vegetables
   'Artichoke', 'Arugula', 'Asparagus', 'Aubergine', 'Avocado',
   'Bamboo Shoots', 'Bean Sprouts', 'Beetroot', 'Bell Pepper', 'Bitter Melon',
   'Bok Choy', 'Broccoli', 'Brussels Sprouts', 'Butternut Squash', 'Cabbage',
@@ -18,7 +19,22 @@ const VEGETABLES = [
   'Shallot', 'Shiitake', 'Spinach', 'Spring Onion', 'Squash',
   'Swede', 'Sweet Corn', 'Sweet Potato', 'Swiss Chard', 'Taro',
   'Tenderstem Broccoli', 'Tomato', 'Turnip', 'Watercress',
-  'White Cabbage', 'Yam', 'Zucchini'
+  'White Cabbage', 'Yam', 'Zucchini',
+  // Fruits
+  'Apple', 'Apricot', 'Banana', 'Blackberry', 'Blackcurrant',
+  'Blueberry', 'Cherry', 'Clementine', 'Cranberry', 'Date',
+  'Dragon Fruit', 'Elderberry', 'Fig', 'Gooseberry', 'Grape',
+  'Grapefruit', 'Guava', 'Jackfruit', 'Kiwi', 'Lemon',
+  'Lime', 'Lychee', 'Mango', 'Melon', 'Nectarine',
+  'Orange', 'Papaya', 'Passion Fruit', 'Peach', 'Pear',
+  'Pineapple', 'Plum', 'Pomegranate', 'Raspberry', 'Redcurrant',
+  'Satsuma', 'Strawberry', 'Tangerine', 'Watermelon',
+  // Seeds
+  'Chia Seeds', 'Flaxseeds', 'Hemp Seeds', 'Pumpkin Seeds',
+  'Sesame Seeds', 'Sunflower Seeds', 'Poppy Seeds',
+  // Nuts
+  'Almonds', 'Brazil Nuts', 'Cashews', 'Hazelnuts', 'Macadamia Nuts',
+  'Peanuts', 'Pecans', 'Pine Nuts', 'Pistachios', 'Walnuts',
 ].sort();
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -589,7 +605,7 @@ function importData(file) {
 function init() {
   // Populate datalist for autocomplete
   const datalist = document.getElementById('veggie-list');
-  VEGETABLES.forEach(v => {
+  FOODS.forEach(v => {
     const opt = document.createElement('option');
     opt.value = v;
     datalist.appendChild(opt);

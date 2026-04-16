@@ -22,26 +22,37 @@ function setNutritionCache(data) {
   localStorage.setItem(NUTRITION_CACHE_KEY, JSON.stringify(data));
 }
 
-async function fetchNutritionFromAPI(vegetable) {
-  const query = encodeURIComponent('raw ' + vegetable);
+// Score a product by how many of our target nutriments it has
+function scoreProduct(nutriments) {
+  return NUTRIENT_DEFS.filter(({ key }) => nutriments[key] != null && nutriments[key] !== '').length;
+}
+
+async function fetchNutritionFromAPI(food) {
+  const query = encodeURIComponent(food);
   const fields = 'product_name,nutriments';
-  const url = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${query}&action=process&json=1&page_size=5&fields=${fields}`;
+  const url = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${query}&action=process&json=1&page_size=20&fields=${fields}`;
 
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 8000);
+  const timeout = setTimeout(() => controller.abort(), 10000);
 
   try {
     const res = await fetch(url, { signal: controller.signal });
     if (!res.ok) return null;
     const data = await res.json();
 
-    const product = data.products?.find(
-      p => p.nutriments && p.nutriments['energy-kcal_100g'] != null
-    );
-    if (!product) return null;
+    if (!data.products?.length) return null;
 
-    const n = product.nutriments;
-    const result = { source: product.product_name, fetched: Date.now() };
+    // Pick the product with the most of our target nutrients present
+    const best = data.products
+      .filter(p => p.nutriments)
+      .map(p => ({ p, score: scoreProduct(p.nutriments) }))
+      .filter(({ score }) => score > 0)
+      .sort((a, b) => b.score - a.score)[0];
+
+    if (!best) return null;
+
+    const n = best.p.nutriments;
+    const result = { source: best.p.product_name, fetched: Date.now() };
     for (const { key } of NUTRIENT_DEFS) {
       const val = n[key];
       result[key] = (val != null && val !== '') ? +val : null;
@@ -52,9 +63,9 @@ async function fetchNutritionFromAPI(vegetable) {
   }
 }
 
-async function fetchNutrition(vegetable) {
+async function fetchNutrition(food) {
   const cache = getNutritionCache();
-  const cacheKey = vegetable.toLowerCase();
+  const cacheKey = food.toLowerCase();
   const cached = cache[cacheKey];
 
   if (cached && (Date.now() - cached.fetched) < NUTRITION_CACHE_TTL) {
@@ -62,7 +73,7 @@ async function fetchNutrition(vegetable) {
   }
 
   try {
-    const result = await fetchNutritionFromAPI(vegetable);
+    const result = await fetchNutritionFromAPI(food);
     if (result) {
       cache[cacheKey] = result;
       setNutritionCache(cache);
@@ -73,8 +84,8 @@ async function fetchNutrition(vegetable) {
   }
 }
 
-async function fetchNutritionForAll(vegetables) {
+async function fetchNutritionForAll(foods) {
   return Promise.all(
-    vegetables.map(v => fetchNutrition(v).then(nutrition => ({ vegetable: v, nutrition })))
+    foods.map(v => fetchNutrition(v).then(nutrition => ({ vegetable: v, nutrition })))
   );
 }
