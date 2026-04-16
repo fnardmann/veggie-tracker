@@ -88,7 +88,16 @@
       </section>
     </div>
 
-    <!-- Row 3: Streaks + History -->
+    <!-- Row 3: Nutrition -->
+    <section class="card">
+      <div class="nutrition-header">
+        <h2>This Week's Nutrition</h2>
+        <span class="nutrition-note">per 100g raw · data from Open Food Facts</span>
+      </div>
+      <div id="nutritionContent"><p class="empty">Log vegetables to see nutrition data.</p></div>
+    </section>
+
+    <!-- Row 4: Streaks + History -->
     <div class="grid-2">
       <section class="card">
         <h2>Streaks</h2>
@@ -121,6 +130,7 @@
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="nutrition.js"></script>
   <script src="app.js"></script>
   <script>
     if ('serviceWorker' in navigator) {

@@ -364,6 +364,55 @@ main {
 }
 .chip-delete:hover { color: var(--c-amber); }
 
+/* ── Nutrition ───────────────────────────────────────────────────────────── */
+.nutrition-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.nutrition-header h2 { margin-bottom: 0; }
+.nutrition-note {
+  font-size: .7rem;
+  color: var(--c-text3);
+}
+.nutrition-scroll { overflow-x: auto; }
+.nutrition-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .82rem;
+  min-width: 580px;
+}
+.nutrition-table th {
+  padding: 6px 10px;
+  font-size: .68rem;
+  font-weight: 700;
+  color: var(--c-text3);
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  border-bottom: 1px solid var(--c-bg2);
+  background: #fff;
+  text-align: center;
+  white-space: nowrap;
+  position: sticky;
+  top: 0;
+}
+.nutrition-table th:first-child { text-align: left; }
+.nutrition-table th small { font-weight: 400; text-transform: none; letter-spacing: 0; }
+.nutrition-table td {
+  padding: 7px 10px;
+  border-bottom: 1px solid var(--c-bg);
+  text-align: center;
+  vertical-align: middle;
+}
+.nutrition-table td:first-child { text-align: left; }
+.nutrition-table tr:last-child td { border-bottom: none; }
+.nutrition-table tr:hover td { background: var(--c-bg); }
+.n-veggie { font-weight: 600; color: var(--c-dark); }
+.n-na { color: var(--c-text3); }
+
 /* ── Misc ────────────────────────────────────────────────────────────────── */
 .empty {
   color: var(--c-text3);

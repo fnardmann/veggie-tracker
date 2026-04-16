@@ -494,6 +494,51 @@ function renderHistory() {
   );
 }
 
+async function renderNutrition() {
+  const container = document.getElementById('nutritionContent');
+  const entries = thisWeekEntries();
+
+  if (entries.length === 0) {
+    container.innerHTML = '<p class="empty">Log vegetables to see nutrition data.</p>';
+    return;
+  }
+
+  const uniqueVegs = [...new Map(
+    entries.map(e => [e.vegetable.toLowerCase(), e.vegetable])
+  ).values()].sort();
+
+  container.innerHTML = '<p class="empty">Fetching nutrition data…</p>';
+
+  const results = await fetchNutritionForAll(uniqueVegs);
+
+  if (!results.some(r => r.nutrition)) {
+    container.innerHTML = '<p class="empty">No nutrition data found for this week\'s vegetables.</p>';
+    return;
+  }
+
+  const headerCells = NUTRIENT_DEFS
+    .map(d => `<th>${esc(d.label)}<br><small>${esc(d.unit)}</small></th>`)
+    .join('');
+
+  const rows = results.map(({ vegetable, nutrition: n }) => {
+    const cells = NUTRIENT_DEFS.map(({ key }) => {
+      if (!n || n[key] == null) return '<td class="n-na">—</td>';
+      const val = n[key];
+      return `<td>${Number.isInteger(val) ? val : val.toFixed(1)}</td>`;
+    }).join('');
+    return `<tr><td class="n-veggie">${esc(vegetable)}</td>${cells}</tr>`;
+  }).join('');
+
+  container.innerHTML = `
+    <div class="nutrition-scroll">
+      <table class="nutrition-table">
+        <thead><tr><th>Vegetable</th>${headerCells}</tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+  `;
+}
+
 function renderAll() {
   renderWeeklyProgress();
   renderToday();
@@ -503,6 +548,7 @@ function renderAll() {
   renderMonthlyChart();
   renderStreaks();
   renderHistory();
+  renderNutrition();
 }
 
 // ── Export / Import ───────────────────────────────────────────────────────────
