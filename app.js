@@ -537,18 +537,19 @@ async function renderNutrition() {
     .join('');
 
   const rows = results.map(({ vegetable, nutrition: n }) => {
+    const portionLabel = n ? `<span class="n-portion">${n.g}g</span>` : '';
     const cells = NUTRIENT_DEFS.map(({ key }) => {
       if (!n || n[key] == null) return '<td class="n-na">—</td>';
       const val = n[key];
       return `<td>${Number.isInteger(val) ? val : val.toFixed(1)}</td>`;
     }).join('');
-    return `<tr><td class="n-veggie">${esc(vegetable)}</td>${cells}</tr>`;
+    return `<tr><td class="n-veggie">${esc(vegetable)}${portionLabel}</td>${cells}</tr>`;
   }).join('');
 
   container.innerHTML = `
     <div class="nutrition-scroll">
       <table class="nutrition-table">
-        <thead><tr><th>Vegetable</th>${headerCells}</tr></thead>
+        <thead><tr><th>Food <span class="n-portion">portion</span></th>${headerCells}</tr></thead>
         <tbody>${rows}</tbody>
       </table>
     </div>

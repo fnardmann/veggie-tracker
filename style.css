@@ -412,6 +412,7 @@ main {
 .nutrition-table tr:hover td { background: var(--c-bg); }
 .n-veggie { font-weight: 600; color: var(--c-dark); }
 .n-na { color: var(--c-text3); }
+.n-portion { font-size: .7rem; font-weight: 400; color: var(--c-text3); margin-left: 5px; }
 
 /* ── Misc ────────────────────────────────────────────────────────────────── */
 .empty {
