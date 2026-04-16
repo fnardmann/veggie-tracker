@@ -3,26 +3,45 @@
 const NUTRITION_CACHE_KEY = 'veggie-nutrition-v1';
 const NUTRITION_CACHE_TTL = 30 * 24 * 60 * 60 * 1000; // 30 days
 
-// Displayed columns — values are per portion (scaled from per-100g data)
 const NUTRIENT_DEFS = [
-  { key: 'kcal',      label: 'Calories',  unit: 'kcal' },
-  { key: 'protein',   label: 'Protein',   unit: 'g' },
-  { key: 'fibre',     label: 'Fibre',     unit: 'g' },
-  { key: 'vitc',      label: 'Vitamin C', unit: 'mg' },
-  { key: 'iron',      label: 'Iron',      unit: 'mg' },
-  { key: 'calcium',   label: 'Calcium',   unit: 'mg' },
+  { key: 'fibre',   label: 'Fibre',      unit: 'g'  },
+  { key: 'vita',    label: 'Vitamin A',  unit: 'µg' },
+  { key: 'b1',      label: 'B1',         unit: 'mg' },
+  { key: 'b2',      label: 'B2',         unit: 'mg' },
+  { key: 'b3',      label: 'B3',         unit: 'mg' },
+  { key: 'b5',      label: 'B5',         unit: 'mg' },
+  { key: 'b6',      label: 'B6',         unit: 'mg' },
+  { key: 'b9',      label: 'Folate',     unit: 'µg' },
+  { key: 'vitc',    label: 'Vitamin C',  unit: 'mg' },
+  { key: 'vitd',    label: 'Vitamin D',  unit: 'µg' },
+  { key: 'vite',    label: 'Vitamin E',  unit: 'mg' },
+  { key: 'vitk',    label: 'Vitamin K',  unit: 'µg' },
+  { key: 'iron',    label: 'Iron',       unit: 'mg' },
+  { key: 'calcium', label: 'Calcium',    unit: 'mg' },
+  { key: 'magnesium', label: 'Magnesium', unit: 'mg' },
   { key: 'potassium', label: 'Potassium', unit: 'mg' },
+  { key: 'zinc',    label: 'Zinc',       unit: 'mg' },
 ];
 
-// Map Open Food Facts nutriment keys → our internal keys
+// Open Food Facts nutriment keys → our internal keys (fallback for unknown foods)
 const OFF_KEY_MAP = {
-  'energy-kcal_100g': 'kcal',
-  'proteins_100g':    'protein',
-  'fiber_100g':       'fibre',
-  'vitamin-c_100g':   'vitc',
-  'iron_100g':        'iron',
-  'calcium_100g':     'calcium',
-  'potassium_100g':   'potassium',
+  'fiber_100g':              'fibre',
+  'vitamin-a_100g':          'vita',
+  'vitamin-b1_100g':         'b1',
+  'vitamin-b2_100g':         'b2',
+  'vitamin-pp_100g':         'b3',
+  'pantothenic-acid_100g':   'b5',
+  'vitamin-b6_100g':         'b6',
+  'folates_100g':            'b9',
+  'vitamin-c_100g':          'vitc',
+  'vitamin-d_100g':          'vitd',
+  'vitamin-e_100g':          'vite',
+  'vitamin-k_100g':          'vitk',
+  'iron_100g':               'iron',
+  'calcium_100g':            'calcium',
+  'magnesium_100g':          'magnesium',
+  'potassium_100g':          'potassium',
+  'zinc_100g':               'zinc',
 };
 
 function getNutritionCache() {
@@ -34,11 +53,15 @@ function setNutritionCache(data) {
   localStorage.setItem(NUTRITION_CACHE_KEY, JSON.stringify(data));
 }
 
+function scoreProduct(nutriments) {
+  return Object.keys(OFF_KEY_MAP).filter(k => nutriments[k] != null && nutriments[k] !== '').length;
+}
+
 function scaleToPortionSize(data100g, portionG) {
   const factor = portionG / 100;
   const result = { g: portionG, fetched: data100g.fetched ?? Date.now(), source: data100g.source ?? 'static' };
   for (const { key } of NUTRIENT_DEFS) {
-    result[key] = data100g[key] != null ? +(data100g[key] * factor).toFixed(1) : null;
+    result[key] = data100g[key] != null ? +(data100g[key] * factor).toFixed(2) : null;
   }
   return result;
 }
@@ -63,13 +86,9 @@ async function fetchNutritionFromAPI(food) {
     const data = await res.json();
     if (!data.products?.length) return null;
 
-    // Pick product with most of our target nutrients present
     const best = data.products
       .filter(p => p.nutriments)
-      .map(p => ({
-        p,
-        score: Object.keys(OFF_KEY_MAP).filter(k => p.nutriments[k] != null && p.nutriments[k] !== '').length,
-      }))
+      .map(p => ({ p, score: scoreProduct(p.nutriments) }))
       .filter(({ score }) => score > 0)
       .sort((a, b) => b.score - a.score)[0];
 
@@ -81,7 +100,6 @@ async function fetchNutritionFromAPI(food) {
       const val = n[offKey];
       raw[ourKey] = (val != null && val !== '') ? +val : null;
     }
-    // Default portion: 100g for unknown foods from API
     return scaleToPortionSize(raw, 100);
   } finally {
     clearTimeout(timeout);
@@ -89,17 +107,14 @@ async function fetchNutritionFromAPI(food) {
 }
 
 async function fetchNutrition(food) {
-  // 1. Try static data first — always wins for known foods
   const staticResult = lookupStatic(food);
   if (staticResult) return staticResult;
 
-  // 2. Check API cache
   const cache = getNutritionCache();
   const cacheKey = food.toLowerCase();
   const cached = cache[cacheKey];
   if (cached && (Date.now() - cached.fetched) < NUTRITION_CACHE_TTL) return cached;
 
-  // 3. Fetch from Open Food Facts
   try {
     const result = await fetchNutritionFromAPI(food);
     if (result) {

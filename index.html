@@ -24,108 +24,139 @@
         <div class="stat-pill" id="headerWeeklyStreak">0 week streak</div>
       </div>
     </div>
+    <nav class="tab-nav">
+      <button class="tab-btn active" data-tab="overview">Overview</button>
+      <button class="tab-btn" data-tab="nutrition">Nutrition</button>
+    </nav>
   </header>
 
   <main>
-    <!-- Row 1: Add + Today + Weekly Progress -->
-    <div class="grid-3">
-      <section class="card">
-        <h2>Log Vegetable</h2>
-        <div class="form-group">
-          <label for="dateInput">Date</label>
-          <input type="date" id="dateInput">
-        </div>
-        <div class="form-group">
-          <label for="veggieInput">Food</label>
-          <input type="text" id="veggieInput" placeholder="e.g. Broccoli, Apple, Almonds" list="veggie-list" autocomplete="off">
-          <datalist id="veggie-list"></datalist>
-        </div>
-        <button id="addBtn" class="btn-primary">Add</button>
-        <div id="addMsg" class="add-msg"></div>
-        <div class="quick-add-section">
-          <p class="section-label">Quick add (today):</p>
-          <div id="quickAdd" class="quick-add-chips"></div>
-        </div>
-      </section>
+    <!-- ── Overview tab ─────────────────────────────────────────────────────── -->
+    <div id="tab-overview" class="tab-pane">
 
-      <section class="card">
-        <h2 id="todayHeading">Today</h2>
-        <div id="todayList" class="entry-list"></div>
-      </section>
-
-      <section class="card">
-        <h2>This Week</h2>
-        <div class="doughnut-wrapper">
-          <canvas id="weeklyProgressChart"></canvas>
-          <div class="doughnut-center">
-            <span id="weeklyCount">0</span>
-            <span class="doughnut-label">/30</span>
+      <!-- Row 1: Add + Today + Weekly Progress -->
+      <div class="grid-3">
+        <section class="card">
+          <h2>Log Food</h2>
+          <div class="form-group">
+            <label for="dateInput">Date</label>
+            <input type="date" id="dateInput">
           </div>
-        </div>
-        <div id="weeklyVeggies" class="veggie-chips"></div>
-      </section>
-    </div>
+          <div class="form-group">
+            <label for="veggieInput">Food</label>
+            <input type="text" id="veggieInput" placeholder="e.g. Broccoli, Apple, Almonds" list="veggie-list" autocomplete="off">
+            <datalist id="veggie-list"></datalist>
+          </div>
+          <button id="addBtn" class="btn-primary">Add</button>
+          <div id="addMsg" class="add-msg"></div>
+          <div class="quick-add-section">
+            <p class="section-label">Quick add (today):</p>
+            <div id="quickAdd" class="quick-add-chips"></div>
+          </div>
+        </section>
 
-    <!-- Row 2: Charts -->
-    <div class="grid-3">
-      <section class="card">
-        <h2>Daily — last 14 days</h2>
-        <div class="chart-container">
-          <canvas id="dailyChart"></canvas>
-        </div>
-      </section>
-      <section class="card">
-        <h2>Weekly — last 12 weeks</h2>
-        <div class="chart-container">
-          <canvas id="weeklyChart"></canvas>
-        </div>
-      </section>
-      <section class="card">
-        <h2>Monthly — last 12 months</h2>
-        <div class="chart-container">
-          <canvas id="monthlyChart"></canvas>
-        </div>
-      </section>
-    </div>
+        <section class="card">
+          <h2 id="todayHeading">Today</h2>
+          <div id="todayList" class="entry-list"></div>
+        </section>
 
-    <!-- Row 3: Nutrition -->
-    <section class="card">
-      <div class="nutrition-header">
-        <h2>This Week's Nutrition</h2>
-        <span class="nutrition-note">per 100g raw · data from Open Food Facts</span>
+        <section class="card">
+          <h2>This Week</h2>
+          <div class="doughnut-wrapper">
+            <canvas id="weeklyProgressChart"></canvas>
+            <div class="doughnut-center">
+              <span id="weeklyCount">0</span>
+              <span class="doughnut-label">/30</span>
+            </div>
+          </div>
+          <div id="weeklyVeggies" class="veggie-chips"></div>
+        </section>
       </div>
-      <div id="nutritionContent"><p class="empty">Log vegetables to see nutrition data.</p></div>
-    </section>
 
-    <!-- Row 4: Streaks + History -->
-    <div class="grid-2">
+      <!-- Row 2: Charts -->
+      <div class="grid-3">
+        <section class="card">
+          <h2>Daily — last 14 days</h2>
+          <div class="chart-container">
+            <canvas id="dailyChart"></canvas>
+          </div>
+        </section>
+        <section class="card">
+          <h2>Weekly — last 12 weeks</h2>
+          <div class="chart-container">
+            <canvas id="weeklyChart"></canvas>
+          </div>
+        </section>
+        <section class="card">
+          <h2>Monthly — last 12 months</h2>
+          <div class="chart-container">
+            <canvas id="monthlyChart"></canvas>
+          </div>
+        </section>
+      </div>
+
+      <!-- Row 3: Streaks + History -->
+      <div class="grid-2">
+        <section class="card">
+          <h2>Streaks</h2>
+          <div class="streak-overview">
+            <div class="streak-card">
+              <div class="streak-num" id="dailyStreak">0</div>
+              <div class="streak-desc">Day streak<br><small>eating any plant</small></div>
+            </div>
+            <div class="streak-card">
+              <div class="streak-num" id="weeklyStreak">0</div>
+              <div class="streak-desc">Week streak<br><small>hitting 30 goal</small></div>
+            </div>
+          </div>
+          <h3>Per Food</h3>
+          <div id="veggieStreaks"></div>
+        </section>
+
+        <section class="card">
+          <div class="history-header">
+            <h2>History</h2>
+            <div class="history-actions">
+              <button id="exportBtn" class="btn-secondary">Export</button>
+              <label class="btn-secondary" for="importInput">Import</label>
+              <input type="file" id="importInput" accept=".json" style="display:none">
+            </div>
+          </div>
+          <div id="historyList"></div>
+        </section>
+      </div>
+    </div>
+
+    <!-- ── Nutrition tab ─────────────────────────────────────────────────────── -->
+    <div id="tab-nutrition" class="tab-pane" hidden>
+
+      <!-- Per-food breakdown -->
       <section class="card">
-        <h2>Streaks</h2>
-        <div class="streak-overview">
-          <div class="streak-card">
-            <div class="streak-num" id="dailyStreak">0</div>
-            <div class="streak-desc">Day streak<br><small>eating any veg</small></div>
-          </div>
-          <div class="streak-card">
-            <div class="streak-num" id="weeklyStreak">0</div>
-            <div class="streak-desc">Week streak<br><small>hitting 30 goal</small></div>
-          </div>
+        <div class="nutrition-header">
+          <h2>This Week — Per Food</h2>
+          <span class="nutrition-note">per typical portion · static data + Open Food Facts</span>
         </div>
-        <h3>Per Vegetable</h3>
-        <div id="veggieStreaks"></div>
+        <div id="nutritionTable"><p class="empty">Log foods to see nutrition data.</p></div>
       </section>
 
+      <!-- Weekly totals -->
       <section class="card">
-        <div class="history-header">
-          <h2>History</h2>
-          <div class="history-actions">
-            <button id="exportBtn" class="btn-secondary">Export</button>
-            <label class="btn-secondary" for="importInput">Import</label>
-            <input type="file" id="importInput" accept=".json" style="display:none">
-          </div>
+        <div class="nutrition-header">
+          <h2>This Week — Totals</h2>
+          <span class="nutrition-note">sum of all portions logged · from logged plants only</span>
         </div>
-        <div id="historyList"></div>
+        <div id="nutritionTotals"><p class="empty">Log foods to see weekly totals.</p></div>
       </section>
+
+      <!-- DGE comparison -->
+      <section class="card">
+        <div class="nutrition-header">
+          <h2>DGE Comparison</h2>
+          <span class="nutrition-note">% of weekly DGE recommendation covered by logged plants · source: Deutsche Gesellschaft für Ernährung</span>
+        </div>
+        <div id="nutritionDGE"><p class="empty">Log foods to see DGE comparison.</p></div>
+      </section>
+
     </div>
   </main>
 

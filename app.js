@@ -510,50 +510,165 @@ function renderHistory() {
   );
 }
 
-async function renderNutrition() {
-  const container = document.getElementById('nutritionContent');
+// ── DGE weekly reference values (Deutsche Gesellschaft für Ernährung) ─────────
+// Based on DGE Referenzwerte for adults 25–51, daily × 7 for weekly targets.
+const DGE = [
+  { key: 'fibre',     label: 'Fibre',      unit: 'g',   daily: 30,   note: '30 g/day'          },
+  { key: 'vita',      label: 'Vitamin A',  unit: 'µg',  daily: 800,  note: '700–850 µg/day'    },
+  { key: 'b1',        label: 'Vitamin B1', unit: 'mg',  daily: 1.1,  note: '1.0–1.3 mg/day'    },
+  { key: 'b2',        label: 'Vitamin B2', unit: 'mg',  daily: 1.2,  note: '1.1–1.4 mg/day'    },
+  { key: 'b3',        label: 'Vitamin B3', unit: 'mg',  daily: 14,   note: '11–17 mg/day'      },
+  { key: 'b5',        label: 'Vitamin B5', unit: 'mg',  daily: 5,    note: '5 mg/day'           },
+  { key: 'b6',        label: 'Vitamin B6', unit: 'mg',  daily: 1.4,  note: '1.2–1.6 mg/day'    },
+  { key: 'b9',        label: 'Folate',     unit: 'µg',  daily: 300,  note: '300 µg/day'         },
+  { key: 'vitc',      label: 'Vitamin C',  unit: 'mg',  daily: 100,  note: '95–110 mg/day'      },
+  { key: 'vitd',      label: 'Vitamin D',  unit: 'µg',  daily: 20,   note: '20 µg/day'          },
+  { key: 'vite',      label: 'Vitamin E',  unit: 'mg',  daily: 12,   note: '11–15 mg/day'       },
+  { key: 'vitk',      label: 'Vitamin K',  unit: 'µg',  daily: 70,   note: '60–80 µg/day'       },
+  { key: 'iron',      label: 'Iron',       unit: 'mg',  daily: 12,   note: '10–15 mg/day'       },
+  { key: 'calcium',   label: 'Calcium',    unit: 'mg',  daily: 1000, note: '1000 mg/day'        },
+  { key: 'magnesium', label: 'Magnesium',  unit: 'mg',  daily: 325,  note: '300–350 mg/day'     },
+  { key: 'potassium', label: 'Potassium',  unit: 'mg',  daily: 4000, note: '4000 mg/day'        },
+  { key: 'zinc',      label: 'Zinc',       unit: 'mg',  daily: 8,    note: '7–10 mg/day'        },
+];
+
+// ── Nutrition tab rendering ───────────────────────────────────────────────────
+
+function fmtVal(val) {
+  if (val == null) return '—';
+  return Number.isInteger(val) ? String(val) : val.toFixed(1);
+}
+
+async function renderNutritionTab() {
   const entries = thisWeekEntries();
+  const empty = '<p class="empty">Log foods to see nutrition data.</p>';
 
   if (entries.length === 0) {
-    container.innerHTML = '<p class="empty">Log vegetables to see nutrition data.</p>';
+    document.getElementById('nutritionTable').innerHTML = empty;
+    document.getElementById('nutritionTotals').innerHTML = empty;
+    document.getElementById('nutritionDGE').innerHTML = empty;
     return;
   }
 
-  const uniqueVegs = [...new Map(
-    entries.map(e => [e.vegetable.toLowerCase(), e.vegetable])
-  ).values()].sort();
-
-  container.innerHTML = '<p class="empty">Fetching nutrition data…</p>';
-
-  const results = await fetchNutritionForAll(uniqueVegs);
-
-  if (!results.some(r => r.nutrition)) {
-    container.innerHTML = '<p class="empty">No nutrition data found for this week\'s vegetables.</p>';
-    return;
+  // Count occurrences per food (same food on multiple days counts multiple times)
+  const foodCounts = new Map();
+  for (const e of entries) {
+    const key = e.vegetable.toLowerCase();
+    if (!foodCounts.has(key)) foodCounts.set(key, { name: e.vegetable, count: 0 });
+    foodCounts.get(key).count++;
   }
 
+  const uniqueFoods = [...foodCounts.values()].map(f => f.name).sort();
+
+  document.getElementById('nutritionTable').innerHTML = '<p class="empty">Fetching nutrition data…</p>';
+  document.getElementById('nutritionTotals').innerHTML = '<p class="empty">Fetching nutrition data…</p>';
+  document.getElementById('nutritionDGE').innerHTML = '<p class="empty">Fetching nutrition data…</p>';
+
+  const results = await fetchNutritionForAll(uniqueFoods);
+
+  // ── Per-food table ──
   const headerCells = NUTRIENT_DEFS
     .map(d => `<th>${esc(d.label)}<br><small>${esc(d.unit)}</small></th>`)
     .join('');
 
-  const rows = results.map(({ vegetable, nutrition: n }) => {
+  const tableRows = results.map(({ vegetable, nutrition: n }) => {
+    const count = foodCounts.get(vegetable.toLowerCase())?.count ?? 1;
+    const timesLabel = count > 1 ? `<span class="n-portion">×${count} this week</span>` : '';
     const portionLabel = n ? `<span class="n-portion">${n.g}g</span>` : '';
     const cells = NUTRIENT_DEFS.map(({ key }) => {
       if (!n || n[key] == null) return '<td class="n-na">—</td>';
-      const val = n[key];
-      return `<td>${Number.isInteger(val) ? val : val.toFixed(1)}</td>`;
+      return `<td>${fmtVal(n[key])}</td>`;
     }).join('');
-    return `<tr><td class="n-veggie">${esc(vegetable)}${portionLabel}</td>${cells}</tr>`;
+    return `<tr><td class="n-veggie">${esc(vegetable)}${portionLabel}${timesLabel}</td>${cells}</tr>`;
   }).join('');
 
-  container.innerHTML = `
+  if (!results.some(r => r.nutrition)) {
+    const noData = '<p class="empty">No nutrition data available for this week\'s foods.</p>';
+    document.getElementById('nutritionTable').innerHTML = noData;
+    document.getElementById('nutritionTotals').innerHTML = noData;
+    document.getElementById('nutritionDGE').innerHTML = noData;
+    return;
+  }
+
+  document.getElementById('nutritionTable').innerHTML = `
     <div class="nutrition-scroll">
       <table class="nutrition-table">
-        <thead><tr><th>Food <span class="n-portion">portion</span></th>${headerCells}</tr></thead>
-        <tbody>${rows}</tbody>
+        <thead><tr><th>Food <span class="n-portion">portion · frequency</span></th>${headerCells}</tr></thead>
+        <tbody>${tableRows}</tbody>
       </table>
-    </div>
-  `;
+    </div>`;
+
+  // ── Weekly totals ──
+  const totals = {};
+  for (const { key } of NUTRIENT_DEFS) totals[key] = null;
+
+  for (const { vegetable, nutrition: n } of results) {
+    if (!n) continue;
+    const count = foodCounts.get(vegetable.toLowerCase())?.count ?? 1;
+    for (const { key } of NUTRIENT_DEFS) {
+      if (n[key] != null) {
+        totals[key] = (totals[key] ?? 0) + n[key] * count;
+      }
+    }
+  }
+
+  // Round totals
+  for (const key of Object.keys(totals)) {
+    if (totals[key] != null) totals[key] = Math.round(totals[key] * 10) / 10;
+  }
+
+  const totalCells = NUTRIENT_DEFS.map(({ key }) =>
+    totals[key] != null ? `<td><strong>${fmtVal(totals[key])}</strong></td>` : '<td class="n-na">—</td>'
+  ).join('');
+
+  document.getElementById('nutritionTotals').innerHTML = `
+    <div class="nutrition-scroll">
+      <table class="nutrition-table">
+        <thead><tr><th>Total this week</th>${headerCells}</tr></thead>
+        <tbody><tr><td class="n-veggie">All logged plants</td>${totalCells}</tr></tbody>
+      </table>
+    </div>`;
+
+  // ── DGE comparison ──
+  const dgeRows = DGE.map(({ key, label, unit, daily, note }) => {
+    const weeklyTarget = daily * 7;
+    const actual = totals[key];
+    if (actual == null) return `
+      <div class="dge-row">
+        <div class="dge-meta">
+          <span class="dge-label">${esc(label)}</span>
+          <span class="dge-note">${esc(note)}</span>
+        </div>
+        <div class="dge-bar-wrap">
+          <div class="dge-bar-bg"><div class="dge-bar" style="width:0%"></div></div>
+          <span class="dge-nums n-na">No data</span>
+        </div>
+      </div>`;
+
+    const pct = Math.min((actual / weeklyTarget) * 100, 100);
+    const overPct = actual > weeklyTarget ? ((actual / weeklyTarget - 1) * 100) : 0;
+    const barClass = pct >= 80 ? 'dge-bar--good' : pct >= 40 ? 'dge-bar--mid' : 'dge-bar--low';
+    const display = `${fmtVal(actual)} / ${weeklyTarget} ${esc(unit)}`;
+    const pctLabel = actual > weeklyTarget
+      ? `<span class="dge-pct dge-pct--over">+${Math.round(overPct)}% over</span>`
+      : `<span class="dge-pct">${Math.round(pct)}%</span>`;
+
+    return `
+      <div class="dge-row">
+        <div class="dge-meta">
+          <span class="dge-label">${esc(label)}</span>
+          <span class="dge-note">${esc(note)} · weekly target: ${weeklyTarget} ${esc(unit)}</span>
+        </div>
+        <div class="dge-bar-wrap">
+          <div class="dge-bar-bg"><div class="dge-bar ${barClass}" style="width:${pct}%"></div></div>
+          <span class="dge-nums">${display} ${pctLabel}</span>
+        </div>
+      </div>`;
+  }).join('');
+
+  document.getElementById('nutritionDGE').innerHTML = `
+    <p class="dge-disclaimer">Values reflect logged plants only — not your full diet. DGE reference values for adults 25–51.</p>
+    <div class="dge-list">${dgeRows}</div>`;
 }
 
 function renderAll() {
@@ -565,7 +680,11 @@ function renderAll() {
   renderMonthlyChart();
   renderStreaks();
   renderHistory();
-  renderNutrition();
+  // Nutrition tab renders on demand when the tab is opened,
+  // but re-render if it's currently visible
+  if (!document.getElementById('tab-nutrition').hidden) {
+    renderNutritionTab();
+  }
 }
 
 // ── Export / Import ───────────────────────────────────────────────────────────
@@ -640,6 +759,18 @@ function init() {
   document.getElementById('importInput').addEventListener('change', e => {
     if (e.target.files[0]) importData(e.target.files[0]);
     e.target.value = '';
+  });
+
+  // Tab switching
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-pane').forEach(p => { p.hidden = true; });
+      btn.classList.add('active');
+      const pane = document.getElementById('tab-' + btn.dataset.tab);
+      pane.hidden = false;
+      if (btn.dataset.tab === 'nutrition') renderNutritionTab();
+    });
   });
 
   renderAll();
