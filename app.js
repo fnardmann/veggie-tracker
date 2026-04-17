@@ -1376,21 +1376,23 @@ function initCardModal() {
     a.href = _modalCanvas.toDataURL('image/png');
     a.click();
   });
+  document.getElementById('cardModalPrev').addEventListener('click', () => navigateModal(-1));
+  document.getElementById('cardModalNext').addEventListener('click', () => navigateModal(1));
+
+  // Swipe on the image
+  const imgWrap = document.querySelector('.card-modal-img-wrap');
+  let touchStartX = 0;
+  imgWrap.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+  imgWrap.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    if (Math.abs(dx) > 40) navigateModal(dx < 0 ? 1 : -1);
+  }, { passive: true });
+
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') { closeCardModal(); return; }
-    if (document.getElementById('cardModal').hidden && !document.getElementById('tab-gallery').hidden) {
-      const track = document.querySelector('.daily-cards-track');
-      const dots  = document.querySelector('.gallery-dots');
-      const total = track ? track.children.length : 0;
-      if (total > 1) {
-        if (e.key === 'ArrowLeft') {
-          galleryCurrentIndex = Math.max(galleryCurrentIndex - 1, 0);
-          updateGalleryPosition(track, dots);
-        } else if (e.key === 'ArrowRight') {
-          galleryCurrentIndex = Math.min(galleryCurrentIndex + 1, total - 1);
-          updateGalleryPosition(track, dots);
-        }
-      }
+    if (!document.getElementById('cardModal').hidden) {
+      if (e.key === 'ArrowLeft')  navigateModal(-1);
+      if (e.key === 'ArrowRight') navigateModal(1);
     }
   });
 }
@@ -1412,68 +1414,34 @@ async function renderDailyCards() {
     return;
   }
 
-  galleryCurrentIndex = Math.min(galleryCurrentIndex, dates.length - 1);
-  const multi = dates.length > 1;
+  const existing = new Map();
+  container.querySelectorAll('.day-card[data-date]').forEach(el =>
+    existing.set(el.dataset.date, el)
+  );
 
-  container.innerHTML = `
-    <div class="gallery-outer">
-      <div class="daily-cards-carousel">
-        <div class="daily-cards-track"></div>
-        ${multi ? `
-          <button class="gallery-nav gallery-nav--prev" aria-label="Previous day">&#8249;</button>
-          <button class="gallery-nav gallery-nav--next" aria-label="Next day">&#8250;</button>
-        ` : ''}
-      </div>
-      ${multi ? `<div class="gallery-dots">${dates.map((_, i) => `<button class="gallery-dot" data-idx="${i}"></button>`).join('')}</div>` : ''}
-    </div>`;
-
-  const track = container.querySelector('.daily-cards-track');
-  const dots  = container.querySelector('.gallery-dots');
+  container.innerHTML = '';
 
   for (const date of dates) {
-    const foods   = [...byDate.get(date)];
+    const foods = [...byDate.get(date)];
+    const seed  = simpleHash(date + ':' + [...foods].sort().join(','));
+
+    const prev = existing.get(date);
+    if (prev && prev.dataset.seed === String(seed)) {
+      container.appendChild(prev);
+      continue;
+    }
+
     const wrapper = document.createElement('div');
     wrapper.className    = 'day-card';
     wrapper.dataset.date = date;
-    track.appendChild(wrapper);
+    wrapper.dataset.seed = String(seed);
+    container.appendChild(wrapper);
 
     drawDayCard(date, foods).then(canvas => {
       canvas.style.cssText = 'width:100%;height:100%;display:block;cursor:pointer;';
-      wrapper.addEventListener('click', () => openCardModal(canvas, date));
+      wrapper.addEventListener('click', () => openCardModal(canvas, date, dates));
       wrapper.append(canvas);
     });
-  }
-
-  updateGalleryPosition(track, dots);
-
-  if (multi) {
-    container.querySelector('.gallery-nav--prev').addEventListener('click', () => {
-      galleryCurrentIndex = Math.max(galleryCurrentIndex - 1, 0);
-      updateGalleryPosition(track, dots);
-    });
-    container.querySelector('.gallery-nav--next').addEventListener('click', () => {
-      galleryCurrentIndex = Math.min(galleryCurrentIndex + 1, dates.length - 1);
-      updateGalleryPosition(track, dots);
-    });
-    dots.querySelectorAll('.gallery-dot').forEach(dot => {
-      dot.addEventListener('click', () => {
-        galleryCurrentIndex = +dot.dataset.idx;
-        updateGalleryPosition(track, dots);
-      });
-    });
-
-    // Touch swipe
-    const carousel = container.querySelector('.daily-cards-carousel');
-    let touchStartX = 0;
-    carousel.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
-    carousel.addEventListener('touchend', e => {
-      const dx = e.changedTouches[0].clientX - touchStartX;
-      if (Math.abs(dx) > 40) {
-        if (dx < 0) galleryCurrentIndex = Math.min(galleryCurrentIndex + 1, dates.length - 1);
-        else        galleryCurrentIndex = Math.max(galleryCurrentIndex - 1, 0);
-        updateGalleryPosition(track, dots);
-      }
-    }, { passive: true });
   }
 }
 
