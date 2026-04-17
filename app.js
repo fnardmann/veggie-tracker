@@ -713,6 +713,114 @@ async function renderNutritionTab(quiet = false) {
   }).join('');
 
   document.getElementById('nutritionDGE').innerHTML = `<div class="src-list">${sourceRows}</div>`;
+
+  await renderNutrientTrend();
+}
+
+// ── Nutrient trend chart ──────────────────────────────────────────────────────
+
+async function renderNutrientTrend() {
+  const { entries } = getData();
+  const today = todayStr();
+  const ws0 = getWeekStart(today);
+  const WEEKS = 12;
+
+  // Build week windows oldest → newest
+  const weeks = Array.from({ length: WEEKS }, (_, i) => {
+    const ws = addDays(ws0, -(WEEKS - 1 - i) * 7);
+    return { ws, we: addDays(ws, 6), label: fmtWeekRange(ws) };
+  });
+
+  // Group entries per week
+  const weekEntries = weeks.map(({ ws, we }) => entriesInRange(entries, ws, we));
+
+  // Collect all unique foods across all weeks
+  const allFoods = [...new Set(weekEntries.flat().map(e => e.vegetable))];
+
+  const wrap = document.getElementById('trendChartWrap');
+
+  if (allFoods.length === 0) {
+    wrap.innerHTML = '<p class="empty">Log foods to see nutrient trends.</p>';
+    return;
+  }
+
+  // Fetch nutrition for every food once (static + cache, no redundant API calls)
+  const nutritionResults = await fetchNutritionForAll(allFoods);
+  const portions = getPortions();
+
+  const foodNutrition = new Map();
+  for (const { vegetable, nutrition: n } of nutritionResults) {
+    if (!n) continue;
+    const customG = portions[vegetable.toLowerCase()];
+    foodNutrition.set(
+      vegetable.toLowerCase(),
+      (customG && customG !== n.g) ? rescaleNutrition(n, customG) : n
+    );
+  }
+
+  const select = document.getElementById('trendNutrient');
+  const key = select.value || 'vitc';
+  const def = NUTRIENT_DEFS.find(d => d.key === key);
+
+  // Compute weekly totals for selected nutrient
+  const totals = weeks.map((_, i) => {
+    const we = weekEntries[i];
+    if (!we.length) return null;
+    const counts = new Map();
+    for (const e of we) counts.set(e.vegetable.toLowerCase(), (counts.get(e.vegetable.toLowerCase()) ?? 0) + 1);
+    let sum = null;
+    for (const [food, count] of counts) {
+      const n = foodNutrition.get(food);
+      if (n?.[key] != null) sum = (sum ?? 0) + n[key] * count;
+    }
+    return sum != null ? +(sum.toFixed(1)) : null;
+  });
+
+  // Restore canvas if we replaced it with a message previously
+  if (!wrap.querySelector('canvas')) {
+    wrap.innerHTML = '<canvas id="trendChart"></canvas>';
+  }
+
+  mkChart('trendChart', {
+    type: 'line',
+    data: {
+      labels: weeks.map(w => w.label),
+      datasets: [{
+        data: totals,
+        borderColor: C.main,
+        backgroundColor: 'rgba(64,145,108,0.10)',
+        borderWidth: 2.5,
+        pointRadius: 4,
+        pointBackgroundColor: C.main,
+        pointBorderColor: '#fff',
+        pointBorderWidth: 1.5,
+        fill: true,
+        tension: 0.35,
+        spanGaps: true,
+        label: `${def.label} (${def.unit})`,
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => ctx.raw != null ? `${ctx.raw} ${def.unit}` : 'No data',
+          },
+        },
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          grid: { color: '#f0f5f2' },
+          ticks: { callback: v => `${v} ${def.unit}` },
+        },
+        x: { grid: { display: false }, ticks: { font: { size: 9 }, maxRotation: 45 } },
+      },
+    },
+  });
 }
 
 // ── Heatmap ───────────────────────────────────────────────────────────────────
@@ -897,6 +1005,17 @@ function init() {
     if (e.target.files[0]) importData(e.target.files[0]);
     e.target.value = '';
   });
+
+  // Nutrient trend select
+  const trendSelect = document.getElementById('trendNutrient');
+  NUTRIENT_DEFS.forEach(({ key, label, unit }) => {
+    const opt = document.createElement('option');
+    opt.value = key;
+    opt.textContent = `${label} (${unit})`;
+    if (key === 'vitc') opt.selected = true;
+    trendSelect.appendChild(opt);
+  });
+  trendSelect.addEventListener('change', renderNutrientTrend);
 
   // Settings: weekly goal
   const goalInput = document.getElementById('goalInput');

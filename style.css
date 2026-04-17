@@ -527,6 +527,21 @@ main {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--c-pale); border-radius: 2px; }
 
+/* ── Trend select ────────────────────────────────────────────────────────── */
+.trend-select {
+  padding: 5px 10px;
+  border: 1.5px solid var(--c-pale);
+  border-radius: var(--radius-s);
+  font-size: .82rem;
+  color: var(--c-text2);
+  background: var(--c-bg);
+  cursor: pointer;
+  font-family: inherit;
+  outline: none;
+  transition: border-color .15s;
+}
+.trend-select:focus { border-color: var(--c-main); }
+
 /* ── Heatmap ─────────────────────────────────────────────────────────────── */
 .heat-wrap {
   display: flex;
