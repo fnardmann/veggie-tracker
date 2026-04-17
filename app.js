@@ -845,23 +845,45 @@ function renderNutrientSuggestions(totals, loggedFoodsThisWeek) {
     return;
   }
 
-  const rows = foodScores.map(({ name, covered }, i) => {
-    const foodName = name.replace(/\b\w/g, c => c.toUpperCase());
-    const countKey = covered.length === 1 ? 'covers_1_gap' : 'covers_n_gaps';
-    const chips = covered.map(({ key, unit, amount }) =>
-      `<span class="sugg-nut-chip">${esc(t('nutrient_' + key))} <em>${amount} ${esc(unit)}</em></span>`
-    ).join('');
+  // Group foods by their top gap nutrient to render superpower sections
+  const sections = [];
+  const assignedFoods = new Set();
+  for (const gap of gapNutrients) {
+    const foods = foodScores.filter(f => !assignedFoods.has(f.name) && f.covered.some(c => c.key === gap.key));
+    if (!foods.length) continue;
+    foods.forEach(f => assignedFoods.add(f.name));
+    sections.push({ gapKey: gap.key, foods });
+  }
+
+  const html = sections.map(({ gapKey, foods }) => {
+    const nutrientLabel = esc(t('nutrient_' + gapKey));
+    const factText = esc(t('fact_' + gapKey));
+    const rows = foods.map(({ name, covered }) => {
+      const foodName = name.replace(/\b\w/g, c => c.toUpperCase());
+      const countKey = covered.length === 1 ? 'covers_1_gap' : 'covers_n_gaps';
+      const chips = covered.map(({ key, unit, amount }) =>
+        `<span class="sugg-nut-chip">${esc(t('nutrient_' + key))} <em>${amount} ${esc(unit)}</em></span>`
+      ).join('');
+      return `
+        <div class="sugg-food-row">
+          <div class="sugg-food-header">
+            <span class="sugg-food-name">${esc(tFood(foodName))}</span>
+            <span class="sugg-food-badge">${t(countKey, { n: covered.length })}</span>
+          </div>
+          <div class="sugg-nut-chips">${chips}</div>
+        </div>`;
+    }).join('');
     return `
-      <div class="sugg-food-row${i === 0 ? ' sugg-food-row--top' : ''}">
-        <div class="sugg-food-header">
-          <span class="sugg-food-name">${esc(tFood(foodName))}</span>
-          <span class="sugg-food-badge">${t(countKey, { n: covered.length })}</span>
+      <div class="sugg-section">
+        <div class="sugg-section-header">
+          <span class="sugg-section-nutrient">${nutrientLabel}</span>
+          <p class="sugg-section-fact">${factText}</p>
         </div>
-        <div class="sugg-nut-chips">${chips}</div>
+        <div class="sugg-food-list">${rows}</div>
       </div>`;
   }).join('');
 
-  el.innerHTML = `<div class="sugg-food-list">${rows}</div>`;
+  el.innerHTML = html;
 }
 
 // ── Nutrient trend chart ──────────────────────────────────────────────────────

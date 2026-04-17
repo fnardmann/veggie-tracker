@@ -584,15 +584,34 @@ main {
 ::-webkit-scrollbar-thumb { background: var(--c-pale); border-radius: 2px; }
 
 /* ── Nutrient suggestions ────────────────────────────────────────────────── */
+.sugg-section { margin-bottom: 18px; }
+.sugg-section:last-child { margin-bottom: 0; }
+.sugg-section-header {
+  background: var(--c-pale);
+  border-radius: 8px 8px 0 0;
+  padding: 10px 14px 8px;
+  margin-bottom: 2px;
+}
+.sugg-section-nutrient {
+  font-size: .75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: var(--c-main);
+  display: block;
+  margin-bottom: 3px;
+}
+.sugg-section-fact {
+  font-size: .78rem;
+  color: var(--c-text2);
+  line-height: 1.5;
+  margin: 0;
+}
 .sugg-food-list { display: flex; flex-direction: column; gap: 2px; }
 .sugg-food-row {
   padding: 10px 12px;
   border-radius: 8px;
   background: var(--c-bg2);
-}
-.sugg-food-row--top {
-  background: #f0faf4;
-  border: 1.5px solid var(--c-pale);
 }
 .sugg-food-header {
   display: flex;
@@ -612,9 +631,6 @@ main {
   background: rgba(64,145,108,.12);
   border-radius: 99px;
   padding: 2px 8px;
-}
-.sugg-food-row--top .sugg-food-badge {
-  background: rgba(64,145,108,.2);
 }
 .sugg-nut-chips { display: flex; flex-wrap: wrap; gap: 5px; }
 .sugg-nut-chip {
