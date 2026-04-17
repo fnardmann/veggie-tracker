@@ -762,50 +762,64 @@ const NUTRIENT_WEEKLY_REF = {
 function renderNutrientSuggestions(totals, loggedFoodsThisWeek) {
   const el = document.getElementById('nutritionSuggestions');
 
-  // Score each nutrient: ratio of logged total vs weekly reference (lower = more lacking)
-  const scored = NUTRIENT_DEFS
-    .filter(({ key }) => totals[key] != null && NUTRIENT_WEEKLY_REF[key])
-    .map(({ key, label, unit }) => ({
-      key, label, unit,
-      total: totals[key],
+  // Identify nutrients where the user is below their weekly reference
+  const gapNutrients = NUTRIENT_DEFS
+    .filter(({ key }) => NUTRIENT_WEEKLY_REF[key] && totals[key] != null)
+    .map(({ key, unit }) => ({
+      key, unit,
       coverage: totals[key] / NUTRIENT_WEEKLY_REF[key],
     }))
-    .sort((a, b) => a.coverage - b.coverage)
-    .slice(0, 4);
+    .filter(n => n.coverage < 1)
+    .sort((a, b) => a.coverage - b.coverage);
 
-  if (!scored.length) {
-    el.innerHTML = `<p class="empty">${t('not_enough_data')}</p>`;
+  if (!gapNutrients.length) {
+    el.innerHTML = `<p class="empty">${t('sugg_all_covered')}</p>`;
     return;
   }
 
   const loggedSet = new Set(loggedFoodsThisWeek.map(f => f.toLowerCase()));
 
-  const rows = scored.map(({ key, unit, total }) => {
-    // Find best foods in static data for this nutrient, not yet logged this week
-    const suggestions = Object.entries(NUTRITION_DATA)
-      .filter(([name]) => !loggedSet.has(name))
-      .map(([name, d]) => ({ name, val: d[key] != null ? +(d[key] * d.g / 100).toFixed(1) : null }))
-      .filter(s => s.val > 0)
-      .sort((a, b) => b.val - a.val)
-      .slice(0, 4);
+  // For each unlogged food, find which gap nutrients it meaningfully covers (≥5% of weekly ref)
+  const MIN_COVERAGE = 0.05;
+  const foodScores = Object.entries(NUTRITION_DATA)
+    .filter(([name]) => !loggedSet.has(name))
+    .map(([name, d]) => {
+      const covered = gapNutrients
+        .map(({ key, unit }) => {
+          const amount = d[key] != null ? +(d[key] * d.g / 100).toFixed(1) : 0;
+          const pct = amount / NUTRIENT_WEEKLY_REF[key];
+          return pct >= MIN_COVERAGE ? { key, unit, amount, pct } : null;
+        })
+        .filter(Boolean);
+      const totalScore = covered.reduce((s, n) => s + n.pct, 0);
+      return { name, covered, totalScore };
+    })
+    .filter(f => f.covered.length > 0)
+    .sort((a, b) => b.covered.length - a.covered.length || b.totalScore - a.totalScore)
+    .slice(0, 8);
 
-    const chips = suggestions.map((s, i) => {
-      const cls = i === 0 ? 'sugg-chip sugg-chip--top' : 'sugg-chip';
-      const foodName = s.name.replace(/\b\w/g, c => c.toUpperCase());
-      return `<span class="${cls}">${esc(tFood(foodName))} <em>${s.val} ${esc(unit)}</em></span>`;
-    }).join('');
+  if (!foodScores.length) {
+    el.innerHTML = `<p class="empty">${t('no_suggestions')}</p>`;
+    return;
+  }
 
+  const rows = foodScores.map(({ name, covered }, i) => {
+    const foodName = name.replace(/\b\w/g, c => c.toUpperCase());
+    const countKey = covered.length === 1 ? 'covers_1_gap' : 'covers_n_gaps';
+    const chips = covered.map(({ key, unit, amount }) =>
+      `<span class="sugg-nut-chip">${esc(t('nutrient_' + key))} <em>${amount} ${esc(unit)}</em></span>`
+    ).join('');
     return `
-      <div class="sugg-row">
-        <div class="sugg-left">
-          <span class="sugg-label">${esc(t('nutrient_' + key))}</span>
-          <span class="sugg-total">${t('this_week_suffix', { amount: fmtVal(total), unit: esc(unit) })}</span>
+      <div class="sugg-food-row${i === 0 ? ' sugg-food-row--top' : ''}">
+        <div class="sugg-food-header">
+          <span class="sugg-food-name">${esc(tFood(foodName))}</span>
+          <span class="sugg-food-badge">${t(countKey, { n: covered.length })}</span>
         </div>
-        <div class="sugg-chips">${chips || `<span class="n-na">${t('no_suggestions')}</span>`}</div>
+        <div class="sugg-nut-chips">${chips}</div>
       </div>`;
   }).join('');
 
-  el.innerHTML = `<div class="sugg-list">${rows}</div>`;
+  el.innerHTML = `<div class="sugg-food-list">${rows}</div>`;
 }
 
 // ── Nutrient trend chart ──────────────────────────────────────────────────────

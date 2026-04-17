@@ -548,49 +548,48 @@ main {
 ::-webkit-scrollbar-thumb { background: var(--c-pale); border-radius: 2px; }
 
 /* ── Nutrient suggestions ────────────────────────────────────────────────── */
-.sugg-list { display: flex; flex-direction: column; }
-.sugg-row {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  flex-wrap: wrap;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--c-bg2);
+.sugg-food-list { display: flex; flex-direction: column; gap: 2px; }
+.sugg-food-row {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--c-bg2);
 }
-.sugg-row:last-child { border-bottom: none; }
-.sugg-left {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 110px;
-  flex-shrink: 0;
+.sugg-food-row--top {
+  background: #f0faf4;
+  border: 1.5px solid var(--c-pale);
 }
-.sugg-label {
+.sugg-food-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.sugg-food-name {
   font-weight: 700;
-  font-size: .82rem;
+  font-size: .88rem;
   color: var(--c-dark);
 }
-.sugg-total {
+.sugg-food-badge {
   font-size: .7rem;
-  color: var(--c-text3);
+  font-weight: 600;
+  color: var(--c-main);
+  background: rgba(64,145,108,.12);
+  border-radius: 99px;
+  padding: 2px 8px;
 }
-.sugg-chips { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
-.sugg-chip {
-  background: var(--c-bg2);
+.sugg-food-row--top .sugg-food-badge {
+  background: rgba(64,145,108,.2);
+}
+.sugg-nut-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.sugg-nut-chip {
+  background: #fff;
   border: 1px solid var(--c-pale);
   border-radius: 99px;
-  padding: 3px 10px;
-  font-size: .75rem;
+  padding: 2px 9px;
+  font-size: .72rem;
   color: var(--c-text2);
 }
-.sugg-chip em { font-style: normal; color: var(--c-text3); margin-left: 3px; }
-.sugg-chip--top {
-  background: #fff8e1;
-  border-color: #ffe082;
-  color: #5d4037;
-  font-weight: 600;
-}
-.sugg-chip--top em { color: #8d6e63; }
+.sugg-nut-chip em { font-style: normal; color: var(--c-text3); margin-left: 3px; }
 
 /* ── Trend select ────────────────────────────────────────────────────────── */
 .trend-select {
