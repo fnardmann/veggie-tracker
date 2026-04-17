@@ -913,6 +913,10 @@ function renderHeatmap() {
       <span class="heat-legend-text">More</span>
     </div>
   `;
+
+  // Scroll to show the most recent (rightmost) data immediately
+  const wrap = document.querySelector('.heat-wrap');
+  if (wrap) wrap.scrollLeft = wrap.scrollWidth;
 }
 
 function renderAll() {
