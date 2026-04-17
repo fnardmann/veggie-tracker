@@ -272,7 +272,7 @@ function renderDailyChart() {
         borderColor: data.map(d => d.count > 0 ? C.main : C.pale),
         borderWidth: 1,
         borderRadius: 4,
-        label: 'Unique vegetables',
+        label: t('chart_unique'),
       }],
     },
     options: {
@@ -305,7 +305,7 @@ function renderWeeklyChart() {
           borderColor: data.map(d => d.metGoal ? C.dark : C.main),
           borderWidth: 1,
           borderRadius: 4,
-          label: 'Unique vegetables',
+          label: t('chart_unique'),
         },
         {
           type: 'line',
@@ -350,7 +350,7 @@ function renderMonthlyChart() {
         borderColor: data.map(d => d.count >= getGoal() ? C.dark : C.main),
         borderWidth: 1,
         borderRadius: 4,
-        label: 'Unique vegetables',
+        label: t('chart_unique'),
       }],
     },
     options: {
@@ -881,7 +881,7 @@ async function renderNutrientTrend() {
         fill: true,
         tension: 0.35,
         spanGaps: true,
-        label: `${def.label} (${def.unit})`,
+        label: `${t('nutrient_' + def.key)} (${def.unit})`,
       }],
     },
     options: {
@@ -955,7 +955,7 @@ function renderHeatmap() {
       if (!monthsSeen.has(mk)) {
         monthsSeen.add(mk);
         const [y, m] = mk.split('-').map(Number);
-        return new Date(y, m - 1, 1).toLocaleDateString('en-GB', { month: 'short' });
+        return new Date(y, m - 1, 1).toLocaleDateString(dateLocale(), { month: 'short' });
       }
     }
     return '';
@@ -1047,7 +1047,7 @@ function importData(file) {
       saveData(current);
       renderAll();
     } catch {
-      alert('Could not import — make sure it is a valid Veggie Tracker export file.');
+      alert(t('err_import_failed'));
     }
   };
   reader.readAsText(file);
@@ -1077,8 +1077,8 @@ function init() {
     const veggie = document.getElementById('veggieInput').value.trim();
     const msg = document.getElementById('addMsg');
 
-    if (!date)   { msg.textContent = 'Please select a date.'; return; }
-    if (!veggie) { msg.textContent = 'Please enter a vegetable name.'; return; }
+    if (!date)   { msg.textContent = t('err_no_date'); return; }
+    if (!veggie) { msg.textContent = t('err_no_food'); return; }
 
     const result = addEntry(date, canonicalFood(veggie));
     if (result === 'duplicate') {
