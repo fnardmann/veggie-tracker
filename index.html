@@ -151,6 +151,20 @@
       </section>
 
       <section class="card settings-card">
+        <h2 data-i18n="settings_daily_heading">Daily Streak</h2>
+        <div class="settings-row">
+          <div class="settings-info">
+            <p class="settings-title" data-i18n="settings_daily_title">Plants per day for streak</p>
+            <p class="settings-desc" data-i18n="settings_daily_desc">Minimum number of different plants you need to log in a day to keep your daily streak alive.</p>
+          </div>
+          <div class="settings-control">
+            <input type="number" id="dailyGoalInput" class="settings-number-input" min="1" max="50" value="5">
+            <button id="dailyGoalReset" class="btn-secondary" data-i18n="btn_reset">Reset</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="card settings-card">
         <h2 data-i18n="settings_lang_heading">Language</h2>
         <div class="settings-row">
           <div class="settings-info">

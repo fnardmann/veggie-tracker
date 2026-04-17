@@ -3,12 +3,14 @@
 const STORAGE_KEY = 'veggie-tracker-v1';
 const SETTINGS_KEY = 'veggie-settings-v1';
 const DEFAULT_GOAL = 30;
+const DEFAULT_DAILY_GOAL = 5;
 
 function getSettings() {
   try { return JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}'); } catch { return {}; }
 }
 function saveSettings(s) { localStorage.setItem(SETTINGS_KEY, JSON.stringify(s)); }
 function getGoal() { return getSettings().weeklyGoal ?? DEFAULT_GOAL; }
+function getDailyGoal() { return getSettings().dailyGoal ?? DEFAULT_DAILY_GOAL; }
 
 const FOODS = [
   // Vegetables
@@ -199,9 +201,14 @@ function monthlyChartData(months = 12) {
 
 function dailyStreak() {
   const { entries } = getData();
-  const dates = new Set(entries.map(e => e.date));
+  const dateMap = new Map();
+  for (const e of entries) {
+    if (!dateMap.has(e.date)) dateMap.set(e.date, new Set());
+    dateMap.get(e.date).add(e.vegetable.toLowerCase());
+  }
+  const min = getDailyGoal();
   let streak = 0, d = todayStr();
-  while (dates.has(d)) { streak++; d = addDays(d, -1); }
+  while ((dateMap.get(d)?.size ?? 0) >= min) { streak++; d = addDays(d, -1); }
   return streak;
 }
 
@@ -463,7 +470,7 @@ function renderStreaks() {
   document.getElementById('headerWeeklyStreak').textContent =
     ws === 0 ? t('no_week_streak') : t('x_week_streak', { n: ws });
   document.getElementById('dailyStreakDesc').innerHTML =
-    `${t('day_streak_desc')}<br><small>${t('day_streak_sub')}</small>`;
+    `${t('day_streak_desc')}<br><small>${t('day_streak_sub', { n: getDailyGoal() })}</small>`;
   document.getElementById('weeklyStreakDesc').innerHTML =
     `${t('week_streak_desc')}<br><small>${t('week_streak_sub', { goal: getGoal() })}</small>`;
 
@@ -1149,6 +1156,27 @@ function init() {
     renderAll();
   });
 
+  // Settings: daily streak goal
+  const dailyGoalInput = document.getElementById('dailyGoalInput');
+  dailyGoalInput.value = getDailyGoal();
+  dailyGoalInput.addEventListener('change', () => {
+    const val = Math.min(50, Math.max(1, Math.round(+dailyGoalInput.value)));
+    if (!isNaN(val)) {
+      dailyGoalInput.value = val;
+      const s = getSettings();
+      s.dailyGoal = val;
+      saveSettings(s);
+      renderAll();
+    }
+  });
+  document.getElementById('dailyGoalReset').addEventListener('click', () => {
+    const s = getSettings();
+    delete s.dailyGoal;
+    saveSettings(s);
+    dailyGoalInput.value = DEFAULT_DAILY_GOAL;
+    renderAll();
+  });
+
   // Tab switching
   document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -1158,7 +1186,7 @@ function init() {
       const pane = document.getElementById('tab-' + btn.dataset.tab);
       pane.hidden = false;
       if (btn.dataset.tab === 'nutrition') renderNutritionTab();
-      if (btn.dataset.tab === 'settings') goalInput.value = getGoal();
+      if (btn.dataset.tab === 'settings') { goalInput.value = getGoal(); dailyGoalInput.value = getDailyGoal(); }
     });
   });
 
