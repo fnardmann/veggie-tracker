@@ -1416,7 +1416,76 @@ function renderEmojiPreview(style) {
   }
 }
 
+// ── Plant Spotlight ───────────────────────────────────────────────────────────
+
+const FOOD_FACTS = {
+  'Broccoli':      { en: "Broccoli has more vitamin C per 100g than an orange. The tree you avoided as a kid was a superhero the whole time.", de: "Brokkoli enthält mehr Vitamin C pro 100g als eine Orange. Das Gemüse, das du als Kind gemieden hast, war die ganze Zeit ein Superheld." },
+  'Beetroot':      { en: "Beetroot's natural nitrates convert to nitric oxide in your blood, literally widening your arteries. Athletes call it legal doping.", de: "Die natürlichen Nitrate der Roten Bete verwandeln sich in Stickoxid und weiten buchstäblich deine Arterien. Sportler nennen es legales Doping." },
+  'Spinach':       { en: "Popeye lied: spinach's iron is mostly locked up by oxalates. But its folate is the real deal — your DNA uses it to copy itself correctly.", de: "Popeye hat gelogen: Das Eisen im Spinat wird größtenteils durch Oxalate blockiert. Aber Folsäure steckt wirklich drin — die braucht deine DNA zum Kopieren." },
+  'Sweet Potato':  { en: "One medium sweet potato has more beta-carotene than you need in an entire day. Your body converts it to vitamin A exactly when needed.", de: "Eine mittlere Süßkartoffel liefert mehr Beta-Carotin als du an einem ganzen Tag brauchst. Dein Körper wandelt es bei Bedarf in Vitamin A um." },
+  'Kale':          { en: "Kale has more calcium per calorie than milk, more vitamin C than an orange, and more vitamin K than almost anything else.", de: "Grünkohl hat mehr Kalzium pro Kalorie als Milch, mehr Vitamin C als eine Orange und mehr Vitamin K als fast alles andere." },
+  'Garlic':        { en: "Garlic's superpower — allicin — only activates after you crush or chop it. Let it sit 10 minutes before cooking and it survives the heat.", de: "Knoblauchs Superpower — Allicin — aktiviert sich erst nach dem Zerdrücken. 10 Minuten warten vor dem Kochen, und es übersteht die Hitze." },
+  'Tomato':        { en: "Cooked tomato has 2–3× more bioavailable lycopene than raw. Your marinara is more nutritious than a Caprese salad.", de: "Gekochte Tomaten haben 2–3× besser verfügbares Lycopin als rohe. Deine Marinara ist tatsächlich gesünder als ein Caprese-Salat." },
+  'Mushroom':      { en: "Mushrooms are the only non-animal food that naturally makes vitamin D — and they produce even more if left gill-side up in sunlight for 15 minutes.", de: "Pilze sind das einzige pflanzliche Lebensmittel, das natürlich Vitamin D produziert — noch mehr, wenn man sie 15 Minuten in die Sonne legt." },
+  'Red Cabbage':   { en: "Red cabbage has 10× more vitamin C than green cabbage. The red pigment, anthocyanin, doubles as one of the most potent antioxidants in your kitchen.", de: "Rotkohl hat 10× mehr Vitamin C als Weißkohl. Der rote Farbstoff Anthocyan ist gleichzeitig eines der stärksten Antioxidantien in deiner Küche." },
+  'Carrot':        { en: "Carrots' beta-carotene is fat-soluble: eating them with any fat multiplies absorption. Your buttered carrots were the right call all along.", de: "Beta-Carotin in Möhren ist fettlöslich: Zusammen mit Fett wird die Aufnahme vervielfacht. Deine gebutterten Möhren waren goldrichtig." },
+  'Avocado':       { en: "Avocado's fat isn't the enemy — it's the key. It helps your body absorb fat-soluble vitamins A, D, E and K from everything else on your plate.", de: "Das Fett der Avocado ist kein Feind — es ist der Schlüssel. Es hilft deinem Körper, die Vitamine A, D, E und K aus allem anderen auf dem Teller aufzunehmen." },
+  'Blueberry':     { en: "Blueberries are one of the most antioxidant-dense foods on Earth. Their blue pigment, anthocyanin, is basically war paint for your cells.", de: "Blaubeeren gehören zu den antioxidantienreichsten Lebensmitteln der Welt. Ihr Blaupigment Anthocyan ist wie Schutzausrüstung für deine Zellen." },
+  'Kiwi':          { en: "Kiwi has more vitamin C than an orange, ounce for ounce. It also contains actinidin — an enzyme that breaks down protein faster than your stomach can.", de: "Kiwi hat mehr Vitamin C als eine Orange — Gramm für Gramm. Außerdem enthält sie Actinidin, ein Enzym das Proteine schneller abbaut als dein Magen." },
+  'Pomegranate':   { en: "Pomegranate contains punicalagin, an antioxidant found in almost no other food on Earth. Studies show it measurably lowers blood pressure in two weeks.", de: "Granatäpfel enthalten Punicalagin, ein Antioxidans das in fast keinem anderen Lebensmittel vorkommt. Studien zeigen: Zwei Wochen reichen, um den Blutdruck messbar zu senken." },
+  'Watermelon':    { en: "Watermelon is 92% water but contains more lycopene than raw tomato. It's also one of the only fruits with citrulline, which relaxes blood vessels.", de: "Wassermelone besteht zu 92% aus Wasser, enthält aber mehr Lycopin als rohe Tomaten. Und sie ist eine der wenigen Früchte mit Citrullin, das Blutgefäße entspannt." },
+  'Lemon':         { en: "Vitamin C deficiency (scurvy) killed more sailors than battle. Lemon fixed it. Your immune system is still running on the same ancient code.", de: "Vitamin-C-Mangel (Skorbut) tötete mehr Seeleute als Schlachten. Die Zitrone hat es geheilt. Dein Immunsystem läuft heute noch auf demselben Code." },
+  'Chia Seeds':    { en: "Chia seeds have more omega-3 per gram than salmon. They were the original fuel of Aztec warriors — 'chia' literally means strength.", de: "Chiasamen haben mehr Omega-3 pro Gramm als Lachs. Sie waren der Originalbrennstoff aztekischer Krieger — 'Chia' bedeutet buchstäblich Stärke." },
+  'Walnuts':       { en: "Walnuts look like tiny brains — and they might actually protect yours. They're the richest plant source of omega-3 and are linked to better memory.", de: "Walnüsse sehen aus wie winzige Gehirne. Zufall? Vielleicht. Aber sie sind die reichste pflanzliche Omega-3-Quelle und fördern nachweislich Gedächtnis und Konzentration." },
+  'Brazil Nuts':   { en: "Just two Brazil nuts cover your entire daily selenium requirement. More than a handful and you're actually overdoing it — they're that potent.", de: "Zwei Paranüsse pro Tag decken deinen gesamten Tagesbedarf an Selen. Mehr als eine Handvoll — und du übertreibst es. So potent sind sie." },
+  'Flaxseeds':     { en: "Flaxseeds are the richest plant source of omega-3 ALA. The catch: they must be ground — whole seeds pass straight through undigested.", de: "Leinsamen sind die reichste pflanzliche Omega-3-Quelle. Der Haken: Sie müssen gemahlen sein — ganze Samen passieren ungenutzt den Darm." },
+  'Pumpkin Seeds': { en: "Pumpkin seeds are one of the best plant sources of zinc — essential for immune function, wound healing, and your sense of taste and smell.", de: "Kürbiskerne gehören zu den besten pflanzlichen Zinkquellen — essenziell für Immunfunktion, Wundheilung und deinen Geschmacks- und Geruchssinn." },
+  'Almonds':       { en: "A small handful of almonds covers nearly half your daily vitamin E — an antioxidant that protects your cell membranes from oxidative damage.", de: "Eine kleine Handvoll Mandeln deckt fast die Hälfte deines täglichen Vitamin-E-Bedarfs — einem Antioxidans das deine Zellmembranen schützt." },
+  'Lentils':       { en: "Lentils deliver more protein and fiber per calorie than almost any other plant food. And unlike most legumes, they don't need soaking.", de: "Linsen liefern mehr Protein und Ballaststoffe pro Kalorie als fast jedes andere pflanzliche Lebensmittel. Und sie brauchen — anders als die meisten Hülsenfrüchte — kein Einweichen." },
+  'Chickpeas':     { en: "Chickpeas are loaded with resistant starch — your gut bacteria eat it, not you. Think of it as fertilizer for your microbiome.", de: "Kichererbsen stecken voller resistenter Stärke — deine Darmbakterien essen sie, nicht du. Denk daran als Dünger für dein Mikrobiom." },
+  'Edamame':       { en: "Edamame is one of the only plant foods that's a complete protein, packing all 9 essential amino acids in a single pod.", de: "Edamame ist eines der wenigen pflanzlichen Lebensmittel mit vollständigem Protein — alle 9 essenziellen Aminosäuren in einer Schote." },
+  'Parsley':       { en: "Parsley isn't just a garnish — it has more vitamin K per gram than almost any food. Two tablespoons cover your full daily requirement.", de: "Petersilie ist keine Dekoration — sie hat mehr Vitamin K pro Gramm als fast jedes Lebensmittel. Zwei Esslöffel decken deinen vollen Tagesbedarf." },
+  'Ginger':        { en: "Ginger's compound gingerol is a clinically proven anti-nausea agent — more effective than some pharmaceuticals for morning sickness.", de: "Gingerol, der Wirkstoff im Ingwer, ist ein klinisch bewährtes Mittel gegen Übelkeit — bei Schwangerschaftsübelkeit wirksamer als manche Medikamente." },
+  'Nori':          { en: "Nori is one of the only plant foods that naturally contains vitamin B12 — the one nutrient almost every vegan is told to supplement.", de: "Nori ist eines der wenigen pflanzlichen Lebensmittel, das natürlich Vitamin B12 enthält — den einen Nährstoff, den fast jeder Veganer supplementieren muss." },
+  'Spirulina':     { en: "Spirulina is 60–70% protein by dry weight — more than steak. It's a blue-green algae that's been eaten since the Aztec empire.", de: "Spirulina besteht zu 60–70% aus Protein — mehr als Fleisch. Es ist eine blaugrüne Alge, die schon im Aztekenreich gegessen wurde." },
+};
+
+function renderSpotlight() {
+  const card = document.getElementById('spotlightCard');
+  if (!card) return;
+
+  const { entries } = getData();
+  const weekStart = getWeekStart(today());
+  const thisWeekFoods = [...new Set(
+    entries.filter(e => e.date >= weekStart).map(e => e.vegetable)
+  )].filter(f => FOOD_FACTS[f]).sort();
+
+  if (thisWeekFoods.length === 0) {
+    card.innerHTML = `
+      <p class="spotlight-label" data-i18n="spotlight_heading">${t('spotlight_heading')}</p>
+      <p class="empty" style="margin-top:10px">${t('spotlight_empty')}</p>`;
+    return;
+  }
+
+  // Pick deterministically by date — changes daily
+  const food = thisWeekFoods[simpleHash(today()) % thisWeekFoods.length];
+  const fact = FOOD_FACTS[food][getLang()] ?? FOOD_FACTS[food].en;
+  const cp   = FOOD_EMOJI[food];
+  const imgSrc = cp ? getEmojiUrl(cp, getEmojiStyle()) : null;
+
+  card.innerHTML = `
+    <p class="spotlight-label">${t('spotlight_heading')}</p>
+    <div class="spotlight-body">
+      ${imgSrc ? `<div class="spotlight-emoji-wrap"><img src="${imgSrc}" alt="" width="52" height="52"></div>` : ''}
+      <div class="spotlight-content">
+        <p class="spotlight-food-name">${esc(tFood(food))}</p>
+        <p class="spotlight-fact">${esc(fact)}</p>
+      </div>
+    </div>`;
+}
+
 function renderAll() {
+  renderSpotlight();
   renderWeeklyProgress();
   renderToday();
   renderQuickAdd();
