@@ -1455,7 +1455,7 @@ function renderSpotlight() {
   if (!card) return;
 
   const { entries } = getData();
-  const weekStart = getWeekStart(today());
+  const weekStart = getWeekStart(todayStr());
   const thisWeekFoods = [...new Set(
     entries.filter(e => e.date >= weekStart).map(e => e.vegetable)
   )].filter(f => FOOD_FACTS[f]).sort();
@@ -1468,7 +1468,7 @@ function renderSpotlight() {
   }
 
   // Pick deterministically by date — changes daily
-  const food = thisWeekFoods[simpleHash(today()) % thisWeekFoods.length];
+  const food = thisWeekFoods[simpleHash(todayStr()) % thisWeekFoods.length];
   const fact = FOOD_FACTS[food][getLang()] ?? FOOD_FACTS[food].en;
   const cp   = FOOD_EMOJI[food];
   const imgSrc = cp ? getEmojiUrl(cp, getEmojiStyle()) : null;
