@@ -1221,7 +1221,8 @@ async function drawDayCard(date, foods, style) {
       // Clip to circle, draw OpenMoji PNG
       ctx.save();
       ctx.beginPath(); ctx.arc(cx, eY, r * 0.95, 0, Math.PI * 2); ctx.clip();
-      ctx.drawImage(img, cx - r, eY - r, r * 2, r * 2);
+      const ir = r * 0.76; // ~24% padding inside the circle
+      ctx.drawImage(img, cx - ir, eY - ir, ir * 2, ir * 2);
       ctx.restore();
     } else {
       // Fallback: colored circle + initial
