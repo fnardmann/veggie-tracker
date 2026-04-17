@@ -805,11 +805,16 @@ async function renderNutritionTab(quiet = false) {
       .sort((a, b) => b.amount - a.amount)
       .slice(0, 5);
 
-    if (!ranked.length) return `
-      <div class="src-row">
-        <span class="src-label">${esc(t('nutrient_' + key))}</span>
-        <span class="n-na">${t('no_data_week')}</span>
-      </div>`;
+    if (!ranked.length) {
+      const noDataMsg = key === 'vitd' ? t('no_data_vitd')
+                      : key === 'b12'  ? t('no_data_b12')
+                      : t('no_data_week');
+      return `
+        <div class="src-row">
+          <span class="src-label">${esc(t('nutrient_' + key))}</span>
+          <span class="n-na">${noDataMsg}</span>
+        </div>`;
+    }
 
     const chips = ranked.map((r, i) => {
       const cls = i === 0 ? 'src-chip src-chip--top' : 'src-chip';
