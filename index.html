@@ -26,6 +26,7 @@
     </div>
     <nav class="tab-nav">
       <button class="tab-btn active" data-tab="overview" data-i18n="tab_overview">Overview</button>
+      <button class="tab-btn" data-tab="gallery" data-i18n="tab_gallery">Gallery</button>
       <button class="tab-btn" data-tab="nutrition" data-i18n="tab_nutrition">Nutrition</button>
       <button class="tab-btn" data-tab="settings" data-i18n="tab_settings">Settings</button>
     </nav>
@@ -102,14 +103,7 @@
         <div id="heatmap"></div>
       </section>
 
-      <!-- Row 4: Plant Gallery -->
-      <section class="card">
-        <h2 data-i18n="daily_cards_heading">Plant Gallery</h2>
-        <p class="section-label" data-i18n="daily_cards_note">AI-generated · updates when you add foods · last 5 days</p>
-        <div id="dailyCards" class="daily-cards-wrap"></div>
-      </section>
-
-      <!-- Row 5: Streaks + History -->
+      <!-- Row 4: Streaks + History -->
       <div class="grid-2">
         <section class="card">
           <h2 data-i18n="streaks">Streaks</h2>
@@ -139,6 +133,17 @@
           <div id="historyList"></div>
         </section>
       </div>
+    </div>
+
+    <!-- ── Gallery tab ───────────────────────────────────────────────────────── -->
+    <div id="tab-gallery" class="tab-pane" hidden>
+      <section class="card">
+        <div class="nutrition-header">
+          <h2 data-i18n="daily_cards_heading">Plant Gallery</h2>
+          <span class="nutrition-note" data-i18n="daily_cards_note">tap ↓ to save · last 5 days</span>
+        </div>
+        <div id="dailyCards" class="daily-cards-wrap"></div>
+      </section>
     </div>
 
     <!-- ── Settings tab ──────────────────────────────────────────────────────── -->

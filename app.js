@@ -1181,16 +1181,21 @@ function drawDayCard(date, foods) {
     const cx  = x + CELL / 2;
     const cy  = y + CELL / 2;
 
-    // Cell background pill
-    ctx.fillStyle = 'rgba(255,255,255,0.06)';
+    // Cell background
+    ctx.fillStyle = 'rgba(255,255,255,0.11)';
     ctx.beginPath(); ctx.roundRect(x, y, CELL, CELL, 18); ctx.fill();
 
-    const emoji     = FOOD_EMOJI[food] ?? null;
+    // Solid light circle so emoji render with full color against a bright surface
     const emojiSize = Math.floor(CELL * 0.44);
     const labelY    = y + CELL * 0.74;
+    const eBgR      = emojiSize * 0.62;
+    ctx.fillStyle = 'rgba(255,255,255,0.92)';
+    ctx.beginPath(); ctx.arc(cx, cy - CELL * 0.06, eBgR, 0, Math.PI * 2); ctx.fill();
+
+    const emoji = FOOD_EMOJI[food] ?? null;
 
     if (emoji) {
-      ctx.font = `${emojiSize}px sans-serif`;
+      ctx.font = `${emojiSize}px 'Apple Color Emoji','Noto Color Emoji','Segoe UI Emoji',sans-serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText(emoji, cx, cy - CELL * 0.06);
@@ -1313,14 +1318,11 @@ function renderAll() {
   renderWeeklyChart();
   renderMonthlyChart();
   renderHeatmap();
-  renderDailyCards();
   renderStreaks();
   renderHistory();
-  // Nutrition tab renders on demand when the tab is opened,
-  // but re-render if it's currently visible
-  if (!document.getElementById('tab-nutrition').hidden) {
-    renderNutritionTab();
-  }
+  // Tab-specific renders: only run when that tab is visible
+  if (!document.getElementById('tab-nutrition').hidden) renderNutritionTab();
+  if (!document.getElementById('tab-gallery').hidden)   renderDailyCards();
 }
 
 // ── Export / Import ───────────────────────────────────────────────────────────
@@ -1482,6 +1484,7 @@ function init() {
       const pane = document.getElementById('tab-' + btn.dataset.tab);
       pane.hidden = false;
       if (btn.dataset.tab === 'nutrition') renderNutritionTab();
+      if (btn.dataset.tab === 'gallery')   renderDailyCards();
       if (btn.dataset.tab === 'settings') { goalInput.value = getGoal(); dailyGoalInput.value = getDailyGoal(); }
     });
   });
