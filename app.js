@@ -393,7 +393,7 @@ function renderWeeklyProgress() {
   ).values()].sort();
 
   document.getElementById('weeklyVeggies').innerHTML =
-    uniqueNames.map(v => `<span class="chip">${esc(v)}</span>`).join('') ||
+    uniqueNames.map(v => `<span class="chip">${esc(tFood(v))}</span>`).join('') ||
     `<p class="empty">${t('none_this_week')}</p>`;
 }
 
@@ -413,7 +413,7 @@ function renderToday() {
   } else {
     container.innerHTML = todayEntries.map(e => `
       <div class="entry-row">
-        <span class="entry-veggie">${esc(e.vegetable)}</span>
+        <span class="entry-veggie">${esc(tFood(e.vegetable))}</span>
         <button class="delete-btn" data-id="${esc(e.id)}" title="Remove">×</button>
       </div>
     `).join('');
@@ -446,7 +446,7 @@ function renderQuickAdd() {
     return;
   }
   container.innerHTML = recent
-    .map(v => `<button class="quick-chip" data-veggie="${esc(v)}">${esc(v)}</button>`)
+    .map(v => `<button class="quick-chip" data-veggie="${esc(v)}">${esc(tFood(v))}</button>`)
     .join('');
   container.querySelectorAll('[data-veggie]').forEach(btn =>
     btn.addEventListener('click', () => { addEntry(today, btn.dataset.veggie); renderAll(); })
@@ -488,7 +488,7 @@ function renderStreaks() {
       <tbody>
         ${streaks.map(s => `
           <tr>
-            <td>${esc(s.name)}</td>
+            <td>${esc(tFood(s.name))}</td>
             <td>${s.streak > 0 ? `🔥 ${t(s.streak === 1 ? 'streak_day' : 'streak_days', { n: s.streak })}` : '—'}</td>
             <td>${s.total}</td>
             <td>${fmtDate(s.last)}</td>
@@ -528,7 +528,7 @@ function renderHistory() {
         <div class="history-chips">
           ${dayEntries.map(e => `
             <span class="chip">
-              ${esc(e.vegetable)}
+              ${esc(tFood(e.vegetable))}
               <button class="chip-delete" data-id="${esc(e.id)}" title="Remove">×</button>
             </span>
           `).join('')}
@@ -625,7 +625,7 @@ async function renderNutritionTab(quiet = false) {
     }).join('');
     return `<tr>
       <td class="n-veggie">
-        ${esc(vegetable)}${timesLabel}
+        ${esc(tFood(vegetable))}${timesLabel}
         <label class="portion-wrap${isCustom ? ' portion-wrap--custom' : ''}">
           <input type="number" class="portion-input" data-food="${esc(vegetable)}" data-default="${defaultG}" value="${portionG}" min="1" max="9999">
           <span class="portion-unit">g</span>
@@ -711,7 +711,7 @@ async function renderNutritionTab(quiet = false) {
 
     const chips = ranked.map((r, i) => {
       const cls = i === 0 ? 'src-chip src-chip--top' : 'src-chip';
-      return `<span class="${cls}">${esc(r.vegetable)} <em>${fmtVal(r.amount)} ${esc(unit)}</em></span>`;
+      return `<span class="${cls}">${esc(tFood(r.vegetable))} <em>${fmtVal(r.amount)} ${esc(unit)}</em></span>`;
     }).join('');
 
     return `
@@ -785,7 +785,7 @@ function renderNutrientSuggestions(totals, loggedFoodsThisWeek) {
     const chips = suggestions.map((s, i) => {
       const cls = i === 0 ? 'sugg-chip sugg-chip--top' : 'sugg-chip';
       const foodName = s.name.replace(/\b\w/g, c => c.toUpperCase());
-      return `<span class="${cls}">${esc(foodName)} <em>${s.val} ${esc(unit)}</em></span>`;
+      return `<span class="${cls}">${esc(tFood(foodName))} <em>${s.val} ${esc(unit)}</em></span>`;
     }).join('');
 
     return `
@@ -1058,13 +1058,17 @@ function importData(file) {
 function init() {
   applyStaticTranslations();
 
-  // Populate datalist for autocomplete
+  // Populate datalist for autocomplete (rebuilt on language change)
   const datalist = document.getElementById('veggie-list');
-  FOODS.forEach(v => {
-    const opt = document.createElement('option');
-    opt.value = v;
-    datalist.appendChild(opt);
-  });
+  function populateDatalist() {
+    datalist.innerHTML = '';
+    FOODS.forEach(v => {
+      const opt = document.createElement('option');
+      opt.value = tFood(v);
+      datalist.appendChild(opt);
+    });
+  }
+  populateDatalist();
 
   document.getElementById('dateInput').value = todayStr();
 
@@ -1076,9 +1080,9 @@ function init() {
     if (!date)   { msg.textContent = 'Please select a date.'; return; }
     if (!veggie) { msg.textContent = 'Please enter a vegetable name.'; return; }
 
-    const result = addEntry(date, veggie);
+    const result = addEntry(date, canonicalFood(veggie));
     if (result === 'duplicate') {
-      msg.textContent = `${toTitleCase(veggie)} already logged for ${fmtDate(date)}.`;
+      msg.textContent = t('err_duplicate', { food: tFood(toTitleCase(canonicalFood(veggie))), date: fmtDate(date) });
       return;
     }
     msg.textContent = '';
@@ -1118,6 +1122,7 @@ function init() {
   langSelect.addEventListener('change', () => {
     setLang(langSelect.value);
     applyStaticTranslations();
+    populateDatalist();
     populateTrendSelect();
     renderAll();
     if (!document.getElementById('tab-nutrition').hidden) renderNutritionTab();
