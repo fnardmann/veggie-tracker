@@ -463,6 +463,26 @@ function renderQuickAdd() {
   );
 }
 
+function computeVeggieDetail(foodName) {
+  const { entries } = getData();
+  const key = foodName.toLowerCase();
+  const dates = [...new Set(
+    entries.filter(e => e.vegetable.toLowerCase() === key).map(e => e.date)
+  )].sort();
+  if (!dates.length) return null;
+
+  let maxStreak = 1, cur = 1;
+  for (let i = 1; i < dates.length; i++) {
+    if (addDays(dates[i - 1], 1) === dates[i]) { cur++; if (cur > maxStreak) maxStreak = cur; }
+    else cur = 1;
+  }
+
+  const daySpan = Math.max(7, (new Date(dates[dates.length - 1]) - new Date(dates[0])) / 86400000 + 1);
+  const avgPerWeek = (dates.length / (daySpan / 7)).toFixed(1);
+
+  return { first: dates[0], last: dates[dates.length - 1], total: dates.length, maxStreak, avgPerWeek };
+}
+
 function renderStreaks() {
   const ds = dailyStreak();
   const ws = weeklyGoalStreak();
@@ -485,20 +505,58 @@ function renderStreaks() {
     return;
   }
 
+  const tier = n => n >= 7 ? 'hot' : n >= 3 ? 'warm' : n >= 1 ? 'active' : '';
+
   container.innerHTML = streaks.map(s => {
-    const active = s.streak > 0;
-    const streakLabel = active
+    const t_ = tier(s.streak);
+    const streakLabel = s.streak > 0
       ? `🔥 ${t(s.streak === 1 ? 'streak_day' : 'streak_days', { n: s.streak })}`
       : `${t('col_last')}: ${fmtDate(s.last)}`;
     return `
-      <div class="vs-row${active ? ' vs-row--active' : ''}">
-        <span class="vs-name">${esc(tFood(s.name))}</span>
-        <span class="vs-meta">
-          <span class="vs-total">${t('col_total')}: ${s.total}</span>
-          <span class="vs-streak">${streakLabel}</span>
-        </span>
+      <div class="vs-row${t_ ? ' vs-row--' + t_ : ''}" data-food="${esc(s.name)}">
+        <div class="vs-row-main">
+          <span class="vs-name">${esc(tFood(s.name))}</span>
+          <span class="vs-meta">
+            <span class="vs-total">${s.total} ${t('col_total').toLowerCase()}</span>
+            <span class="vs-streak">${streakLabel}</span>
+          </span>
+          <span class="vs-chevron">›</span>
+        </div>
+        <div class="vs-detail" hidden></div>
       </div>`;
   }).join('');
+
+  container.querySelectorAll('.vs-row').forEach(row => {
+    row.addEventListener('click', () => {
+      const detail = row.querySelector('.vs-detail');
+      if (!detail.hidden) {
+        detail.hidden = true;
+        row.classList.remove('vs-row--open');
+        return;
+      }
+      const d = computeVeggieDetail(row.dataset.food);
+      if (!d) return;
+      detail.innerHTML = `
+        <div class="vs-stat">
+          <div class="vs-stat-val">${fmtDate(d.first)}</div>
+          <div class="vs-stat-lbl">${t('streak_first')}</div>
+        </div>
+        <div class="vs-stat">
+          <div class="vs-stat-val">${fmtDate(d.last)}</div>
+          <div class="vs-stat-lbl">${t('col_last')}</div>
+        </div>
+        <div class="vs-stat">
+          <div class="vs-stat-val">${t(d.maxStreak === 1 ? 'streak_day' : 'streak_days', { n: d.maxStreak })}</div>
+          <div class="vs-stat-lbl">${t('streak_best')}</div>
+        </div>
+        <div class="vs-stat">
+          <div class="vs-stat-val">${d.avgPerWeek}×</div>
+          <div class="vs-stat-lbl">${t('streak_avg_week')}</div>
+        </div>`;
+      detail.hidden = false;
+      row.classList.add('vs-row--open');
+    });
+  });
 }
 
 function renderHistory() {

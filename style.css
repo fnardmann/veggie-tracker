@@ -343,7 +343,7 @@ main {
 .streak-desc small { font-size: .7rem; color: var(--c-text3); }
 
 #veggieStreaks {
-  max-height: 320px;
+  max-height: 380px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -352,16 +352,32 @@ main {
 }
 .vs-row {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 8px 12px;
+  flex-direction: column;
   border-radius: var(--radius-s);
   background: var(--c-bg);
+  cursor: pointer;
+  user-select: none;
+  transition: background .1s;
+  overflow: hidden;
+}
+.vs-row-main {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px 8px 12px;
 }
 .vs-row--active {
   background: #f0faf4;
   border: 1px solid var(--c-pale);
+}
+.vs-row--warm {
+  background: #e4f5ec;
+  border: 1px solid #95d5ad;
+}
+.vs-row--hot {
+  background: #d6eddf;
+  border: 1px solid var(--c-main);
+  border-left: 3px solid #e07b39;
 }
 .vs-name {
   font-size: .85rem;
@@ -373,6 +389,7 @@ main {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.vs-row--hot .vs-name { color: var(--c-dark); }
 .vs-meta {
   display: flex;
   align-items: center;
@@ -390,7 +407,42 @@ main {
   color: var(--c-text2);
   white-space: nowrap;
 }
-.vs-row--active .vs-streak { color: var(--c-main); }
+.vs-row--active .vs-streak,
+.vs-row--warm .vs-streak { color: var(--c-main); }
+.vs-row--hot .vs-streak { color: #bf5a20; font-size: .82rem; }
+.vs-chevron {
+  font-size: 1rem;
+  color: var(--c-text3);
+  transition: transform .15s;
+  line-height: 1;
+}
+.vs-row--open .vs-chevron { transform: rotate(90deg); }
+.vs-detail {
+  display: flex;
+  gap: 4px;
+  padding: 10px 12px 12px;
+  border-top: 1px solid var(--c-pale);
+}
+.vs-stat {
+  flex: 1;
+  text-align: center;
+  padding: 6px 4px;
+  background: rgba(255,255,255,.55);
+  border-radius: 6px;
+}
+.vs-stat-val {
+  font-size: .82rem;
+  font-weight: 700;
+  color: var(--c-dark);
+  line-height: 1.2;
+}
+.vs-stat-lbl {
+  font-size: .65rem;
+  color: var(--c-text3);
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  margin-top: 2px;
+}
 
 /* ── History ─────────────────────────────────────────────────────────────── */
 .history-header {
