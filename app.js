@@ -1216,12 +1216,29 @@ async function drawDayCard(date, foods) {
       ctx.fillText(food[0].toUpperCase(), cx, eY);
     }
 
-    // Label
+    // Label — word-wrapped, max 2 lines
+    const fontSize = Math.max(18, Math.floor(CELL * 0.1));
     ctx.fillStyle = 'rgba(255,255,255,0.65)';
-    ctx.font = `400 ${Math.max(18, Math.floor(CELL * 0.1))}px system-ui, sans-serif`;
+    ctx.font = `400 ${fontSize}px system-ui, sans-serif`;
     ctx.textAlign = 'center'; ctx.textBaseline = 'top';
     const label = tFood(food);
-    ctx.fillText(label.length > 11 ? label.slice(0, 10) + '…' : label, cx, y + CELL * 0.76);
+    const maxLabelW = CELL - 12;
+    const words = label.split(' ');
+    const labelLines = [];
+    let cur = '';
+    for (const w of words) {
+      const test = cur ? cur + ' ' + w : w;
+      if (ctx.measureText(test).width > maxLabelW && cur) {
+        labelLines.push(cur); cur = w;
+      } else { cur = test; }
+    }
+    if (cur) labelLines.push(cur);
+    const lineH = fontSize * 1.25;
+    const totalH = labelLines.length * lineH;
+    const labelStartY = y + CELL * 0.76 - (totalH - lineH) / 2;
+    labelLines.slice(0, 2).forEach((line, li) => {
+      ctx.fillText(line, cx, labelStartY + li * lineH);
+    });
   });
 
   if (foods.length > MAX_SHOW) {
