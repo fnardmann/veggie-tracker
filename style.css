@@ -899,3 +899,67 @@ main {
 .settings-number-input:focus { border-color: var(--c-main); background: #fff; }
 .settings-number-input::-webkit-inner-spin-button,
 .settings-number-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+/* ── Toggle switch ────────────────────────────────────────────────────────── */
+.toggle-label {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.toggle-label input { opacity: 0; width: 0; height: 0; position: absolute; }
+.toggle-slider {
+  position: absolute;
+  inset: 0;
+  background: var(--c-pale);
+  border-radius: 24px;
+  transition: background .2s;
+}
+.toggle-slider::before {
+  content: '';
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  left: 3px;
+  top: 3px;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0,0,0,.2);
+  transition: transform .2s;
+}
+.toggle-label input:checked + .toggle-slider { background: var(--c-main); }
+.toggle-label input:checked + .toggle-slider::before { transform: translateX(20px); }
+
+/* ── Portion settings list ────────────────────────────────────────────────── */
+.portion-settings-search { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--c-pale); }
+.portion-filter-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1.5px solid var(--c-pale);
+  border-radius: var(--radius-s);
+  font-size: .88rem;
+  color: var(--c-text);
+  background: var(--c-bg);
+  outline: none;
+  font-family: inherit;
+  box-sizing: border-box;
+  transition: border-color .15s;
+}
+.portion-filter-input:focus { border-color: var(--c-main); }
+#portionSettingsList { margin-top: 8px; }
+.portion-setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--c-pale);
+  gap: 12px;
+}
+.portion-setting-row:last-child { border-bottom: none; }
+.portion-setting-name { font-size: .88rem; color: var(--c-text); flex: 1; }
+.portion-setting-name--custom { color: var(--c-main); font-weight: 600; }
+.portion-static { font-size: .72rem; color: var(--c-text3); margin-left: 4px; }
+.portion-static--custom { color: var(--c-main); }
+.settings-portions-empty { font-size: .82rem; color: var(--c-text3); margin-top: 12px; padding: 0; }

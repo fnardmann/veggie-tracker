@@ -217,6 +217,26 @@
           </div>
         </div>
       </section>
+
+      <section class="card settings-card">
+        <h2 data-i18n="settings_portions_heading">Portion Sizes</h2>
+        <div class="settings-row">
+          <div class="settings-info">
+            <p class="settings-title" data-i18n="settings_advanced_portions_title">Advanced portion editing</p>
+            <p class="settings-desc" data-i18n="settings_advanced_portions_desc">Show editable portion inputs directly in the Nutrition tab.</p>
+          </div>
+          <div class="settings-control">
+            <label class="toggle-label">
+              <input type="checkbox" id="advancedPortionsToggle">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+        <div class="portion-settings-search">
+          <input type="search" id="portionFilter" class="portion-filter-input" data-i18n-placeholder="portions_search_placeholder" placeholder="Search foods…">
+        </div>
+        <div id="portionSettingsList"></div>
+      </section>
     </div>
 
     <!-- ── Nutrition tab ─────────────────────────────────────────────────────── -->

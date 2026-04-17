@@ -11,6 +11,7 @@ function getSettings() {
 function saveSettings(s) { localStorage.setItem(SETTINGS_KEY, JSON.stringify(s)); }
 function getGoal() { return getSettings().weeklyGoal ?? DEFAULT_GOAL; }
 function getDailyGoal() { return getSettings().dailyGoal ?? DEFAULT_DAILY_GOAL; }
+function getAdvancedPortions() { return getSettings().advancedPortions ?? false; }
 
 const FOODS = [
   // Vegetables
@@ -620,6 +621,8 @@ async function renderNutritionTab(quiet = false) {
     .map(d => `<th>${esc(t('nutrient_' + d.key))}<br><small>${esc(d.unit)}</small></th>`)
     .join('');
 
+  const advancedPortions = getAdvancedPortions();
+
   const tableRows = results.map(({ vegetable, nutrition: n }) => {
     const count = foodCounts.get(vegetable.toLowerCase())?.count ?? 1;
     const timesLabel = count > 1 ? `<span class="n-portion">×${count}</span>` : '';
@@ -630,14 +633,17 @@ async function renderNutritionTab(quiet = false) {
       if (!n || n[key] == null) return '<td class="n-na">—</td>';
       return `<td>${fmtVal(n[key])}</td>`;
     }).join('');
-    return `<tr>
-      <td class="n-veggie">
-        ${esc(tFood(vegetable))}${timesLabel}
-        <label class="portion-wrap${isCustom ? ' portion-wrap--custom' : ''}">
+    const portionHtml = advancedPortions
+      ? `<label class="portion-wrap${isCustom ? ' portion-wrap--custom' : ''}">
           <input type="number" class="portion-input" data-food="${esc(vegetable)}" data-default="${defaultG}" value="${portionG}" min="1" max="9999">
           <span class="portion-unit">g</span>
           ${isCustom ? `<button class="portion-reset" data-food="${esc(vegetable)}" title="Reset to default">↺</button>` : ''}
-        </label>
+        </label>`
+      : `<span class="portion-static${isCustom ? ' portion-static--custom' : ''}">${portionG}g</span>`;
+    return `<tr>
+      <td class="n-veggie">
+        ${esc(tFood(vegetable))}${timesLabel}
+        ${portionHtml}
       </td>${cells}</tr>`;
   }).join('');
 
@@ -650,24 +656,25 @@ async function renderNutritionTab(quiet = false) {
       </table>
     </div>`;
 
-  // Portion input listeners
-  tableEl.querySelectorAll('.portion-input').forEach(input => {
-    input.addEventListener('change', () => {
-      const g = Math.max(1, Math.round(+input.value));
-      if (!isNaN(g)) {
-        setPortion(input.dataset.food, g);
+  if (advancedPortions) {
+    tableEl.querySelectorAll('.portion-input').forEach(input => {
+      input.addEventListener('change', () => {
+        const g = Math.max(1, Math.round(+input.value));
+        if (!isNaN(g)) {
+          setPortion(input.dataset.food, g);
+          renderNutritionTab(true);
+        }
+      });
+    });
+    tableEl.querySelectorAll('.portion-reset').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const p = getPortions();
+        delete p[btn.dataset.food.toLowerCase()];
+        localStorage.setItem(PORTION_KEY, JSON.stringify(p));
         renderNutritionTab(true);
-      }
+      });
     });
-  });
-  tableEl.querySelectorAll('.portion-reset').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const p = getPortions();
-      delete p[btn.dataset.food.toLowerCase()];
-      localStorage.setItem(PORTION_KEY, JSON.stringify(p));
-      renderNutritionTab(true);
-    });
-  });
+  }
 
   // ── Weekly totals (using custom-scaled results) ──
   const totals = {};
@@ -1796,6 +1803,75 @@ function importData(file) {
   reader.readAsText(file);
 }
 
+// ── Portion settings ─────────────────────────────────────────────────────────
+
+function renderPortionSettings() {
+  const filterEl = document.getElementById('portionFilter');
+  const filter = filterEl ? filterEl.value.trim().toLowerCase() : '';
+  const portions = getPortions();
+  const allFoods = Object.keys(NUTRITION_DATA).sort();
+
+  const foods = filter
+    ? allFoods.filter(f => f.includes(filter))
+    : allFoods.filter(f => portions[f] != null);
+
+  const list = document.getElementById('portionSettingsList');
+  if (!list) return;
+
+  if (foods.length === 0 && !filter) {
+    list.innerHTML = `<p class="empty settings-portions-empty">${t('portions_none_custom')}</p>`;
+    return;
+  }
+  if (foods.length === 0) {
+    list.innerHTML = `<p class="empty settings-portions-empty">${t('portions_no_match')}</p>`;
+    return;
+  }
+
+  list.innerHTML = foods.map(food => {
+    const defaultG = NUTRITION_DATA[food]?.g ?? 100;
+    const customG = portions[food];
+    const currentG = customG ?? defaultG;
+    const isCustom = customG != null && customG !== defaultG;
+    const displayName = toTitleCase(food);
+    return `<div class="portion-setting-row">
+      <span class="portion-setting-name${isCustom ? ' portion-setting-name--custom' : ''}">${esc(tFood(displayName))}</span>
+      <label class="portion-wrap${isCustom ? ' portion-wrap--custom' : ''}">
+        <input type="number" class="settings-portion-input" data-food="${esc(food)}" data-default="${defaultG}" value="${currentG}" min="1" max="9999">
+        <span class="portion-unit">g</span>
+        ${isCustom ? `<button class="settings-portion-reset" data-food="${esc(food)}" title="${t('btn_reset')}">↺</button>` : ''}
+      </label>
+    </div>`;
+  }).join('');
+
+  list.querySelectorAll('.settings-portion-input').forEach(input => {
+    input.addEventListener('change', () => {
+      const g = Math.max(1, Math.round(+input.value));
+      if (!isNaN(g)) {
+        const defaultG = +input.dataset.default;
+        if (g === defaultG) {
+          const p = getPortions();
+          delete p[input.dataset.food];
+          localStorage.setItem(PORTION_KEY, JSON.stringify(p));
+        } else {
+          setPortion(input.dataset.food, g);
+        }
+        renderPortionSettings();
+        if (!document.getElementById('tab-nutrition').hidden) renderNutritionTab(true);
+      }
+    });
+  });
+
+  list.querySelectorAll('.settings-portion-reset').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const p = getPortions();
+      delete p[btn.dataset.food];
+      localStorage.setItem(PORTION_KEY, JSON.stringify(p));
+      renderPortionSettings();
+      if (!document.getElementById('tab-nutrition').hidden) renderNutritionTab(true);
+    });
+  });
+}
+
 // ── Init ──────────────────────────────────────────────────────────────────────
 
 function init() {
@@ -1913,6 +1989,20 @@ function init() {
     renderAll();
   });
 
+  // Settings: advanced portions toggle
+  const advancedPortionsToggle = document.getElementById('advancedPortionsToggle');
+  advancedPortionsToggle.checked = getAdvancedPortions();
+  advancedPortionsToggle.addEventListener('change', () => {
+    const s = getSettings();
+    s.advancedPortions = advancedPortionsToggle.checked;
+    saveSettings(s);
+    if (!document.getElementById('tab-nutrition').hidden) renderNutritionTab(true);
+  });
+
+  // Settings: portion filter
+  document.getElementById('portionFilter').addEventListener('input', renderPortionSettings);
+  renderPortionSettings();
+
   // Settings: emoji style
   const emojiStyleSelect = document.getElementById('emojiStyleSelect');
   emojiStyleSelect.value = getEmojiStyle();
@@ -1942,6 +2032,8 @@ function init() {
         dailyGoalInput.value = getDailyGoal();
         emojiStyleSelect.value = getEmojiStyle();
         renderEmojiPreview(getEmojiStyle());
+        advancedPortionsToggle.checked = getAdvancedPortions();
+        renderPortionSettings();
       }
     });
   });
