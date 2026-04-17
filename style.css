@@ -436,7 +436,49 @@ main {
 .nutrition-table tr:hover td { background: var(--c-bg); }
 .n-veggie { font-weight: 600; color: var(--c-dark); }
 .n-na { color: var(--c-text3); }
-.n-portion { font-size: .7rem; font-weight: 400; color: var(--c-text3); margin-left: 5px; }
+.n-portion { font-size: .7rem; font-weight: 400; color: var(--c-text3); margin-left: 4px; }
+
+/* ── Portion size input ───────────────────────────────────────────────────── */
+.portion-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: 6px;
+  background: var(--c-bg);
+  border: 1px solid var(--c-pale);
+  border-radius: 6px;
+  padding: 1px 5px;
+  font-weight: 400;
+}
+.portion-wrap--custom {
+  border-color: var(--c-light);
+  background: #edfaf3;
+}
+.portion-input {
+  width: 44px;
+  border: none;
+  background: transparent;
+  font-size: .75rem;
+  color: var(--c-text2);
+  text-align: right;
+  font-family: inherit;
+  outline: none;
+  -moz-appearance: textfield;
+}
+.portion-input::-webkit-inner-spin-button,
+.portion-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+.portion-unit { font-size: .72rem; color: var(--c-text3); }
+.portion-reset {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--c-main);
+  font-size: .8rem;
+  padding: 0 1px;
+  line-height: 1;
+  font-family: inherit;
+}
+.portion-reset:hover { color: var(--c-dark); }
 
 /* ── Top sources ─────────────────────────────────────────────────────────── */
 .src-list { display: flex; flex-direction: column; gap: 10px; }

@@ -530,19 +530,29 @@ function renderHistory() {
 
 // ── Nutrition tab rendering ───────────────────────────────────────────────────
 
+const PORTION_KEY = 'veggie-portions-v1';
+function getPortions() {
+  try { return JSON.parse(localStorage.getItem(PORTION_KEY) || '{}'); } catch { return {}; }
+}
+function setPortion(food, grams) {
+  const p = getPortions();
+  p[food.toLowerCase()] = grams;
+  localStorage.setItem(PORTION_KEY, JSON.stringify(p));
+}
+
 function fmtVal(val) {
   if (val == null) return '—';
   return String(+val.toFixed(1));
 }
 
-async function renderNutritionTab() {
+async function renderNutritionTab(quiet = false) {
   const entries = thisWeekEntries();
   const empty = '<p class="empty">Log foods to see nutrition data.</p>';
 
   if (entries.length === 0) {
     document.getElementById('nutritionTable').innerHTML = empty;
     document.getElementById('nutritionTotals').innerHTML = empty;
-    document.getElementById('nutritionDGE').innerHTML = empty;
+    document.getElementById('nutritionDGE').innerHTML = '<p class="empty">Log foods to see top sources.</p>';
     return;
   }
 
@@ -556,11 +566,30 @@ async function renderNutritionTab() {
 
   const uniqueFoods = [...foodCounts.values()].map(f => f.name).sort();
 
-  document.getElementById('nutritionTable').innerHTML = '<p class="empty">Fetching nutrition data…</p>';
-  document.getElementById('nutritionTotals').innerHTML = '<p class="empty">Fetching nutrition data…</p>';
-  document.getElementById('nutritionDGE').innerHTML = '<p class="empty">Fetching nutrition data…</p>';
+  if (!quiet) {
+    document.getElementById('nutritionTable').innerHTML = '<p class="empty">Fetching nutrition data…</p>';
+    document.getElementById('nutritionTotals').innerHTML = '<p class="empty">Fetching nutrition data…</p>';
+    document.getElementById('nutritionDGE').innerHTML = '<p class="empty">Fetching nutrition data…</p>';
+  }
 
-  const results = await fetchNutritionForAll(uniqueFoods);
+  const rawResults = await fetchNutritionForAll(uniqueFoods);
+
+  if (!rawResults.some(r => r.nutrition)) {
+    const noData = '<p class="empty">No nutrition data available for this week\'s foods.</p>';
+    document.getElementById('nutritionTable').innerHTML = noData;
+    document.getElementById('nutritionTotals').innerHTML = noData;
+    document.getElementById('nutritionDGE').innerHTML = noData;
+    return;
+  }
+
+  // Apply custom portion sizes
+  const portions = getPortions();
+  const results = rawResults.map(({ vegetable, nutrition: n }) => {
+    if (!n) return { vegetable, nutrition: n };
+    const customG = portions[vegetable.toLowerCase()];
+    const nutrition = (customG && customG !== n.g) ? rescaleNutrition(n, customG) : n;
+    return { vegetable, nutrition };
+  });
 
   // ── Per-food table ──
   const headerCells = NUTRIENT_DEFS
@@ -569,32 +598,54 @@ async function renderNutritionTab() {
 
   const tableRows = results.map(({ vegetable, nutrition: n }) => {
     const count = foodCounts.get(vegetable.toLowerCase())?.count ?? 1;
-    const timesLabel = count > 1 ? `<span class="n-portion">×${count} this week</span>` : '';
-    const portionLabel = n ? `<span class="n-portion">${n.g}g</span>` : '';
+    const timesLabel = count > 1 ? `<span class="n-portion">×${count}</span>` : '';
+    const portionG = n ? n.g : (rawResults.find(r => r.vegetable === vegetable)?.nutrition?.g ?? 100);
+    const defaultG = rawResults.find(r => r.vegetable === vegetable)?.nutrition?.g ?? 100;
+    const isCustom = portionG !== defaultG;
     const cells = NUTRIENT_DEFS.map(({ key }) => {
       if (!n || n[key] == null) return '<td class="n-na">—</td>';
       return `<td>${fmtVal(n[key])}</td>`;
     }).join('');
-    return `<tr><td class="n-veggie">${esc(vegetable)}${portionLabel}${timesLabel}</td>${cells}</tr>`;
+    return `<tr>
+      <td class="n-veggie">
+        ${esc(vegetable)}${timesLabel}
+        <label class="portion-wrap${isCustom ? ' portion-wrap--custom' : ''}">
+          <input type="number" class="portion-input" data-food="${esc(vegetable)}" data-default="${defaultG}" value="${portionG}" min="1" max="9999">
+          <span class="portion-unit">g</span>
+          ${isCustom ? `<button class="portion-reset" data-food="${esc(vegetable)}" title="Reset to default">↺</button>` : ''}
+        </label>
+      </td>${cells}</tr>`;
   }).join('');
 
-  if (!results.some(r => r.nutrition)) {
-    const noData = '<p class="empty">No nutrition data available for this week\'s foods.</p>';
-    document.getElementById('nutritionTable').innerHTML = noData;
-    document.getElementById('nutritionTotals').innerHTML = noData;
-    document.getElementById('nutritionDGE').innerHTML = noData;
-    return;
-  }
-
-  document.getElementById('nutritionTable').innerHTML = `
+  const tableEl = document.getElementById('nutritionTable');
+  tableEl.innerHTML = `
     <div class="nutrition-scroll">
       <table class="nutrition-table">
-        <thead><tr><th>Food <span class="n-portion">portion · frequency</span></th>${headerCells}</tr></thead>
+        <thead><tr><th>Food <span class="n-portion">portion</span></th>${headerCells}</tr></thead>
         <tbody>${tableRows}</tbody>
       </table>
     </div>`;
 
-  // ── Weekly totals ──
+  // Portion input listeners
+  tableEl.querySelectorAll('.portion-input').forEach(input => {
+    input.addEventListener('change', () => {
+      const g = Math.max(1, Math.round(+input.value));
+      if (!isNaN(g)) {
+        setPortion(input.dataset.food, g);
+        renderNutritionTab(true);
+      }
+    });
+  });
+  tableEl.querySelectorAll('.portion-reset').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const p = getPortions();
+      delete p[btn.dataset.food.toLowerCase()];
+      localStorage.setItem(PORTION_KEY, JSON.stringify(p));
+      renderNutritionTab(true);
+    });
+  });
+
+  // ── Weekly totals (using custom-scaled results) ──
   const totals = {};
   for (const { key } of NUTRIENT_DEFS) totals[key] = null;
 
@@ -602,15 +653,11 @@ async function renderNutritionTab() {
     if (!n) continue;
     const count = foodCounts.get(vegetable.toLowerCase())?.count ?? 1;
     for (const { key } of NUTRIENT_DEFS) {
-      if (n[key] != null) {
-        totals[key] = (totals[key] ?? 0) + n[key] * count;
-      }
+      if (n[key] != null) totals[key] = (totals[key] ?? 0) + n[key] * count;
     }
   }
-
-  // Round totals
   for (const key of Object.keys(totals)) {
-    if (totals[key] != null) totals[key] = Math.round(totals[key] * 10) / 10;
+    if (totals[key] != null) totals[key] = +(totals[key].toFixed(1));
   }
 
   const totalCells = NUTRIENT_DEFS.map(({ key }) =>

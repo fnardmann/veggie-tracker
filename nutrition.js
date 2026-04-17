@@ -59,11 +59,23 @@ function scoreProduct(nutriments) {
 
 function scaleToPortionSize(data100g, portionG) {
   const factor = portionG / 100;
-  const result = { g: portionG, fetched: data100g.fetched ?? Date.now(), source: data100g.source ?? 'static' };
+  const result = { g: portionG, fetched: data100g.fetched ?? Date.now(), source: data100g.source ?? 'static', _per100g: {} };
   for (const { key } of NUTRIENT_DEFS) {
-    result[key] = data100g[key] != null ? +(data100g[key] * factor).toFixed(1) : null;
+    const val = data100g[key] != null ? data100g[key] : null;
+    result._per100g[key] = val;
+    result[key] = val != null ? +(val * factor).toFixed(1) : null;
   }
   return result;
+}
+
+function rescaleNutrition(nutrition, newG) {
+  const factor = newG / 100;
+  const scaled = { ...nutrition, g: newG };
+  for (const { key } of NUTRIENT_DEFS) {
+    const val = nutrition._per100g?.[key];
+    scaled[key] = val != null ? +(val * factor).toFixed(1) : null;
+  }
+  return scaled;
 }
 
 function lookupStatic(food) {
