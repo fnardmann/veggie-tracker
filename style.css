@@ -624,7 +624,7 @@ main {
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--accent);
+  color: var(--c-main);
   margin: 0 0 14px;
 }
 .spotlight-body {
@@ -649,13 +649,13 @@ main {
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--accent);
+  color: var(--c-main);
   margin: 0 0 6px;
 }
 .spotlight-fact {
   font-size: 15px;
   line-height: 1.55;
-  color: var(--text);
+  color: var(--c-text);
   margin: 0;
 }
 

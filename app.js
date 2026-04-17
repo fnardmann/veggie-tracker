@@ -1467,8 +1467,8 @@ function renderSpotlight() {
     return;
   }
 
-  // Pick deterministically by date — changes daily
-  const food = thisWeekFoods[simpleHash(todayStr()) % thisWeekFoods.length];
+  // Pick randomly on each render
+  const food = thisWeekFoods[Math.floor(Math.random() * thisWeekFoods.length)];
   const fact = FOOD_FACTS[food][getLang()] ?? FOOD_FACTS[food].en;
   const cp   = FOOD_EMOJI[food];
   const imgSrc = cp ? getEmojiUrl(cp, getEmojiStyle()) : null;
