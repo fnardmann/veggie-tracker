@@ -269,7 +269,11 @@
   <div id="cardModal" class="card-modal" hidden aria-modal="true" role="dialog">
     <div class="card-modal-backdrop"></div>
     <div class="card-modal-inner">
-      <img id="cardModalImg" class="card-modal-img" alt="">
+      <div class="card-modal-img-wrap">
+        <button id="cardModalPrev" class="card-modal-nav card-modal-nav--prev" hidden aria-label="Previous">&#8249;</button>
+        <img id="cardModalImg" class="card-modal-img" alt="">
+        <button id="cardModalNext" class="card-modal-nav card-modal-nav--next" hidden aria-label="Next">&#8250;</button>
+      </div>
       <div class="card-modal-actions">
         <button id="cardModalShare" class="card-modal-btn card-modal-btn--share" data-i18n="btn_share">Share</button>
         <button id="cardModalDl"    class="card-modal-btn card-modal-btn--dl"    data-i18n="btn_download_card">Download</button>

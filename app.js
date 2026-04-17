@@ -1286,15 +1286,37 @@ async function drawDayCard(date, foods, style) {
 
 let _modalCanvas = null;
 let _modalDate   = null;
-let galleryCurrentIndex = 0;
+let _modalDates  = [];
+let _modalIndex  = 0;
 
-function updateGalleryPosition(track, dots) {
-  track.style.transform = `translateX(-${galleryCurrentIndex * 100}%)`;
-  if (dots) {
-    dots.querySelectorAll('.gallery-dot').forEach((d, i) =>
-      d.classList.toggle('gallery-dot--active', i === galleryCurrentIndex)
-    );
+function updateModalNavButtons() {
+  const prev = document.getElementById('cardModalPrev');
+  const next = document.getElementById('cardModalNext');
+  if (prev) prev.hidden = _modalIndex <= 0;
+  if (next) next.hidden = _modalIndex >= _modalDates.length - 1;
+}
+
+async function navigateModal(dir) {
+  const newIdx = _modalIndex + dir;
+  if (newIdx < 0 || newIdx >= _modalDates.length) return;
+  _modalIndex = newIdx;
+  _modalDate  = _modalDates[_modalIndex];
+
+  const img = document.getElementById('cardModalImg');
+  img.style.opacity = '0.4';
+
+  const { entries } = getData();
+  const byDate = new Map();
+  for (const e of entries) {
+    if (!byDate.has(e.date)) byDate.set(e.date, new Set());
+    byDate.get(e.date).add(e.vegetable);
   }
+  const foods  = [...(byDate.get(_modalDate) ?? new Set())];
+  const canvas = await drawDayCard(_modalDate, foods);
+  _modalCanvas = canvas;
+  img.src = canvas.toDataURL('image/png');
+  img.style.opacity = '1';
+  updateModalNavButtons();
 }
 
 function openCardModal(canvas, date) {
