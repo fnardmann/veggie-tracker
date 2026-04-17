@@ -1,7 +1,14 @@
 'use strict';
 
 const STORAGE_KEY = 'veggie-tracker-v1';
-const WEEKLY_GOAL = 30;
+const SETTINGS_KEY = 'veggie-settings-v1';
+const DEFAULT_GOAL = 30;
+
+function getSettings() {
+  try { return JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}'); } catch { return {}; }
+}
+function saveSettings(s) { localStorage.setItem(SETTINGS_KEY, JSON.stringify(s)); }
+function getGoal() { return getSettings().weeklyGoal ?? DEFAULT_GOAL; }
 
 const FOODS = [
   // Vegetables
@@ -171,7 +178,7 @@ function weeklyChartData(weeks = 12) {
     const ws = addDays(ws0, -(weeks - 1 - i) * 7);
     const we = addDays(ws, 6);
     const count = uniqueVeggies(entriesInRange(entries, ws, we)).length;
-    return { label: fmtWeekRange(ws), count, metGoal: count >= WEEKLY_GOAL };
+    return { label: fmtWeekRange(ws), count, metGoal: count >= getGoal() };
   });
 }
 
@@ -202,7 +209,7 @@ function weeklyGoalStreak() {
   let ws = getWeekStart(todayStr());
   for (let i = 0; i < 104; i++) {
     const we = addDays(ws, 6);
-    if (uniqueVeggies(entriesInRange(entries, ws, we)).length >= WEEKLY_GOAL) {
+    if (uniqueVeggies(entriesInRange(entries, ws, we)).length >= getGoal()) {
       streak++;
       ws = addDays(ws, -7);
     } else break;
@@ -300,14 +307,14 @@ function renderWeeklyChart() {
         },
         {
           type: 'line',
-          data: data.map(() => WEEKLY_GOAL),
+          data: data.map(() => getGoal()),
           borderColor: C.amber,
           borderWidth: 2,
           borderDash: [6, 4],
           pointRadius: 0,
           fill: false,
           tension: 0,
-          label: 'Goal (30)',
+          label: `Goal (${getGoal()})`,
         },
       ],
     },
@@ -320,7 +327,7 @@ function renderWeeklyChart() {
       scales: {
         y: {
           beginAtZero: true,
-          max: Math.max(WEEKLY_GOAL + 5, Math.max(...data.map(d => d.count)) + 3),
+          max: Math.max(getGoal() + 5, Math.max(...data.map(d => d.count)) + 3),
           grid: { color: '#f0f5f2' },
         },
         x: { grid: { display: false }, ticks: { font: { size: 9 }, maxRotation: 45 } },
@@ -337,8 +344,8 @@ function renderMonthlyChart() {
       labels: data.map(d => d.label),
       datasets: [{
         data: data.map(d => d.count),
-        backgroundColor: data.map(d => d.count >= WEEKLY_GOAL ? C.main : C.light),
-        borderColor: data.map(d => d.count >= WEEKLY_GOAL ? C.dark : C.main),
+        backgroundColor: data.map(d => d.count >= getGoal() ? C.main : C.light),
+        borderColor: data.map(d => d.count >= getGoal() ? C.dark : C.main),
         borderWidth: 1,
         borderRadius: 4,
         label: 'Unique vegetables',
@@ -360,13 +367,14 @@ function renderWeeklyProgress() {
   const entries = thisWeekEntries();
   const count = uniqueVeggies(entries).length;
   document.getElementById('weeklyCount').textContent = count;
+  document.getElementById('weeklyGoalLabel').textContent = `/${getGoal()}`;
 
   mkChart('weeklyProgressChart', {
     type: 'doughnut',
     data: {
       datasets: [{
-        data: [Math.min(count, WEEKLY_GOAL), Math.max(0, WEEKLY_GOAL - count)],
-        backgroundColor: [count >= WEEKLY_GOAL ? C.main : C.light, C.pale],
+        data: [Math.min(count, getGoal()), Math.max(0, getGoal() - count)],
+        backgroundColor: [count >= getGoal() ? C.main : C.light, C.pale],
         borderWidth: 0,
       }],
     },
@@ -707,6 +715,98 @@ async function renderNutritionTab(quiet = false) {
   document.getElementById('nutritionDGE').innerHTML = `<div class="src-list">${sourceRows}</div>`;
 }
 
+// ── Heatmap ───────────────────────────────────────────────────────────────────
+
+function renderHeatmap() {
+  const { entries } = getData();
+
+  // Build date → unique food count
+  const dateCounts = new Map();
+  for (const e of entries) {
+    if (!dateCounts.has(e.date)) dateCounts.set(e.date, new Set());
+    dateCounts.get(e.date).add(e.vegetable.toLowerCase());
+  }
+
+  const today = todayStr();
+  const todayWs = getWeekStart(today);
+  const WEEKS = 53;
+  const startWs = addDays(todayWs, -(WEEKS - 1) * 7);
+
+  function heatClass(count, isFuture) {
+    if (isFuture) return 'heat-0 heat-future';
+    if (count === 0) return 'heat-0';
+    if (count <= 2)  return 'heat-1';
+    if (count <= 5)  return 'heat-2';
+    if (count <= 9)  return 'heat-3';
+    return 'heat-4';
+  }
+
+  // Build week array
+  const weeks = [];
+  let ws = startWs;
+  for (let w = 0; w < WEEKS; w++) {
+    const days = [];
+    for (let d = 0; d < 7; d++) {
+      const date = addDays(ws, d);
+      const count = dateCounts.has(date) ? dateCounts.get(date).size : 0;
+      days.push({ date, count, isFuture: date > today });
+    }
+    weeks.push({ days });
+    ws = addDays(ws, 7);
+  }
+
+  // Month label for first week each month appears
+  const monthsSeen = new Set();
+  const weekMonths = weeks.map(week => {
+    for (const day of week.days) {
+      const mk = day.date.slice(0, 7);
+      if (!monthsSeen.has(mk)) {
+        monthsSeen.add(mk);
+        const [y, m] = mk.split('-').map(Number);
+        return new Date(y, m - 1, 1).toLocaleDateString('en-GB', { month: 'short' });
+      }
+    }
+    return '';
+  });
+
+  const monthsHtml = weekMonths.map(label =>
+    `<div class="heat-mcell">${label ? esc(label) : ''}</div>`
+  ).join('');
+
+  const weeksHtml = weeks.map(week => {
+    const cells = week.days.map(day => {
+      const cls = heatClass(day.count, day.isFuture);
+      const tip = day.isFuture ? '' : `${day.date}: ${day.count} plant${day.count !== 1 ? 's' : ''}`;
+      return `<div class="heat-cell ${cls}" title="${esc(tip)}"></div>`;
+    }).join('');
+    return `<div class="heat-week">${cells}</div>`;
+  }).join('');
+
+  document.getElementById('heatmap').innerHTML = `
+    <div class="heat-wrap">
+      <div class="heat-left">
+        <div class="heat-spacer"></div>
+        <div class="heat-days">
+          <span>Mon</span><span></span><span>Wed</span><span></span><span>Fri</span><span></span><span></span>
+        </div>
+      </div>
+      <div class="heat-right">
+        <div class="heat-months">${monthsHtml}</div>
+        <div class="heat-weeks">${weeksHtml}</div>
+      </div>
+    </div>
+    <div class="heat-legend">
+      <span class="heat-legend-text">Less</span>
+      <div class="heat-cell heat-0"></div>
+      <div class="heat-cell heat-1"></div>
+      <div class="heat-cell heat-2"></div>
+      <div class="heat-cell heat-3"></div>
+      <div class="heat-cell heat-4"></div>
+      <span class="heat-legend-text">More</span>
+    </div>
+  `;
+}
+
 function renderAll() {
   renderWeeklyProgress();
   renderToday();
@@ -714,6 +814,7 @@ function renderAll() {
   renderDailyChart();
   renderWeeklyChart();
   renderMonthlyChart();
+  renderHeatmap();
   renderStreaks();
   renderHistory();
   // Nutrition tab renders on demand when the tab is opened,
@@ -797,6 +898,27 @@ function init() {
     e.target.value = '';
   });
 
+  // Settings: weekly goal
+  const goalInput = document.getElementById('goalInput');
+  goalInput.value = getGoal();
+  goalInput.addEventListener('change', () => {
+    const val = Math.min(200, Math.max(1, Math.round(+goalInput.value)));
+    if (!isNaN(val)) {
+      goalInput.value = val;
+      const s = getSettings();
+      s.weeklyGoal = val;
+      saveSettings(s);
+      renderAll();
+    }
+  });
+  document.getElementById('goalReset').addEventListener('click', () => {
+    const s = getSettings();
+    delete s.weeklyGoal;
+    saveSettings(s);
+    goalInput.value = DEFAULT_GOAL;
+    renderAll();
+  });
+
   // Tab switching
   document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -806,6 +928,7 @@ function init() {
       const pane = document.getElementById('tab-' + btn.dataset.tab);
       pane.hidden = false;
       if (btn.dataset.tab === 'nutrition') renderNutritionTab();
+      if (btn.dataset.tab === 'settings') goalInput.value = getGoal();
     });
   });
 

@@ -27,6 +27,7 @@
     <nav class="tab-nav">
       <button class="tab-btn active" data-tab="overview">Overview</button>
       <button class="tab-btn" data-tab="nutrition">Nutrition</button>
+      <button class="tab-btn" data-tab="settings">Settings</button>
     </nav>
   </header>
 
@@ -66,7 +67,7 @@
             <canvas id="weeklyProgressChart"></canvas>
             <div class="doughnut-center">
               <span id="weeklyCount">0</span>
-              <span class="doughnut-label">/30</span>
+              <span class="doughnut-label" id="weeklyGoalLabel">/30</span>
             </div>
           </div>
           <div id="weeklyVeggies" class="veggie-chips"></div>
@@ -95,7 +96,13 @@
         </section>
       </div>
 
-      <!-- Row 3: Streaks + History -->
+      <!-- Row 3: Heatmap -->
+      <section class="card">
+        <h2>Activity — last 12 months</h2>
+        <div id="heatmap"></div>
+      </section>
+
+      <!-- Row 4: Streaks + History -->
       <div class="grid-2">
         <section class="card">
           <h2>Streaks</h2>
@@ -125,6 +132,23 @@
           <div id="historyList"></div>
         </section>
       </div>
+    </div>
+
+    <!-- ── Settings tab ──────────────────────────────────────────────────────── -->
+    <div id="tab-settings" class="tab-pane" hidden>
+      <section class="card settings-card">
+        <h2>Weekly Goal</h2>
+        <div class="settings-row">
+          <div class="settings-info">
+            <p class="settings-title">Plants per week target</p>
+            <p class="settings-desc">How many different plants you aim to eat each week. The classic guideline is 30.</p>
+          </div>
+          <div class="settings-control">
+            <input type="number" id="goalInput" class="settings-number-input" min="1" max="200" value="30">
+            <button id="goalReset" class="btn-secondary">Reset</button>
+          </div>
+        </div>
+      </section>
     </div>
 
     <!-- ── Nutrition tab ─────────────────────────────────────────────────────── -->
