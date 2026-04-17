@@ -1319,13 +1319,16 @@ async function navigateModal(dir) {
   updateModalNavButtons();
 }
 
-function openCardModal(canvas, date) {
+function openCardModal(canvas, date, dates) {
   _modalCanvas = canvas;
   _modalDate   = date;
+  _modalDates  = dates ?? [];
+  _modalIndex  = _modalDates.indexOf(date);
   const modal = document.getElementById('cardModal');
   document.getElementById('cardModalImg').src = canvas.toDataURL('image/png');
   modal.hidden = false;
   document.body.style.overflow = 'hidden';
+  updateModalNavButtons();
 }
 
 function closeCardModal() {
@@ -1333,6 +1336,8 @@ function closeCardModal() {
   document.body.style.overflow = '';
   _modalCanvas = null;
   _modalDate   = null;
+  _modalDates  = [];
+  _modalIndex  = 0;
 }
 
 async function shareOrCopyCard() {
