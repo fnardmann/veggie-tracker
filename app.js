@@ -12,7 +12,9 @@ function saveSettings(s) { localStorage.setItem(SETTINGS_KEY, JSON.stringify(s))
 function getGoal() { return getSettings().weeklyGoal ?? DEFAULT_GOAL; }
 function getDailyGoal() { return getSettings().dailyGoal ?? DEFAULT_DAILY_GOAL; }
 function getAdvancedPortions() { return getSettings().advancedPortions ?? false; }
-function getFunFacts() { return getSettings().funFacts ?? true; }
+function getFunFacts()      { return getSettings().funFacts      ?? true; }
+function getFoodFacts()    { return getSettings().foodFacts    ?? true; }
+function getNutrientFacts(){ return getSettings().nutrientFacts ?? true; }
 
 const FOODS = [
   // Vegetables
@@ -607,38 +609,35 @@ function renderHistory() {
 
 // ── Nutrient facts ────────────────────────────────────────────────────────────
 
+const NUTRIENT_DAILY_REF = {
+  fibre: { val: 30, unit: 'g' }, vita: { val: 800, unit: 'µg' },
+  b1: { val: 1.2, unit: 'mg' }, b2: { val: 1.4, unit: 'mg' },
+  b3: { val: 16, unit: 'mg' }, b5: { val: 5, unit: 'mg' },
+  b6: { val: 1.4, unit: 'mg' }, b9: { val: 400, unit: 'µg' },
+  vitc: { val: 75, unit: 'mg' }, vitd: { val: 20, unit: 'µg' },
+  vite: { val: 13, unit: 'mg' }, vitk: { val: 80, unit: 'µg' },
+  iron: { val: 9, unit: 'mg' }, calcium: { val: 1000, unit: 'mg' },
+  magnesium: { val: 350, unit: 'mg' }, potassium: { val: 3500, unit: 'mg' },
+  zinc:     { val: 10,  unit: 'mg' },
+  selenium: { val: 55,  unit: 'µg' },
+  b12:      { val: 2.5, unit: 'µg' },
+};
+
 function renderNutrientFacts() {
   const el = document.getElementById('nutritionFacts');
   if (!el) return;
-  if (!getFunFacts()) { el.hidden = true; return; }
+  if (!getNutrientFacts()) { el.hidden = true; return; }
   el.hidden = false;
 
-  const dailyRef = {
-    fibre: { val: 30, unit: 'g' }, vita: { val: 800, unit: 'µg' },
-    b1: { val: 1.2, unit: 'mg' }, b2: { val: 1.4, unit: 'mg' },
-    b3: { val: 16, unit: 'mg' }, b5: { val: 5, unit: 'mg' },
-    b6: { val: 1.4, unit: 'mg' }, b9: { val: 400, unit: 'µg' },
-    vitc: { val: 75, unit: 'mg' }, vitd: { val: 20, unit: 'µg' },
-    vite: { val: 13, unit: 'mg' }, vitk: { val: 80, unit: 'µg' },
-    iron: { val: 9, unit: 'mg' }, calcium: { val: 1000, unit: 'mg' },
-    magnesium: { val: 350, unit: 'mg' }, potassium: { val: 3500, unit: 'mg' },
-    zinc:     { val: 10,  unit: 'mg' },
-    selenium: { val: 55,  unit: 'µg' },
-    b12:      { val: 2.5, unit: 'µg' },
-  };
+  const keys = NUTRIENT_DEFS.map(d => d.key);
+  const key  = keys[Math.floor(Math.random() * keys.length)];
+  const ref  = NUTRIENT_DAILY_REF[key];
 
-  const cards = NUTRIENT_DEFS.map(({ key }) => {
-    const ref = dailyRef[key];
-    return `<div class="fact-card">
-      <div class="fact-card-header">
-        <span class="fact-name">${esc(t('nutrient_' + key))}</span>
-        <span class="fact-goal">${ref.val}\u202f${esc(ref.unit)}/day</span>
-      </div>
-      <p class="fact-text">${esc(t('fact_' + key))}</p>
-    </div>`;
-  }).join('');
-
-  document.getElementById('nutritionFactsGrid').innerHTML = cards;
+  el.innerHTML = `
+    <p class="spotlight-label">${t('nutrient_fact_heading')}</p>
+    <p class="nutrient-fact-name">${esc(t('nutrient_' + key))}</p>
+    <p class="nutrient-fact-text">${esc(t('fact_' + key))}</p>
+    <p class="nutrient-fact-goal">${t('nutrient_fact_goal', { val: ref.val, unit: esc(ref.unit) })}</p>`;
 }
 
 // ── Nutrition tab rendering ───────────────────────────────────────────────────
@@ -1843,6 +1842,8 @@ const FOOD_FACTS = {
 function renderSpotlight() {
   const card = document.getElementById('spotlightCard');
   if (!card) return;
+  if (!getFoodFacts()) { card.hidden = true; return; }
+  card.hidden = false;
 
   const { entries } = getData();
   const weekStart = getWeekStart(todayStr());
@@ -2109,12 +2110,22 @@ function init() {
     renderAll();
   });
 
-  // Settings: fun facts toggle
+  // Settings: food facts toggle (spotlight)
+  const foodFactsToggle = document.getElementById('foodFactsToggle');
+  foodFactsToggle.checked = getFoodFacts();
+  foodFactsToggle.addEventListener('change', () => {
+    const s = getSettings();
+    s.foodFacts = foodFactsToggle.checked;
+    saveSettings(s);
+    renderSpotlight();
+  });
+
+  // Settings: nutrient facts toggle (nutrition tab)
   const funFactsToggle = document.getElementById('funFactsToggle');
-  funFactsToggle.checked = getFunFacts();
+  funFactsToggle.checked = getNutrientFacts();
   funFactsToggle.addEventListener('change', () => {
     const s = getSettings();
-    s.funFacts = funFactsToggle.checked;
+    s.nutrientFacts = funFactsToggle.checked;
     saveSettings(s);
     renderNutrientFacts();
   });
@@ -2165,7 +2176,8 @@ function init() {
         dailyGoalInput.value = getDailyGoal();
         emojiStyleSelect.value = getEmojiStyle();
         renderEmojiPreview(getEmojiStyle());
-        funFactsToggle.checked = getFunFacts();
+        foodFactsToggle.checked = getFoodFacts();
+        funFactsToggle.checked = getNutrientFacts();
         advancedPortionsToggle.checked = getAdvancedPortions();
         renderPortionSettings();
       }
