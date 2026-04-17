@@ -1106,21 +1106,38 @@ function foodColor(name) {
   return palette[simpleHash(name) % palette.length];
 }
 
-// Image cache — keyed by codepoint
+function getEmojiStyle() { return getSettings().emojiStyle ?? 'openmoji'; }
+
+function getEmojiUrl(cp, style) {
+  const lo = cp.toLowerCase();
+  const hi = cp.toUpperCase();
+  switch (style) {
+    case 'twemoji':
+      return `https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/${lo}.png`;
+    case 'noto':
+      return `https://cdn.jsdelivr.net/gh/googlefonts/noto-emoji@v2.034/png/128/emoji_u${lo}.png`;
+    default: // openmoji
+      return `https://cdn.jsdelivr.net/gh/hfg-gmuend/openmoji@15.0.0/color/618x618/${hi}.png`;
+  }
+}
+
+// Image cache — keyed by "style:codepoint"
 const emojiImageCache = new Map();
 
-function loadEmojiImage(cp) {
-  if (emojiImageCache.has(cp)) return Promise.resolve(emojiImageCache.get(cp));
+function loadEmojiImage(cp, style) {
+  const key = `${style ?? 'openmoji'}:${cp}`;
+  if (emojiImageCache.has(key)) return Promise.resolve(emojiImageCache.get(key));
   return new Promise(resolve => {
     const img = new Image();
     img.crossOrigin = 'anonymous';
-    img.onload  = () => { emojiImageCache.set(cp, img);   resolve(img);  };
-    img.onerror = () => { emojiImageCache.set(cp, null);  resolve(null); };
-    img.src = `https://cdn.jsdelivr.net/gh/hfg-gmuend/openmoji@15.0.0/color/618x618/${cp}.png`;
+    img.onload  = () => { emojiImageCache.set(key, img);   resolve(img);  };
+    img.onerror = () => { emojiImageCache.set(key, null);  resolve(null); };
+    img.src = getEmojiUrl(cp, style ?? 'openmoji');
   });
 }
 
-async function drawDayCard(date, foods) {
+async function drawDayCard(date, foods, style) {
+  style = style ?? getEmojiStyle();
   const W = 1080, H = 1350;
   const canvas = document.createElement('canvas');
   canvas.width = W;
@@ -1171,12 +1188,12 @@ async function drawDayCard(date, foods) {
     Math.floor((H - GRID_Y - FOOTER_H - GAP * (ROWS - 1)) / ROWS)
   );
 
-  // Pre-load all OpenMoji images in parallel
+  // Pre-load emoji images in parallel
   const imageMap = new Map();
   await Promise.all(display.map(async food => {
     const cp = FOOD_EMOJI[food];
     if (cp) {
-      const img = await loadEmojiImage(cp);
+      const img = await loadEmojiImage(cp, style);
       if (img) imageMap.set(food, img);
     }
   }));
@@ -1321,6 +1338,28 @@ async function renderDailyCards() {
       });
       wrapper.append(canvas, dlBtn);
     });
+  }
+}
+
+const EMOJI_PREVIEW_FOODS = ['Apple', 'Broccoli', 'Orange', 'Strawberry', 'Blueberry', 'Carrot'];
+
+function renderEmojiPreview(style) {
+  const container = document.getElementById('emojiStylePreview');
+  if (!container) return;
+  container.innerHTML = '';
+  for (const food of EMOJI_PREVIEW_FOODS) {
+    const cp = FOOD_EMOJI[food];
+    if (!cp) continue;
+    const item = document.createElement('div');
+    item.className = 'emoji-preview-item';
+    const img = document.createElement('img');
+    img.width = 52; img.height = 52;
+    img.alt = food;
+    img.src = getEmojiUrl(cp, style);
+    const lbl = document.createElement('span');
+    lbl.textContent = tFood(food);
+    item.append(img, lbl);
+    container.appendChild(item);
   }
 }
 
@@ -1489,6 +1528,20 @@ function init() {
     renderAll();
   });
 
+  // Settings: emoji style
+  const emojiStyleSelect = document.getElementById('emojiStyleSelect');
+  emojiStyleSelect.value = getEmojiStyle();
+  renderEmojiPreview(getEmojiStyle());
+  emojiStyleSelect.addEventListener('change', () => {
+    const s = getSettings();
+    s.emojiStyle = emojiStyleSelect.value;
+    saveSettings(s);
+    renderEmojiPreview(emojiStyleSelect.value);
+    // Force redraw of gallery cards with new style
+    document.querySelectorAll('.day-card[data-seed]').forEach(el => el.dataset.seed = '');
+    if (!document.getElementById('tab-gallery').hidden) renderDailyCards();
+  });
+
   // Tab switching
   document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -1499,7 +1552,12 @@ function init() {
       pane.hidden = false;
       if (btn.dataset.tab === 'nutrition') renderNutritionTab();
       if (btn.dataset.tab === 'gallery')   renderDailyCards();
-      if (btn.dataset.tab === 'settings') { goalInput.value = getGoal(); dailyGoalInput.value = getDailyGoal(); }
+      if (btn.dataset.tab === 'settings') {
+        goalInput.value = getGoal();
+        dailyGoalInput.value = getDailyGoal();
+        emojiStyleSelect.value = getEmojiStyle();
+        renderEmojiPreview(getEmojiStyle());
+      }
     });
   });
 
