@@ -21,6 +21,8 @@ const NUTRIENT_DEFS = [
   { key: 'magnesium', label: 'Magnesium', unit: 'mg' },
   { key: 'potassium', label: 'Potassium', unit: 'mg' },
   { key: 'zinc',    label: 'Zinc',       unit: 'mg' },
+  { key: 'selenium', label: 'Selenium',  unit: 'µg' },
+  { key: 'b12',     label: 'B12',        unit: 'µg' },
 ];
 
 // Open Food Facts nutriment keys → our internal keys (fallback for unknown foods)
@@ -42,6 +44,8 @@ const OFF_KEY_MAP = {
   'magnesium_100g':          'magnesium',
   'potassium_100g':          'potassium',
   'zinc_100g':               'zinc',
+  'selenium_100g':           'selenium',
+  'vitamin-b12_100g':        'b12',
 };
 
 function getNutritionCache() {

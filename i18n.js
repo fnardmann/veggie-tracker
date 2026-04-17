@@ -115,7 +115,7 @@ const TRANSLATIONS = {
     fact_b6:      'Helps produce serotonin and dopamine, the brain chemicals that regulate mood and sleep.',
     fact_b9:      'Essential for DNA synthesis and cell division. Especially critical in early pregnancy to prevent neural tube defects.',
     fact_vitc:    'Boosts immunity, helps absorb iron, and builds collagen for healthy skin and joints.',
-    fact_vitd:    'Your skin makes it from UV light — most people in northern latitudes are deficient in winter. Essential for calcium absorption and immune function.',
+    fact_vitd:    'Almost no Vitamin D in plants — go outside! Your skin makes it from UV light, and most people in northern latitudes are deficient in winter. Essential for calcium absorption and immune function.',
     fact_vite:    'A fat-soluble antioxidant that shields cell membranes from oxidative damage. Works best alongside other antioxidants.',
     fact_vitk:    'Needed for blood clotting and to keep calcium in your bones. Dark leafy greens are the richest source.',
     fact_iron:    'Carries oxygen in red blood cells. Low iron is the world\'s most common nutrient deficiency, affecting around 2 billion people.',
@@ -123,6 +123,8 @@ const TRANSLATIONS = {
     fact_magnesium: 'Involved in over 300 enzyme reactions. Supports muscle relaxation, nerve signalling, and a steady heart rhythm.',
     fact_potassium: 'Counterbalances sodium to regulate blood pressure. Most people fall well short of the daily target.',
     fact_zinc:    'Powers immune function, wound healing, and your senses of taste and smell. The body has no dedicated zinc store, so daily intake matters.',
+    fact_selenium: 'A powerful antioxidant that protects the thyroid. Just 1–2 Brazil nuts cover your entire daily requirement — probably the most dramatic single-food nutrient hit in nature.',
+    fact_b12:     'Found almost exclusively in animal products. Plant-based eaters should supplement — deficiency develops slowly but causes irreversible nerve damage if left untreated.',
     settings_portions_heading:          'Portion Sizes',
     settings_advanced_portions_title:   'Advanced portion editing',
     settings_advanced_portions_desc:    'Show editable portion inputs directly in the Nutrition tab.',
@@ -169,6 +171,8 @@ const TRANSLATIONS = {
     nutrient_magnesium:         'Magnesium',
     nutrient_potassium:         'Potassium',
     nutrient_zinc:              'Zinc',
+    nutrient_selenium:          'Selenium',
+    nutrient_b12:               'Vitamin B12',
   },
 
   de: {
@@ -274,7 +278,7 @@ const TRANSLATIONS = {
     fact_b6:      'Hilft, Serotonin und Dopamin herzustellen – Botenstoffe, die Stimmung und Schlaf regulieren.',
     fact_b9:      'Unentbehrlich für DNS-Synthese und Zellteilung. Besonders wichtig in der Frühschwangerschaft.',
     fact_vitc:    'Stärkt das Immunsystem, fördert die Eisenaufnahme und unterstützt die Kollagenbildung für Haut und Gelenke.',
-    fact_vitd:    'Deine Haut bildet es bei UV-Licht – viele Menschen in nördlichen Breiten haben im Winter einen Mangel. Essenziell für die Kalziumaufnahme und das Immunsystem.',
+    fact_vitd:    'Pflanzen enthalten fast kein Vitamin D – raus an die Sonne! Deine Haut bildet es bei UV-Licht, und viele Menschen in nördlichen Breiten haben im Winter einen Mangel. Essenziell für die Kalziumaufnahme und das Immunsystem.',
     fact_vite:    'Ein fettlösliches Antioxidans, das Zellmembranen vor oxidativem Schaden schützt. Wirkt am besten zusammen mit anderen Antioxidantien.',
     fact_vitk:    'Notwendig für die Blutgerinnung und damit Kalzium in den Knochen bleibt. Dunkelgrünes Blattgemüse ist die reichhaltigste Quelle.',
     fact_iron:    'Transportiert Sauerstoff in den roten Blutkörperchen. Eisenmangel ist der häufigste Nährstoffmangel weltweit und betrifft rund 2 Milliarden Menschen.',
@@ -282,6 +286,8 @@ const TRANSLATIONS = {
     fact_magnesium: 'An über 300 Enzymreaktionen beteiligt. Unterstützt Muskelentspannung, Nervensignale und einen stabilen Herzrhythmus.',
     fact_potassium: 'Gleicht Natrium aus und reguliert den Blutdruck. Die meisten Menschen erreichen die empfohlene Tagesmenge nicht.',
     fact_zinc:    'Treibt Immunfunktion, Wundheilung und die Sinne für Geschmack und Geruch an. Der Körper hat keinen Zinkspeicher – daher ist tägliche Zufuhr wichtig.',
+    fact_selenium: 'Ein starkes Antioxidans, das die Schilddrüse schützt. Schon 1–2 Paranüsse decken den gesamten Tagesbedarf – wohl der dramatischste Einzelnährstoff-Treffer der Natur.',
+    fact_b12:     'Kommt fast ausschließlich in tierischen Produkten vor. Pflanzlich Essende sollten supplementieren – ein Mangel entwickelt sich langsam, verursacht aber bei Ausbleiben irreversible Nervenschäden.',
     settings_portions_heading:          'Portionsgrößen',
     settings_advanced_portions_title:   'Erweiterte Portionsbearbeitung',
     settings_advanced_portions_desc:    'Bearbeitbare Portionsfelder direkt im Nährwerte-Tab anzeigen.',
@@ -325,6 +331,8 @@ const TRANSLATIONS = {
     nutrient_magnesium:         'Magnesium',
     nutrient_potassium:         'Kalium',
     nutrient_zinc:              'Zink',
+    nutrient_selenium:          'Selen',
+    nutrient_b12:               'Vitamin B12',
   },
 };
 

@@ -3,7 +3,8 @@
 // Per-100g nutritional values + typical portion size in grams.
 // Fields: g (portion), fibre, vita (Vit A µg RAE), b1 (mg), b2 (mg), b3 (mg),
 //         b5 (mg), b6 (mg), b9 (folate µg), vitc (mg), vitd (µg), vite (mg),
-//         vitk (µg), iron (mg), calcium (mg), magnesium (mg), potassium (mg), zinc (mg)
+//         vitk (µg), iron (mg), calcium (mg), magnesium (mg), potassium (mg), zinc (mg),
+//         selenium (µg, select foods only), b12 (µg, select fortified foods only)
 const NUTRITION_DATA = {
 
   // ── Vegetables ───────────────────────────────────────────────────────────────
@@ -47,7 +48,7 @@ const NUTRITION_DATA = {
   'lettuce':             { g:80,  fibre:1.3,  vita:166, b1:0.07, b2:0.08, b3:0.4,  b5:0.13, b6:0.09, b9:73,  vitc:9.2, vitd:0,   vite:0.3,  vitk:102, iron:0.9,  calcium:36,  magnesium:13,  potassium:194,  zinc:0.2  },
   'lotus root':          { g:80,  fibre:4.9,  vita:0,   b1:0.16, b2:0.22, b3:0.4,  b5:0.39, b6:0.26, b9:13,  vitc:44,  vitd:0,   vite:0.1,  vitk:0.3, iron:1.2,  calcium:45,  magnesium:23,  potassium:556,  zinc:0.4  },
   'mangetout':           { g:80,  fibre:2.6,  vita:54,  b1:0.15, b2:0.08, b3:0.9,  b5:0.75, b6:0.16, b9:42,  vitc:60,  vitd:0,   vite:0.4,  vitk:25,  iron:2.1,  calcium:43,  magnesium:21,  potassium:200,  zinc:0.3  },
-  'mushroom':            { g:80,  fibre:1.0,  vita:0,   b1:0.09, b2:0.35, b3:3.6,  b5:1.50, b6:0.10, b9:17,  vitc:2.1, vitd:0.2, vite:0.0,  vitk:0,   iron:0.5,  calcium:3,   magnesium:9,   potassium:318,  zinc:0.5  },
+  'mushroom':            { g:80,  fibre:1.0,  vita:0,   b1:0.09, b2:0.35, b3:3.6,  b5:1.50, b6:0.10, b9:17,  vitc:2.1, vitd:0.2, vite:0.0,  vitk:0,   iron:0.5,  calcium:3,   magnesium:9,   potassium:318,  zinc:0.5,  selenium:9   },
   'okra':                { g:80,  fibre:3.2,  vita:36,  b1:0.20, b2:0.06, b3:1.0,  b5:0.24, b6:0.22, b9:88,  vitc:23,  vitd:0,   vite:0.4,  vitk:53,  iron:0.6,  calcium:82,  magnesium:57,  potassium:299,  zinc:0.6  },
   'olives':              { g:30,  fibre:3.2,  vita:20,  b1:0.02, b2:0.01, b3:0.2,  b5:0.02, b6:0.03, b9:3,   vitc:0.9, vitd:0,   vite:3.8,  vitk:1,   iron:3.3,  calcium:88,  magnesium:11,  potassium:8,    zinc:0.2  },
   'onion':               { g:80,  fibre:1.7,  vita:0,   b1:0.05, b2:0.03, b3:0.1,  b5:0.12, b6:0.12, b9:19,  vitc:7.4, vitd:0,   vite:0.0,  vitk:0.4, iron:0.2,  calcium:23,  magnesium:10,  potassium:146,  zinc:0.2  },
@@ -157,18 +158,18 @@ const NUTRITION_DATA = {
   'sultanas':            { g:40,  fibre:3.7,  vita:0,   b1:0.11, b2:0.13, b3:0.8,  b5:0.10, b6:0.17, b9:5,   vitc:3.3, vitd:0,   vite:0.1,  vitk:3,   iron:1.9,  calcium:50,  magnesium:32,  potassium:749,  zinc:0.2  },
 
   // ── Seeds ────────────────────────────────────────────────────────────────────
-  'chia seeds':          { g:15,  fibre:34.4, vita:0,   b1:0.62, b2:0.17, b3:8.8,  b5:0.94, b6:0.48, b9:49,  vitc:1.6, vitd:0,   vite:0.5,  vitk:0,   iron:7.7,  calcium:631, magnesium:335, potassium:407,  zinc:4.6  },
-  'flaxseeds':           { g:15,  fibre:27.3, vita:0,   b1:1.64, b2:0.16, b3:3.1,  b5:0.99, b6:0.47, b9:87,  vitc:0.6, vitd:0,   vite:0.3,  vitk:4,   iron:5.7,  calcium:255, magnesium:392, potassium:813,  zinc:4.3  },
-  'linseeds':            { g:15,  fibre:27.3, vita:0,   b1:1.64, b2:0.16, b3:3.1,  b5:0.99, b6:0.47, b9:87,  vitc:0.6, vitd:0,   vite:0.3,  vitk:4,   iron:5.7,  calcium:255, magnesium:392, potassium:813,  zinc:4.3  },
+  'chia seeds':          { g:15,  fibre:34.4, vita:0,   b1:0.62, b2:0.17, b3:8.8,  b5:0.94, b6:0.48, b9:49,  vitc:1.6, vitd:0,   vite:0.5,  vitk:0,   iron:7.7,  calcium:631, magnesium:335, potassium:407,  zinc:4.6,  selenium:55  },
+  'flaxseeds':           { g:15,  fibre:27.3, vita:0,   b1:1.64, b2:0.16, b3:3.1,  b5:0.99, b6:0.47, b9:87,  vitc:0.6, vitd:0,   vite:0.3,  vitk:4,   iron:5.7,  calcium:255, magnesium:392, potassium:813,  zinc:4.3,  selenium:25  },
+  'linseeds':            { g:15,  fibre:27.3, vita:0,   b1:1.64, b2:0.16, b3:3.1,  b5:0.99, b6:0.47, b9:87,  vitc:0.6, vitd:0,   vite:0.3,  vitk:4,   iron:5.7,  calcium:255, magnesium:392, potassium:813,  zinc:4.3,  selenium:25  },
   'hemp seeds':          { g:15,  fibre:4.0,  vita:0,   b1:0.40, b2:0.11, b3:9.2,  b5:0.57, b6:0.12, b9:110, vitc:0.5, vitd:0,   vite:0.8,  vitk:0,   iron:7.9,  calcium:70,  magnesium:700, potassium:859,  zinc:9.9  },
   'pumpkin seeds':       { g:20,  fibre:6.0,  vita:0,   b1:0.27, b2:0.15, b3:4.4,  b5:0.75, b6:0.14, b9:57,  vitc:1.9, vitd:0,   vite:0.3,  vitk:7,   iron:8.8,  calcium:46,  magnesium:592, potassium:809,  zinc:7.8  },
   'sesame seeds':        { g:15,  fibre:11.8, vita:0,   b1:0.79, b2:0.25, b3:4.5,  b5:0.05, b6:0.79, b9:97,  vitc:0,   vitd:0,   vite:0.3,  vitk:0,   iron:14.6, calcium:975, magnesium:351, potassium:468,  zinc:7.8  },
-  'sunflower seeds':     { g:20,  fibre:8.6,  vita:1,   b1:1.48, b2:0.36, b3:8.3,  b5:6.75, b6:1.35, b9:227, vitc:1.4, vitd:0,   vite:35.2, vitk:0,   iron:5.3,  calcium:78,  magnesium:325, potassium:645,  zinc:5.0  },
+  'sunflower seeds':     { g:20,  fibre:8.6,  vita:1,   b1:1.48, b2:0.36, b3:8.3,  b5:6.75, b6:1.35, b9:227, vitc:1.4, vitd:0,   vite:35.2, vitk:0,   iron:5.3,  calcium:78,  magnesium:325, potassium:645,  zinc:5.0,  selenium:79  },
   'poppy seeds':         { g:10,  fibre:19.5, vita:0,   b1:0.85, b2:0.10, b3:0.9,  b5:0.32, b6:0.25, b9:82,  vitc:1.0, vitd:0,   vite:1.8,  vitk:0,   iron:9.8,  calcium:1438,magnesium:347, potassium:719,  zinc:7.9  },
 
   // ── Nuts ─────────────────────────────────────────────────────────────────────
   'almonds':             { g:30,  fibre:12.5, vita:0,   b1:0.21, b2:1.01, b3:3.6,  b5:0.47, b6:0.14, b9:44,  vitc:0,   vitd:0,   vite:25.6, vitk:0,   iron:3.7,  calcium:264, magnesium:270, potassium:733,  zinc:3.1  },
-  'brazil nuts':         { g:30,  fibre:7.5,  vita:0,   b1:0.62, b2:0.04, b3:0.3,  b5:0.18, b6:0.10, b9:22,  vitc:0.7, vitd:0,   vite:5.7,  vitk:0,   iron:2.4,  calcium:160, magnesium:376, potassium:659,  zinc:4.1  },
+  'brazil nuts':         { g:30,  fibre:7.5,  vita:0,   b1:0.62, b2:0.04, b3:0.3,  b5:0.18, b6:0.10, b9:22,  vitc:0.7, vitd:0,   vite:5.7,  vitk:0,   iron:2.4,  calcium:160, magnesium:376, potassium:659,  zinc:4.1,  selenium:1917 },
   'cashews':             { g:30,  fibre:3.3,  vita:0,   b1:0.42, b2:0.06, b3:1.1,  b5:0.86, b6:0.42, b9:25,  vitc:0.5, vitd:0,   vite:0.9,  vitk:35,  iron:6.7,  calcium:37,  magnesium:292, potassium:660,  zinc:5.8  },
   'hazelnuts':           { g:30,  fibre:9.7,  vita:1,   b1:0.64, b2:0.11, b3:1.8,  b5:0.92, b6:0.56, b9:113, vitc:6.3, vitd:0,   vite:15.0, vitk:14,  iron:4.7,  calcium:114, magnesium:163, potassium:680,  zinc:2.5  },
   'macadamia nuts':      { g:30,  fibre:8.6,  vita:0,   b1:1.20, b2:0.16, b3:2.5,  b5:0.76, b6:0.28, b9:11,  vitc:1.2, vitd:0,   vite:0.5,  vitk:0,   iron:3.7,  calcium:85,  magnesium:130, potassium:368,  zinc:1.3  },

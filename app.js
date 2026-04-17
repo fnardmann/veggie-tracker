@@ -561,7 +561,9 @@ function renderNutrientFacts() {
     vite: { val: 13, unit: 'mg' }, vitk: { val: 80, unit: 'µg' },
     iron: { val: 9, unit: 'mg' }, calcium: { val: 1000, unit: 'mg' },
     magnesium: { val: 350, unit: 'mg' }, potassium: { val: 3500, unit: 'mg' },
-    zinc: { val: 10, unit: 'mg' },
+    zinc:     { val: 10,  unit: 'mg' },
+    selenium: { val: 55,  unit: 'µg' },
+    b12:      { val: 2.5, unit: 'µg' },
   };
 
   const cards = NUTRIENT_DEFS.map(({ key }) => {
@@ -792,6 +794,8 @@ const NUTRIENT_WEEKLY_REF = {
   magnesium: 2450,  // 350 mg/day
   potassium: 24500, // 3500 mg/day
   zinc:      70,    // 10 mg/day
+  selenium:  385,   // 55 µg/day
+  // b12 intentionally omitted: plants contain none, so it would only clog suggestions
 };
 
 function renderNutrientSuggestions(totals, loggedFoodsThisWeek) {
