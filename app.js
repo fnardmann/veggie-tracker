@@ -1282,12 +1282,163 @@ async function drawDayCard(date, foods, style) {
   return canvas;
 }
 
+function getISOWeekNumber(dateStr) {
+  // dateStr is always a Monday (from getWeekStart)
+  const d = new Date(dateStr + 'T12:00:00Z');
+  const jan4 = new Date(Date.UTC(d.getUTCFullYear(), 0, 4));
+  const dow = (jan4.getUTCDay() + 6) % 7; // 0=Mon
+  const week1Mon = new Date(jan4.getTime() - dow * 86400000);
+  return Math.round((d - week1Mon) / (7 * 86400000)) + 1;
+}
+
+async function drawWeekCard(weekStart, foods, style) {
+  style = style ?? getEmojiStyle();
+  const W = 1080, H = 1350;
+  const canvas = document.createElement('canvas');
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+
+  // ── Background ──────────────────────────────────────────────────────────────
+  const bg = ctx.createLinearGradient(0, H * 0.2, W * 0.8, H * 0.8);
+  bg.addColorStop(0, '#163522');
+  bg.addColorStop(1, '#0f2a1a');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, W, H);
+
+  ctx.fillStyle = 'rgba(255,255,255,0.028)';
+  for (let x = 36; x < W; x += 60)
+    for (let y = 36; y < H; y += 60) {
+      ctx.beginPath(); ctx.arc(x, y, 2, 0, Math.PI * 2); ctx.fill();
+    }
+
+  // ── Header ──────────────────────────────────────────────────────────────────
+  const PAD = 72;
+  const weekNum = getISOWeekNumber(weekStart);
+  ctx.textAlign = 'left';
+  ctx.fillStyle = 'rgba(160,220,180,0.55)';
+  ctx.font = '400 46px system-ui, sans-serif';
+  ctx.fillText('WEEK', PAD, 104);
+  ctx.fillStyle = '#ffffff';
+  ctx.font = '800 210px system-ui, sans-serif';
+  ctx.fillText(String(weekNum).padStart(2, '0'), PAD - 6, 300);
+  ctx.fillStyle = 'rgba(160,220,180,0.55)';
+  ctx.font = '400 46px system-ui, sans-serif';
+  ctx.fillText(fmtWeekRange(weekStart).toUpperCase(), PAD, 352);
+  ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(PAD, 388); ctx.lineTo(W - PAD, 388); ctx.stroke();
+
+  // ── Grid layout ─────────────────────────────────────────────────────────────
+  const MAX_SHOW = 16;
+  const display  = foods.slice(0, MAX_SHOW);
+  const n        = display.length;
+  const COLS     = n <= 2 ? n : n <= 4 ? 2 : n <= 9 ? 3 : 4;
+  const ROWS     = Math.ceil(n / COLS);
+  const GAP      = 16;
+  const GRID_Y   = 412;
+  const FOOTER_H = 220;
+  const CELL     = Math.min(
+    Math.floor((W - PAD * 2 - GAP * (COLS - 1)) / COLS),
+    Math.floor((H - GRID_Y - FOOTER_H - GAP * (ROWS - 1)) / ROWS)
+  );
+
+  // Pre-load emoji images in parallel
+  const imageMap = new Map();
+  await Promise.all(display.map(async food => {
+    const cp = FOOD_EMOJI[food];
+    if (cp) {
+      const img = await loadEmojiImage(cp, style);
+      if (img) imageMap.set(food, img);
+    }
+  }));
+
+  // ── Draw cells ───────────────────────────────────────────────────────────────
+  display.forEach((food, i) => {
+    const col  = i % COLS;
+    const row  = Math.floor(i / COLS);
+    const x    = PAD + col * (CELL + GAP);
+    const y    = GRID_Y + row * (CELL + GAP);
+    const cx   = x + CELL / 2;
+    const eY   = y + CELL * 0.44;
+    const r    = CELL * 0.28;
+
+    ctx.fillStyle = 'rgba(255,255,255,0.11)';
+    ctx.beginPath(); ctx.roundRect(x, y, CELL, CELL, 18); ctx.fill();
+
+    ctx.fillStyle = 'rgba(255,255,255,0.93)';
+    ctx.beginPath(); ctx.arc(cx, eY, r, 0, Math.PI * 2); ctx.fill();
+
+    const img = imageMap.get(food);
+    if (img) {
+      ctx.save();
+      ctx.beginPath(); ctx.arc(cx, eY, r * 0.95, 0, Math.PI * 2); ctx.clip();
+      const ir = r * 0.76;
+      ctx.drawImage(img, cx - ir, eY - ir, ir * 2, ir * 2);
+      ctx.restore();
+    } else {
+      ctx.fillStyle = foodColor(food);
+      ctx.beginPath(); ctx.arc(cx, eY, r, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#fff';
+      ctx.font = `700 ${Math.floor(r * 0.9)}px system-ui, sans-serif`;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(food[0].toUpperCase(), cx, eY);
+    }
+
+    const fontSize = Math.max(18, Math.floor(CELL * 0.1));
+    ctx.fillStyle = 'rgba(255,255,255,0.65)';
+    ctx.font = `400 ${fontSize}px system-ui, sans-serif`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    const label = tFood(food);
+    const maxLabelW = CELL - 12;
+    const words = label.split(' ');
+    const labelLines = [];
+    let cur = '';
+    for (const w of words) {
+      const test = cur ? cur + ' ' + w : w;
+      if (ctx.measureText(test).width > maxLabelW && cur) {
+        labelLines.push(cur); cur = w;
+      } else { cur = test; }
+    }
+    if (cur) labelLines.push(cur);
+    const lineH = fontSize * 1.25;
+    const totalH = labelLines.length * lineH;
+    const labelStartY = y + CELL * 0.76 - (totalH - lineH) / 2;
+    labelLines.slice(0, 2).forEach((line, li) => {
+      ctx.fillText(line, cx, labelStartY + li * lineH);
+    });
+  });
+
+  if (foods.length > MAX_SHOW) {
+    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+    ctx.font = '400 36px system-ui, sans-serif';
+    ctx.textAlign = 'right'; ctx.textBaseline = 'top';
+    ctx.fillText(`+${foods.length - MAX_SHOW} more`, W - PAD, GRID_Y + ROWS * (CELL + GAP));
+  }
+
+  // ── Footer ───────────────────────────────────────────────────────────────────
+  const footerY = H - FOOTER_H + 20;
+  const goal = getGoal();
+  ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(PAD, footerY); ctx.lineTo(W - PAD, footerY); ctx.stroke();
+  ctx.fillStyle = '#ffffff';
+  ctx.font = '700 62px system-ui, sans-serif';
+  ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+  ctx.fillText(t(n === 1 ? 'x_plants' : 'x_plants_plural', { n: `${n} / ${goal}` }), PAD, footerY + 36);
+  ctx.fillStyle = 'rgba(160,220,180,0.5)';
+  ctx.font = '400 38px system-ui, sans-serif';
+  ctx.fillText('Veggie Tracker', PAD, footerY + 118);
+
+  return canvas;
+}
+
 // ── Card preview modal ────────────────────────────────────────────────────────
 
 let _modalCanvas = null;
 let _modalDate   = null;
 let _modalDates  = [];
 let _modalIndex  = 0;
+let _modalType   = 'day'; // 'day' | 'week'
 
 function updateModalNavButtons() {
   const prev = document.getElementById('cardModalPrev');
@@ -1306,24 +1457,34 @@ async function navigateModal(dir) {
   img.style.opacity = '0.4';
 
   const { entries } = getData();
-  const byDate = new Map();
-  for (const e of entries) {
-    if (!byDate.has(e.date)) byDate.set(e.date, new Set());
-    byDate.get(e.date).add(e.vegetable);
+  let canvas;
+  if (_modalType === 'week') {
+    const weekEnd = addDays(_modalDate, 6);
+    const foods = [...new Set(
+      entries.filter(e => e.date >= _modalDate && e.date <= weekEnd).map(e => e.vegetable)
+    )];
+    canvas = await drawWeekCard(_modalDate, foods);
+  } else {
+    const byDate = new Map();
+    for (const e of entries) {
+      if (!byDate.has(e.date)) byDate.set(e.date, new Set());
+      byDate.get(e.date).add(e.vegetable);
+    }
+    const foods = [...(byDate.get(_modalDate) ?? new Set())];
+    canvas = await drawDayCard(_modalDate, foods);
   }
-  const foods  = [...(byDate.get(_modalDate) ?? new Set())];
-  const canvas = await drawDayCard(_modalDate, foods);
   _modalCanvas = canvas;
   img.src = canvas.toDataURL('image/png');
   img.style.opacity = '1';
   updateModalNavButtons();
 }
 
-function openCardModal(canvas, date, dates) {
+function openCardModal(canvas, date, dates, type = 'day') {
   _modalCanvas = canvas;
   _modalDate   = date;
   _modalDates  = dates ?? [];
   _modalIndex  = _modalDates.indexOf(date);
+  _modalType   = type;
   const modal = document.getElementById('cardModal');
   document.getElementById('cardModalImg').src = canvas.toDataURL('image/png');
   modal.hidden = false;
@@ -1338,6 +1499,7 @@ function closeCardModal() {
   _modalDate   = null;
   _modalDates  = [];
   _modalIndex  = 0;
+  _modalType   = 'day';
 }
 
 async function shareOrCopyCard() {
@@ -1345,7 +1507,8 @@ async function shareOrCopyCard() {
   const dataUrl = _modalCanvas.toDataURL('image/png');
   const res  = await fetch(dataUrl);
   const blob = await res.blob();
-  const file = new File([blob], `veggie-${_modalDate}.png`, { type: 'image/png' });
+  const fname = _modalType === 'week' ? `veggie-week-${_modalDate}.png` : `veggie-${_modalDate}.png`;
+  const file = new File([blob], fname, { type: 'image/png' });
 
   if (navigator.canShare && navigator.canShare({ files: [file] })) {
     await navigator.share({ files: [file], title: t('share_title') }).catch(() => {});
@@ -1358,7 +1521,7 @@ async function shareOrCopyCard() {
   } else {
     // Last resort: download
     const a = document.createElement('a');
-    a.download = `veggie-${_modalDate}.png`;
+    a.download = fname;
     a.href = dataUrl;
     a.click();
   }
@@ -1372,7 +1535,7 @@ function initCardModal() {
   document.getElementById('cardModalDl').addEventListener('click', () => {
     if (!_modalCanvas) return;
     const a = document.createElement('a');
-    a.download = `veggie-${_modalDate}.png`;
+    a.download = _modalType === 'week' ? `veggie-week-${_modalDate}.png` : `veggie-${_modalDate}.png`;
     a.href = _modalCanvas.toDataURL('image/png');
     a.click();
   });
@@ -1440,6 +1603,55 @@ async function renderDailyCards() {
     drawDayCard(date, foods).then(canvas => {
       canvas.style.cssText = 'width:100%;height:100%;display:block;cursor:pointer;';
       wrapper.addEventListener('click', () => openCardModal(canvas, date, dates));
+      wrapper.append(canvas);
+    });
+  }
+}
+
+async function renderWeeklyCards() {
+  const { entries } = getData();
+  const container = document.getElementById('weeklyCards');
+
+  const byWeek = new Map();
+  for (const e of entries) {
+    const ws = getWeekStart(e.date);
+    if (!byWeek.has(ws)) byWeek.set(ws, new Set());
+    byWeek.get(ws).add(e.vegetable);
+  }
+
+  const weeks = [...byWeek.keys()].sort().reverse().slice(0, 5);
+
+  if (weeks.length === 0) {
+    container.innerHTML = `<p class="empty">${t('no_history')}</p>`;
+    return;
+  }
+
+  const existing = new Map();
+  container.querySelectorAll('.day-card[data-week]').forEach(el =>
+    existing.set(el.dataset.week, el)
+  );
+
+  container.innerHTML = '';
+
+  for (const ws of weeks) {
+    const foods = [...byWeek.get(ws)];
+    const seed  = simpleHash(ws + ':' + [...foods].sort().join(','));
+
+    const prev = existing.get(ws);
+    if (prev && prev.dataset.seed === String(seed)) {
+      container.appendChild(prev);
+      continue;
+    }
+
+    const wrapper = document.createElement('div');
+    wrapper.className     = 'day-card';
+    wrapper.dataset.week  = ws;
+    wrapper.dataset.seed  = String(seed);
+    container.appendChild(wrapper);
+
+    drawWeekCard(ws, foods).then(canvas => {
+      canvas.style.cssText = 'width:100%;height:100%;display:block;cursor:pointer;';
+      wrapper.addEventListener('click', () => openCardModal(canvas, ws, weeks, 'week'));
       wrapper.append(canvas);
     });
   }
@@ -1548,7 +1760,7 @@ function renderAll() {
   renderHistory();
   // Tab-specific renders: only run when that tab is visible
   if (!document.getElementById('tab-nutrition').hidden) renderNutritionTab();
-  if (!document.getElementById('tab-gallery').hidden)   renderDailyCards();
+  if (!document.getElementById('tab-gallery').hidden)   { renderWeeklyCards(); renderDailyCards(); }
 }
 
 // ── Export / Import ───────────────────────────────────────────────────────────
@@ -1712,7 +1924,7 @@ function init() {
     renderEmojiPreview(emojiStyleSelect.value);
     // Force redraw of gallery cards with new style
     document.querySelectorAll('.day-card[data-seed]').forEach(el => el.dataset.seed = '');
-    if (!document.getElementById('tab-gallery').hidden) renderDailyCards();
+    if (!document.getElementById('tab-gallery').hidden) { renderWeeklyCards(); renderDailyCards(); }
   });
 
   // Tab switching
@@ -1724,7 +1936,7 @@ function init() {
       const pane = document.getElementById('tab-' + btn.dataset.tab);
       pane.hidden = false;
       if (btn.dataset.tab === 'nutrition') renderNutritionTab();
-      if (btn.dataset.tab === 'gallery')   renderDailyCards();
+      if (btn.dataset.tab === 'gallery')   { renderWeeklyCards(); renderDailyCards(); }
       if (btn.dataset.tab === 'settings') {
         goalInput.value = getGoal();
         dailyGoalInput.value = getDailyGoal();
