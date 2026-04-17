@@ -345,32 +345,52 @@ main {
 #veggieStreaks {
   max-height: 320px;
   overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 4px;
 }
-#veggieStreaks table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: .82rem;
+.vs-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: var(--radius-s);
+  background: var(--c-bg);
 }
-#veggieStreaks th {
-  text-align: left;
-  padding: 5px 8px;
-  font-size: .68rem;
-  font-weight: 700;
+.vs-row--active {
+  background: #f0faf4;
+  border: 1px solid var(--c-pale);
+}
+.vs-name {
+  font-size: .85rem;
+  font-weight: 600;
+  color: var(--c-dark);
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.vs-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.vs-total {
+  font-size: .72rem;
   color: var(--c-text3);
-  text-transform: uppercase;
-  letter-spacing: .06em;
-  border-bottom: 1px solid var(--c-bg2);
-  position: sticky;
-  top: 0;
-  background: #fff;
+  white-space: nowrap;
 }
-#veggieStreaks td {
-  padding: 7px 8px;
-  border-bottom: 1px solid var(--c-bg);
-  vertical-align: middle;
+.vs-streak {
+  font-size: .78rem;
+  font-weight: 600;
+  color: var(--c-text2);
+  white-space: nowrap;
 }
-#veggieStreaks tr:last-child td { border-bottom: none; }
-#veggieStreaks tr:hover td { background: var(--c-bg); }
+.vs-row--active .vs-streak { color: var(--c-main); }
 
 /* ── History ─────────────────────────────────────────────────────────────── */
 .history-header {

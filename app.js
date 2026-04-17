@@ -116,7 +116,8 @@ function removeEntry(id) {
 // ── Date utils ────────────────────────────────────────────────────────────────
 
 function todayStr() {
-  return new Date().toISOString().split('T')[0];
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
 // Offset dateStr by n days using UTC noon to avoid DST jumps
@@ -484,28 +485,20 @@ function renderStreaks() {
     return;
   }
 
-  container.innerHTML = `
-    <table>
-      <thead>
-        <tr>
-          <th>${t('col_food')}</th>
-          <th>${t('col_streak')}</th>
-          <th>${t('col_total')}</th>
-          <th>${t('col_last')}</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${streaks.map(s => `
-          <tr>
-            <td>${esc(tFood(s.name))}</td>
-            <td>${s.streak > 0 ? `🔥 ${t(s.streak === 1 ? 'streak_day' : 'streak_days', { n: s.streak })}` : '—'}</td>
-            <td>${s.total}</td>
-            <td>${fmtDate(s.last)}</td>
-          </tr>
-        `).join('')}
-      </tbody>
-    </table>
-  `;
+  container.innerHTML = streaks.map(s => {
+    const active = s.streak > 0;
+    const streakLabel = active
+      ? `🔥 ${t(s.streak === 1 ? 'streak_day' : 'streak_days', { n: s.streak })}`
+      : `${t('col_last')}: ${fmtDate(s.last)}`;
+    return `
+      <div class="vs-row${active ? ' vs-row--active' : ''}">
+        <span class="vs-name">${esc(tFood(s.name))}</span>
+        <span class="vs-meta">
+          <span class="vs-total">${t('col_total')}: ${s.total}</span>
+          <span class="vs-streak">${streakLabel}</span>
+        </span>
+      </div>`;
+  }).join('');
 }
 
 function renderHistory() {
