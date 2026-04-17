@@ -12,6 +12,7 @@ function saveSettings(s) { localStorage.setItem(SETTINGS_KEY, JSON.stringify(s))
 function getGoal() { return getSettings().weeklyGoal ?? DEFAULT_GOAL; }
 function getDailyGoal() { return getSettings().dailyGoal ?? DEFAULT_DAILY_GOAL; }
 function getAdvancedPortions() { return getSettings().advancedPortions ?? false; }
+function getFunFacts() { return getSettings().funFacts ?? true; }
 
 const FOODS = [
   // Vegetables
@@ -548,6 +549,40 @@ function renderHistory() {
   container.querySelectorAll('.chip-delete').forEach(btn =>
     btn.addEventListener('click', () => { removeEntry(btn.dataset.id); renderAll(); })
   );
+}
+
+// ── Nutrient facts ────────────────────────────────────────────────────────────
+
+function renderNutrientFacts() {
+  const el = document.getElementById('nutritionFacts');
+  if (!el) return;
+  if (!getFunFacts()) { el.hidden = true; return; }
+  el.hidden = false;
+
+  const dailyRef = {
+    fibre: { val: 30, unit: 'g' }, vita: { val: 800, unit: 'µg' },
+    b1: { val: 1.2, unit: 'mg' }, b2: { val: 1.4, unit: 'mg' },
+    b3: { val: 16, unit: 'mg' }, b5: { val: 5, unit: 'mg' },
+    b6: { val: 1.4, unit: 'mg' }, b9: { val: 400, unit: 'µg' },
+    vitc: { val: 75, unit: 'mg' }, vitd: { val: 20, unit: 'µg' },
+    vite: { val: 13, unit: 'mg' }, vitk: { val: 80, unit: 'µg' },
+    iron: { val: 9, unit: 'mg' }, calcium: { val: 1000, unit: 'mg' },
+    magnesium: { val: 350, unit: 'mg' }, potassium: { val: 3500, unit: 'mg' },
+    zinc: { val: 10, unit: 'mg' },
+  };
+
+  const cards = NUTRIENT_DEFS.map(({ key }) => {
+    const ref = dailyRef[key];
+    return `<div class="fact-card">
+      <div class="fact-card-header">
+        <span class="fact-name">${esc(t('nutrient_' + key))}</span>
+        <span class="fact-goal">${ref.val}\u202f${esc(ref.unit)}/day</span>
+      </div>
+      <p class="fact-text">${esc(t('fact_' + key))}</p>
+    </div>`;
+  }).join('');
+
+  document.getElementById('nutritionFactsGrid').innerHTML = cards;
 }
 
 // ── Nutrition tab rendering ───────────────────────────────────────────────────
@@ -1989,6 +2024,19 @@ function init() {
     renderAll();
   });
 
+  // Settings: fun facts toggle
+  const funFactsToggle = document.getElementById('funFactsToggle');
+  funFactsToggle.checked = getFunFacts();
+  funFactsToggle.addEventListener('change', () => {
+    const s = getSettings();
+    s.funFacts = funFactsToggle.checked;
+    saveSettings(s);
+    renderNutrientFacts();
+  });
+
+  // Initial render
+  renderNutrientFacts();
+
   // Settings: advanced portions toggle
   const advancedPortionsToggle = document.getElementById('advancedPortionsToggle');
   advancedPortionsToggle.checked = getAdvancedPortions();
@@ -2025,13 +2073,14 @@ function init() {
       btn.classList.add('active');
       const pane = document.getElementById('tab-' + btn.dataset.tab);
       pane.hidden = false;
-      if (btn.dataset.tab === 'nutrition') renderNutritionTab();
+      if (btn.dataset.tab === 'nutrition') { renderNutritionTab(); renderNutrientFacts(); }
       if (btn.dataset.tab === 'gallery')   { renderWeeklyCards(); renderDailyCards(); }
       if (btn.dataset.tab === 'settings') {
         goalInput.value = getGoal();
         dailyGoalInput.value = getDailyGoal();
         emojiStyleSelect.value = getEmojiStyle();
         renderEmojiPreview(getEmojiStyle());
+        funFactsToggle.checked = getFunFacts();
         advancedPortionsToggle.checked = getAdvancedPortions();
         renderPortionSettings();
       }

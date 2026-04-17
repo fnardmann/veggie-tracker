@@ -500,6 +500,42 @@ main {
 }
 .portion-reset:hover { color: var(--c-dark); }
 
+/* ── Nutrient facts grid ─────────────────────────────────────────────────── */
+.facts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+  margin-top: 4px;
+}
+.fact-card {
+  background: var(--c-pale);
+  border-radius: var(--radius-s);
+  padding: 12px 14px;
+}
+.fact-card-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.fact-name {
+  font-size: .85rem;
+  font-weight: 700;
+  color: var(--c-dark);
+}
+.fact-goal {
+  font-size: .72rem;
+  color: var(--c-text3);
+  white-space: nowrap;
+}
+.fact-text {
+  font-size: .78rem;
+  color: var(--c-text2);
+  line-height: 1.55;
+  margin: 0;
+}
+
 /* ── Top sources ─────────────────────────────────────────────────────────── */
 .src-list { display: flex; flex-direction: column; gap: 10px; }
 .src-row {

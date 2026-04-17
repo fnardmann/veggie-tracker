@@ -219,6 +219,22 @@
       </section>
 
       <section class="card settings-card">
+        <h2 data-i18n="settings_funfacts_heading">Nutrient Facts</h2>
+        <div class="settings-row">
+          <div class="settings-info">
+            <p class="settings-title" data-i18n="settings_funfacts_title">Show nutrient facts</p>
+            <p class="settings-desc" data-i18n="settings_funfacts_desc">Display a fun facts overview in the Nutrition tab.</p>
+          </div>
+          <div class="settings-control">
+            <label class="toggle-label">
+              <input type="checkbox" id="funFactsToggle">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+      </section>
+
+      <section class="card settings-card">
         <h2 data-i18n="settings_portions_heading">Portion Sizes</h2>
         <div class="settings-row">
           <div class="settings-info">
@@ -276,6 +292,14 @@
           <span class="nutrition-note" data-i18n="nutrition_sources_note">which of your logged plants contributed most to each nutrient</span>
         </div>
         <div id="nutritionDGE"><p class="empty" data-i18n="empty_log_sources">Log foods to see top sources.</p></div>
+      </section>
+
+      <!-- Nutrient facts -->
+      <section class="card" id="nutritionFacts">
+        <div class="nutrition-header">
+          <h2 data-i18n="nutrition_facts_heading">Nutrient Facts</h2>
+        </div>
+        <div id="nutritionFactsGrid" class="facts-grid"></div>
       </section>
 
       <!-- Nutrient trend -->
