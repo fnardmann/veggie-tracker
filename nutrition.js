@@ -61,7 +61,7 @@ function scaleToPortionSize(data100g, portionG) {
   const factor = portionG / 100;
   const result = { g: portionG, fetched: data100g.fetched ?? Date.now(), source: data100g.source ?? 'static' };
   for (const { key } of NUTRIENT_DEFS) {
-    result[key] = data100g[key] != null ? +(data100g[key] * factor).toFixed(2) : null;
+    result[key] = data100g[key] != null ? +(data100g[key] * factor).toFixed(1) : null;
   }
   return result;
 }

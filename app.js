@@ -30,11 +30,29 @@ const FOODS = [
   'Pineapple', 'Plum', 'Pomegranate', 'Raspberry', 'Redcurrant',
   'Satsuma', 'Strawberry', 'Tangerine', 'Watermelon',
   // Seeds
-  'Chia Seeds', 'Flaxseeds', 'Hemp Seeds', 'Pumpkin Seeds',
+  'Chia Seeds', 'Flaxseeds', 'Linseeds', 'Hemp Seeds', 'Pumpkin Seeds',
   'Sesame Seeds', 'Sunflower Seeds', 'Poppy Seeds',
   // Nuts
   'Almonds', 'Brazil Nuts', 'Cashews', 'Hazelnuts', 'Macadamia Nuts',
   'Peanuts', 'Pecans', 'Pine Nuts', 'Pistachios', 'Walnuts',
+  // Legumes
+  'Chickpeas', 'Lentils', 'Red Lentils', 'Green Lentils',
+  'Black Beans', 'Kidney Beans', 'Butter Beans', 'Cannellini Beans',
+  'Pinto Beans', 'Mung Beans', 'Broad Beans', 'Soybeans',
+  'Tofu', 'Tempeh',
+  // Dried fruits
+  'Raisins', 'Sultanas', 'Dried Apricots', 'Prunes',
+  'Dried Cranberries', 'Dried Figs', 'Dried Mango', 'Goji Berries',
+  // More fruits
+  'Coconut', 'Mulberry', 'Persimmon', 'Plantain', 'Quince',
+  // Fresh herbs
+  'Parsley', 'Coriander', 'Mint', 'Basil', 'Dill',
+  'Oregano', 'Thyme', 'Rosemary',
+  // Sea vegetables
+  'Nori', 'Wakame', 'Kelp', 'Spirulina',
+  // Other veg
+  'Cavolo Nero', 'Purple Sprouting Broccoli', 'Green Asparagus',
+  'Broad Beans', 'Olives',
 ].sort();
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -510,33 +528,11 @@ function renderHistory() {
   );
 }
 
-// ── DGE weekly reference values (Deutsche Gesellschaft für Ernährung) ─────────
-// Based on DGE Referenzwerte for adults 25–51, daily × 7 for weekly targets.
-const DGE = [
-  { key: 'fibre',     label: 'Fibre',      unit: 'g',   daily: 30,   note: '30 g/day'          },
-  { key: 'vita',      label: 'Vitamin A',  unit: 'µg',  daily: 800,  note: '700–850 µg/day'    },
-  { key: 'b1',        label: 'Vitamin B1', unit: 'mg',  daily: 1.1,  note: '1.0–1.3 mg/day'    },
-  { key: 'b2',        label: 'Vitamin B2', unit: 'mg',  daily: 1.2,  note: '1.1–1.4 mg/day'    },
-  { key: 'b3',        label: 'Vitamin B3', unit: 'mg',  daily: 14,   note: '11–17 mg/day'      },
-  { key: 'b5',        label: 'Vitamin B5', unit: 'mg',  daily: 5,    note: '5 mg/day'           },
-  { key: 'b6',        label: 'Vitamin B6', unit: 'mg',  daily: 1.4,  note: '1.2–1.6 mg/day'    },
-  { key: 'b9',        label: 'Folate',     unit: 'µg',  daily: 300,  note: '300 µg/day'         },
-  { key: 'vitc',      label: 'Vitamin C',  unit: 'mg',  daily: 100,  note: '95–110 mg/day'      },
-  { key: 'vitd',      label: 'Vitamin D',  unit: 'µg',  daily: 20,   note: '20 µg/day'          },
-  { key: 'vite',      label: 'Vitamin E',  unit: 'mg',  daily: 12,   note: '11–15 mg/day'       },
-  { key: 'vitk',      label: 'Vitamin K',  unit: 'µg',  daily: 70,   note: '60–80 µg/day'       },
-  { key: 'iron',      label: 'Iron',       unit: 'mg',  daily: 12,   note: '10–15 mg/day'       },
-  { key: 'calcium',   label: 'Calcium',    unit: 'mg',  daily: 1000, note: '1000 mg/day'        },
-  { key: 'magnesium', label: 'Magnesium',  unit: 'mg',  daily: 325,  note: '300–350 mg/day'     },
-  { key: 'potassium', label: 'Potassium',  unit: 'mg',  daily: 4000, note: '4000 mg/day'        },
-  { key: 'zinc',      label: 'Zinc',       unit: 'mg',  daily: 8,    note: '7–10 mg/day'        },
-];
-
 // ── Nutrition tab rendering ───────────────────────────────────────────────────
 
 function fmtVal(val) {
   if (val == null) return '—';
-  return Number.isInteger(val) ? String(val) : val.toFixed(1);
+  return String(+val.toFixed(1));
 }
 
 async function renderNutritionTab() {
@@ -629,46 +625,39 @@ async function renderNutritionTab() {
       </table>
     </div>`;
 
-  // ── DGE comparison ──
-  const dgeRows = DGE.map(({ key, label, unit, daily, note }) => {
-    const weeklyTarget = daily * 7;
-    const actual = totals[key];
-    if (actual == null) return `
-      <div class="dge-row">
-        <div class="dge-meta">
-          <span class="dge-label">${esc(label)}</span>
-          <span class="dge-note">${esc(note)}</span>
-        </div>
-        <div class="dge-bar-wrap">
-          <div class="dge-bar-bg"><div class="dge-bar" style="width:0%"></div></div>
-          <span class="dge-nums n-na">No data</span>
-        </div>
+  // ── Top sources per nutrient ──
+  const sourceRows = NUTRIENT_DEFS.map(({ key, label, unit }) => {
+    // For each food, compute its total contribution this week (portion × count)
+    const ranked = results
+      .map(({ vegetable, nutrition: n }) => {
+        if (!n || n[key] == null) return null;
+        const count = foodCounts.get(vegetable.toLowerCase())?.count ?? 1;
+        return { vegetable, amount: +(n[key] * count).toFixed(1) };
+      })
+      .filter(Boolean)
+      .filter(r => r.amount > 0)
+      .sort((a, b) => b.amount - a.amount)
+      .slice(0, 5);
+
+    if (!ranked.length) return `
+      <div class="src-row">
+        <span class="src-label">${esc(label)}</span>
+        <span class="n-na">No data this week</span>
       </div>`;
 
-    const pct = Math.min((actual / weeklyTarget) * 100, 100);
-    const overPct = actual > weeklyTarget ? ((actual / weeklyTarget - 1) * 100) : 0;
-    const barClass = pct >= 80 ? 'dge-bar--good' : pct >= 40 ? 'dge-bar--mid' : 'dge-bar--low';
-    const display = `${fmtVal(actual)} / ${weeklyTarget} ${esc(unit)}`;
-    const pctLabel = actual > weeklyTarget
-      ? `<span class="dge-pct dge-pct--over">+${Math.round(overPct)}% over</span>`
-      : `<span class="dge-pct">${Math.round(pct)}%</span>`;
+    const chips = ranked.map((r, i) => {
+      const cls = i === 0 ? 'src-chip src-chip--top' : 'src-chip';
+      return `<span class="${cls}">${esc(r.vegetable)} <em>${fmtVal(r.amount)} ${esc(unit)}</em></span>`;
+    }).join('');
 
     return `
-      <div class="dge-row">
-        <div class="dge-meta">
-          <span class="dge-label">${esc(label)}</span>
-          <span class="dge-note">${esc(note)} · weekly target: ${weeklyTarget} ${esc(unit)}</span>
-        </div>
-        <div class="dge-bar-wrap">
-          <div class="dge-bar-bg"><div class="dge-bar ${barClass}" style="width:${pct}%"></div></div>
-          <span class="dge-nums">${display} ${pctLabel}</span>
-        </div>
+      <div class="src-row">
+        <span class="src-label">${esc(label)}</span>
+        <div class="src-chips">${chips}</div>
       </div>`;
   }).join('');
 
-  document.getElementById('nutritionDGE').innerHTML = `
-    <p class="dge-disclaimer">Values reflect logged plants only — not your full diet. DGE reference values for adults 25–51.</p>
-    <div class="dge-list">${dgeRows}</div>`;
+  document.getElementById('nutritionDGE').innerHTML = `<div class="src-list">${sourceRows}</div>`;
 }
 
 function renderAll() {

@@ -438,38 +438,40 @@ main {
 .n-na { color: var(--c-text3); }
 .n-portion { font-size: .7rem; font-weight: 400; color: var(--c-text3); margin-left: 5px; }
 
-/* ── DGE comparison ──────────────────────────────────────────────────────── */
-.dge-disclaimer {
-  font-size: .75rem;
-  color: var(--c-text3);
-  margin-bottom: 18px;
-  font-style: italic;
+/* ── Top sources ─────────────────────────────────────────────────────────── */
+.src-list { display: flex; flex-direction: column; gap: 10px; }
+.src-row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--c-bg2);
 }
-.dge-list { display: flex; flex-direction: column; gap: 14px; }
-.dge-row { display: flex; flex-direction: column; gap: 4px; }
-.dge-meta { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
-.dge-label { font-weight: 700; font-size: .88rem; color: var(--c-dark); }
-.dge-note { font-size: .72rem; color: var(--c-text3); }
-.dge-bar-wrap { display: flex; align-items: center; gap: 10px; }
-.dge-bar-bg {
-  flex: 1;
-  height: 10px;
+.src-row:last-child { border-bottom: none; }
+.src-label {
+  font-weight: 700;
+  font-size: .82rem;
+  color: var(--c-dark);
+  min-width: 90px;
+  flex-shrink: 0;
+}
+.src-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.src-chip {
   background: var(--c-bg2);
+  border: 1px solid var(--c-pale);
   border-radius: 99px;
-  overflow: hidden;
+  padding: 3px 10px;
+  font-size: .75rem;
+  color: var(--c-text2);
 }
-.dge-bar {
-  height: 100%;
-  border-radius: 99px;
-  transition: width .4s ease;
+.src-chip em { font-style: normal; color: var(--c-text3); margin-left: 3px; }
+.src-chip--top {
   background: var(--c-pale);
+  border-color: var(--c-light);
+  color: var(--c-dark);
+  font-weight: 600;
 }
-.dge-bar--low  { background: #f4a261; }
-.dge-bar--mid  { background: var(--c-light); }
-.dge-bar--good { background: var(--c-main); }
-.dge-nums { font-size: .78rem; color: var(--c-text2); white-space: nowrap; }
-.dge-pct { font-weight: 700; color: var(--c-main); margin-left: 4px; }
-.dge-pct--over { color: var(--c-amber); }
 
 /* ── Misc ────────────────────────────────────────────────────────────────── */
 .empty {
