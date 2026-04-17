@@ -262,6 +262,19 @@
     </div>
   </main>
 
+  <!-- Card preview modal -->
+  <div id="cardModal" class="card-modal" hidden aria-modal="true" role="dialog">
+    <div class="card-modal-backdrop"></div>
+    <div class="card-modal-inner">
+      <img id="cardModalImg" class="card-modal-img" alt="">
+      <div class="card-modal-actions">
+        <button id="cardModalShare" class="card-modal-btn card-modal-btn--share" data-i18n="btn_share">Share</button>
+        <button id="cardModalDl"    class="card-modal-btn card-modal-btn--dl"    data-i18n="btn_download_card">Download</button>
+        <button id="cardModalClose" class="card-modal-btn card-modal-btn--close" data-i18n="btn_close">Close</button>
+      </div>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script src="i18n.js"></script>
   <script src="nutrition-data.js"></script>

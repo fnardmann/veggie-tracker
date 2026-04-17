@@ -1282,6 +1282,68 @@ async function drawDayCard(date, foods, style) {
   return canvas;
 }
 
+// ── Card preview modal ────────────────────────────────────────────────────────
+
+let _modalCanvas = null;
+let _modalDate   = null;
+
+function openCardModal(canvas, date) {
+  _modalCanvas = canvas;
+  _modalDate   = date;
+  const modal = document.getElementById('cardModal');
+  document.getElementById('cardModalImg').src = canvas.toDataURL('image/png');
+  modal.hidden = false;
+  document.body.style.overflow = 'hidden';
+}
+
+function closeCardModal() {
+  document.getElementById('cardModal').hidden = true;
+  document.body.style.overflow = '';
+  _modalCanvas = null;
+  _modalDate   = null;
+}
+
+async function shareOrCopyCard() {
+  if (!_modalCanvas) return;
+  const dataUrl = _modalCanvas.toDataURL('image/png');
+  const res  = await fetch(dataUrl);
+  const blob = await res.blob();
+  const file = new File([blob], `veggie-${_modalDate}.png`, { type: 'image/png' });
+
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    await navigator.share({ files: [file], title: t('share_title') }).catch(() => {});
+  } else if (navigator.clipboard && navigator.clipboard.write) {
+    await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]).catch(() => {});
+    const btn = document.getElementById('cardModalShare');
+    const orig = btn.textContent;
+    btn.textContent = t('copied');
+    setTimeout(() => { btn.textContent = orig; }, 1800);
+  } else {
+    // Last resort: download
+    const a = document.createElement('a');
+    a.download = `veggie-${_modalDate}.png`;
+    a.href = dataUrl;
+    a.click();
+  }
+}
+
+function initCardModal() {
+  document.getElementById('cardModalClose').addEventListener('click', closeCardModal);
+  document.getElementById('cardModal').querySelector('.card-modal-backdrop')
+    .addEventListener('click', closeCardModal);
+  document.getElementById('cardModalShare').addEventListener('click', shareOrCopyCard);
+  document.getElementById('cardModalDl').addEventListener('click', () => {
+    if (!_modalCanvas) return;
+    const a = document.createElement('a');
+    a.download = `veggie-${_modalDate}.png`;
+    a.href = _modalCanvas.toDataURL('image/png');
+    a.click();
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeCardModal();
+  });
+}
+
 async function renderDailyCards() {
   const { entries } = getData();
   const container = document.getElementById('dailyCards');
@@ -1325,19 +1387,9 @@ async function renderDailyCards() {
 
     // Draw async — images load then canvas is inserted
     drawDayCard(date, foods).then(canvas => {
-      canvas.style.cssText = 'width:100%;height:100%;display:block;';
-      const dlBtn = document.createElement('button');
-      dlBtn.className = 'day-card-dl';
-      dlBtn.title = t('btn_download_card');
-      dlBtn.textContent = '↓';
-      dlBtn.addEventListener('click', e => {
-        e.stopPropagation();
-        const a = document.createElement('a');
-        a.download = `veggie-${date}.png`;
-        a.href = canvas.toDataURL('image/png');
-        a.click();
-      });
-      wrapper.append(canvas, dlBtn);
+      canvas.style.cssText = 'width:100%;height:100%;display:block;cursor:pointer;';
+      wrapper.addEventListener('click', () => openCardModal(canvas, date));
+      wrapper.append(canvas);
     });
   }
 }
@@ -1562,6 +1614,7 @@ function init() {
     });
   });
 
+  initCardModal();
   renderAll();
 }
 
