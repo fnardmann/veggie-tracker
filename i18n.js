@@ -7,6 +7,7 @@ const TRANSLATIONS = {
     subtitle:                   'Eat 30 different plants every week',
     // Tabs
     tab_overview:               'Overview',
+    tab_gallery:                'Gallery',
     tab_nutrition:              'Nutrition',
     tab_settings:               'Settings',
     // Log food card
@@ -134,6 +135,7 @@ const TRANSLATIONS = {
     title:                      'Pflanzen-Tracker',
     subtitle:                   '30 verschiedene Pflanzen pro Woche essen',
     tab_overview:               'Übersicht',
+    tab_gallery:                'Galerie',
     tab_nutrition:              'Nährwerte',
     tab_settings:               'Einstellungen',
     log_food:                   'Eintragen',

@@ -1032,67 +1032,68 @@ function simpleHash(str) {
   return Math.abs(h);
 }
 
-// Maps English canonical food name → emoji character (null = use colored-circle fallback)
+// Maps English canonical food name → OpenMoji codepoint (hex string)
+// Source: https://openmoji.org  —  CC BY-SA 4.0
 const FOOD_EMOJI = {
   // Vegetables
-  'Aubergine': '🍆', 'Avocado': '🥑', 'Bamboo Shoots': '🎋',
-  'Bean Sprouts': '🌱', 'Bell Pepper': '🫑', 'Bok Choy': '🥬',
-  'Broccoli': '🥦', 'Brussels Sprouts': '🥦', 'Butternut Squash': '🎃',
-  'Cabbage': '🥬', 'Carrot': '🥕', 'Cauliflower': '🥦',
-  'Celery': '🌿', 'Chard': '🥬', 'Chicory': '🥬',
-  'Chilli': '🌶️', 'Chives': '🌿', 'Courgette': '🥒',
-  'Cucumber': '🥒', 'Edamame': '🫘', 'Endive': '🥬',
-  'Fennel': '🌿', 'Garlic': '🧄', 'Green Beans': '🫘',
-  'Jalapeño': '🌶️', 'Kale': '🥬', 'Leek': '🧅',
-  'Lettuce': '🥬', 'Mangetout': '🫛', 'Mushroom': '🍄',
-  'Onion': '🧅', 'Oyster Mushroom': '🍄', 'Pak Choi': '🥬',
-  'Parsnip': '🥕', 'Peas': '🫛', 'Portobello': '🍄',
-  'Potato': '🥔', 'Pumpkin': '🎃', 'Radicchio': '🥬',
-  'Radish': '🌱', 'Red Cabbage': '🥬', 'Red Onion': '🧅',
-  'Romanesco': '🥦', 'Savoy Cabbage': '🥬', 'Shallot': '🧅',
-  'Shiitake': '🍄', 'Spinach': '🥬', 'Spring Onion': '🧅',
-  'Squash': '🎃', 'Swede': '🥕', 'Sweet Corn': '🌽',
-  'Sweet Potato': '🍠', 'Swiss Chard': '🥬', 'Taro': '🥔',
-  'Tenderstem Broccoli': '🥦', 'Tomato': '🍅', 'Turnip': '🥕',
-  'Watercress': '🌿', 'White Cabbage': '🥬', 'Yam': '🍠',
-  'Zucchini': '🥒', 'Cavolo Nero': '🥬', 'Purple Sprouting Broccoli': '🥦',
-  'Green Asparagus': '🌿', 'Olives': '🫒',
+  'Aubergine': '1F346', 'Avocado': '1F951', 'Bamboo Shoots': '1F38B',
+  'Bean Sprouts': '1F331', 'Bell Pepper': '1FAD1', 'Bok Choy': '1F96C',
+  'Broccoli': '1F966', 'Brussels Sprouts': '1F966', 'Butternut Squash': '1F383',
+  'Cabbage': '1F96C', 'Carrot': '1F955', 'Cauliflower': '1F966',
+  'Celery': '1F33F', 'Chard': '1F96C', 'Chicory': '1F96C',
+  'Chilli': '1F336', 'Chives': '1F33F', 'Courgette': '1F952',
+  'Cucumber': '1F952', 'Edamame': '1FAD8', 'Endive': '1F96C',
+  'Fennel': '1F33F', 'Garlic': '1F9C4', 'Green Asparagus': '1F33F',
+  'Green Beans': '1FAD8', 'Jalapeño': '1F336', 'Kale': '1F96C',
+  'Leek': '1F9C5', 'Lettuce': '1F96C', 'Mangetout': '1FAD9',
+  'Mushroom': '1F344', 'Onion': '1F9C5', 'Oyster Mushroom': '1F344',
+  'Pak Choi': '1F96C', 'Parsnip': '1F955', 'Peas': '1FAD9',
+  'Portobello': '1F344', 'Potato': '1F954', 'Pumpkin': '1F383',
+  'Radicchio': '1F96C', 'Radish': '1F331', 'Red Cabbage': '1F96C',
+  'Red Onion': '1F9C5', 'Romanesco': '1F966', 'Savoy Cabbage': '1F96C',
+  'Shallot': '1F9C5', 'Shiitake': '1F344', 'Spinach': '1F96C',
+  'Spring Onion': '1F9C5', 'Squash': '1F383', 'Swede': '1F955',
+  'Sweet Corn': '1F33D', 'Sweet Potato': '1F360', 'Swiss Chard': '1F96C',
+  'Taro': '1F954', 'Tenderstem Broccoli': '1F966', 'Tomato': '1F345',
+  'Turnip': '1F955', 'Watercress': '1F33F', 'White Cabbage': '1F96C',
+  'Yam': '1F360', 'Zucchini': '1F952', 'Cavolo Nero': '1F96C',
+  'Purple Sprouting Broccoli': '1F966', 'Olives': '1FAD2',
   // Fruits
-  'Apple': '🍎', 'Apricot': '🍑', 'Banana': '🍌',
-  'Blackberry': '🫐', 'Blackcurrant': '🫐', 'Blueberry': '🫐',
-  'Cherry': '🍒', 'Clementine': '🍊', 'Cranberry': '🍒',
-  'Elderberry': '🫐', 'Gooseberry': '🫐', 'Grape': '🍇',
-  'Grapefruit': '🍊', 'Guava': '🍈', 'Jackfruit': '🍈',
-  'Kiwi': '🥝', 'Lemon': '🍋', 'Lime': '🍋',
-  'Mango': '🥭', 'Melon': '🍈', 'Nectarine': '🍑',
-  'Orange': '🍊', 'Papaya': '🥭', 'Peach': '🍑',
-  'Pear': '🍐', 'Pineapple': '🍍', 'Plum': '🍑',
-  'Raspberry': '🫐', 'Redcurrant': '🍒', 'Satsuma': '🍊',
-  'Strawberry': '🍓', 'Tangerine': '🍊', 'Watermelon': '🍉',
-  'Coconut': '🥥', 'Mulberry': '🫐', 'Persimmon': '🍊',
-  'Plantain': '🍌', 'Quince': '🍐',
-  'Raisins': '🍇', 'Sultanas': '🍇', 'Dried Apricots': '🍑',
-  'Prunes': '🍑', 'Dried Cranberries': '🍒', 'Dried Figs': '🍑',
-  'Dried Mango': '🥭', 'Goji Berries': '🫐',
+  'Apple': '1F34E', 'Apricot': '1F351', 'Banana': '1F34C',
+  'Blackberry': '1FAD0', 'Blackcurrant': '1FAD0', 'Blueberry': '1FAD0',
+  'Cherry': '1F352', 'Clementine': '1F34A', 'Cranberry': '1F352',
+  'Elderberry': '1FAD0', 'Gooseberry': '1FAD0', 'Grape': '1F347',
+  'Grapefruit': '1F34A', 'Guava': '1F348', 'Jackfruit': '1F348',
+  'Kiwi': '1F95D', 'Lemon': '1F34B', 'Lime': '1F34B',
+  'Mango': '1F96D', 'Melon': '1F348', 'Nectarine': '1F351',
+  'Orange': '1F34A', 'Papaya': '1F96D', 'Peach': '1F351',
+  'Pear': '1F350', 'Pineapple': '1F34D', 'Plum': '1F351',
+  'Raspberry': '1FAD0', 'Redcurrant': '1F352', 'Satsuma': '1F34A',
+  'Strawberry': '1F353', 'Tangerine': '1F34A', 'Watermelon': '1F349',
+  'Coconut': '1F965', 'Mulberry': '1FAD0', 'Persimmon': '1F34A',
+  'Plantain': '1F34C', 'Quince': '1F350',
+  'Raisins': '1F347', 'Sultanas': '1F347', 'Dried Apricots': '1F351',
+  'Prunes': '1F351', 'Dried Cranberries': '1F352', 'Dried Figs': '1F351',
+  'Dried Mango': '1F96D', 'Goji Berries': '1FAD0',
   // Seeds & nuts
-  'Chia Seeds': '🌱', 'Flaxseeds': '🌾', 'Linseeds': '🌾',
-  'Hemp Seeds': '🌿', 'Pumpkin Seeds': '🎃', 'Sesame Seeds': '🌾',
-  'Sunflower Seeds': '🌻', 'Poppy Seeds': '🌺',
-  'Almonds': '🥜', 'Brazil Nuts': '🌰', 'Cashews': '🥜',
-  'Hazelnuts': '🌰', 'Macadamia Nuts': '🥜', 'Peanuts': '🥜',
-  'Pecans': '🌰', 'Pine Nuts': '🌲', 'Pistachios': '🥜',
-  'Walnuts': '🌰',
+  'Chia Seeds': '1F33E', 'Flaxseeds': '1F33E', 'Linseeds': '1F33E',
+  'Hemp Seeds': '1F33F', 'Pumpkin Seeds': '1F383', 'Sesame Seeds': '1F33E',
+  'Sunflower Seeds': '1F33B', 'Poppy Seeds': '1F33A',
+  'Almonds': '1F95C', 'Brazil Nuts': '1F330', 'Cashews': '1F95C',
+  'Hazelnuts': '1F330', 'Macadamia Nuts': '1F95C', 'Peanuts': '1F95C',
+  'Pecans': '1F330', 'Pine Nuts': '1F332', 'Pistachios': '1F95C',
+  'Walnuts': '1F330',
   // Legumes
-  'Chickpeas': '🫘', 'Lentils': '🫘', 'Red Lentils': '🫘',
-  'Green Lentils': '🫘', 'Black Beans': '🫘', 'Kidney Beans': '🫘',
-  'Butter Beans': '🫘', 'Cannellini Beans': '🫘', 'Pinto Beans': '🫘',
-  'Mung Beans': '🫘', 'Broad Beans': '🫘', 'Soybeans': '🫘',
+  'Chickpeas': '1FAD8', 'Lentils': '1FAD8', 'Red Lentils': '1FAD8',
+  'Green Lentils': '1FAD8', 'Black Beans': '1FAD8', 'Kidney Beans': '1FAD8',
+  'Butter Beans': '1FAD8', 'Cannellini Beans': '1FAD8', 'Pinto Beans': '1FAD8',
+  'Mung Beans': '1FAD8', 'Broad Beans': '1FAD8', 'Soybeans': '1FAD8',
   // Herbs
-  'Parsley': '🌿', 'Coriander': '🌿', 'Mint': '🌿',
-  'Basil': '🌿', 'Dill': '🌿', 'Oregano': '🌿',
-  'Thyme': '🌿', 'Rosemary': '🌿',
+  'Parsley': '1F33F', 'Coriander': '1F33F', 'Mint': '1F33F',
+  'Basil': '1F33F', 'Dill': '1F33F', 'Oregano': '1F33F',
+  'Thyme': '1F33F', 'Rosemary': '1F33F',
   // Sea veg
-  'Nori': '🌊', 'Wakame': '🌊', 'Kelp': '🌊', 'Spirulina': '🌊',
+  'Nori': '1F30A', 'Wakame': '1F30A', 'Kelp': '1F30A', 'Spirulina': '1F30A',
 };
 
 // Deterministic color from food name, used for fallback circles
@@ -1105,7 +1106,21 @@ function foodColor(name) {
   return palette[simpleHash(name) % palette.length];
 }
 
-function drawDayCard(date, foods) {
+// Image cache — keyed by codepoint
+const emojiImageCache = new Map();
+
+function loadEmojiImage(cp) {
+  if (emojiImageCache.has(cp)) return Promise.resolve(emojiImageCache.get(cp));
+  return new Promise(resolve => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload  = () => { emojiImageCache.set(cp, img);   resolve(img);  };
+    img.onerror = () => { emojiImageCache.set(cp, null);  resolve(null); };
+    img.src = `https://cdn.jsdelivr.net/gh/hfg-gmuend/openmoji@15.0.0/color/618x618/${cp}.png`;
+  });
+}
+
+async function drawDayCard(date, foods) {
   const W = 1080, H = 1350;
   const canvas = document.createElement('canvas');
   canvas.width = W;
@@ -1113,21 +1128,12 @@ function drawDayCard(date, foods) {
   const ctx = canvas.getContext('2d');
 
   // ── Background ──────────────────────────────────────────────────────────────
-  const bg = ctx.createLinearGradient(0, 0, W, H);
-  bg.addColorStop(0,   '#0b1f13');
-  bg.addColorStop(0.5, '#16352200');
-  bg.addColorStop(1,   '#0b1f13');
+  const bg = ctx.createLinearGradient(0, H * 0.2, W * 0.8, H * 0.8);
+  bg.addColorStop(0, '#163522');
+  bg.addColorStop(1, '#0f2a1a');
   ctx.fillStyle = bg;
   ctx.fillRect(0, 0, W, H);
 
-  // Solid mid-layer so the transparent stop works
-  const bg2 = ctx.createLinearGradient(0, H * 0.2, W * 0.8, H * 0.8);
-  bg2.addColorStop(0, '#163522');
-  bg2.addColorStop(1, '#0f2a1a');
-  ctx.fillStyle = bg2;
-  ctx.fillRect(0, 0, W, H);
-
-  // Subtle dot grid texture
   ctx.fillStyle = 'rgba(255,255,255,0.028)';
   for (let x = 36; x < W; x += 60)
     for (let y = 36; y < H; y += 60) {
@@ -1137,30 +1143,21 @@ function drawDayCard(date, foods) {
   // ── Header ──────────────────────────────────────────────────────────────────
   const PAD = 72;
   const d = new Date(date + 'T12:00:00');
-  const dayName  = d.toLocaleDateString(dateLocale(), { weekday: 'long' }).toUpperCase();
-  const dayNum   = String(d.getDate()).padStart(2, '0');
-  const monthYr  = d.toLocaleDateString(dateLocale(), { month: 'long', year: 'numeric' }).toUpperCase();
-
   ctx.textAlign = 'left';
-
   ctx.fillStyle = 'rgba(160,220,180,0.55)';
-  ctx.font = `400 46px system-ui, sans-serif`;
-  ctx.fillText(dayName, PAD, 104);
-
+  ctx.font = '400 46px system-ui, sans-serif';
+  ctx.fillText(d.toLocaleDateString(dateLocale(), { weekday: 'long' }).toUpperCase(), PAD, 104);
   ctx.fillStyle = '#ffffff';
-  ctx.font = `800 210px system-ui, sans-serif`;
-  ctx.fillText(dayNum, PAD - 6, 300);
-
+  ctx.font = '800 210px system-ui, sans-serif';
+  ctx.fillText(String(d.getDate()).padStart(2, '0'), PAD - 6, 300);
   ctx.fillStyle = 'rgba(160,220,180,0.55)';
-  ctx.font = `400 46px system-ui, sans-serif`;
-  ctx.fillText(monthYr, PAD, 352);
-
-  // Divider
+  ctx.font = '400 46px system-ui, sans-serif';
+  ctx.fillText(d.toLocaleDateString(dateLocale(), { month: 'long', year: 'numeric' }).toUpperCase(), PAD, 352);
   ctx.strokeStyle = 'rgba(255,255,255,0.1)';
   ctx.lineWidth = 1.5;
   ctx.beginPath(); ctx.moveTo(PAD, 388); ctx.lineTo(W - PAD, 388); ctx.stroke();
 
-  // ── Food grid ───────────────────────────────────────────────────────────────
+  // ── Grid layout ─────────────────────────────────────────────────────────────
   const MAX_SHOW = 16;
   const display  = foods.slice(0, MAX_SHOW);
   const n        = display.length;
@@ -1169,89 +1166,88 @@ function drawDayCard(date, foods) {
   const GAP      = 16;
   const GRID_Y   = 412;
   const FOOTER_H = 220;
-  const maxCell  = Math.floor((W - PAD * 2 - GAP * (COLS - 1)) / COLS);
-  const maxByH   = Math.floor((H - GRID_Y - FOOTER_H - GAP * (ROWS - 1)) / ROWS);
-  const CELL     = Math.min(maxCell, maxByH);
+  const CELL     = Math.min(
+    Math.floor((W - PAD * 2 - GAP * (COLS - 1)) / COLS),
+    Math.floor((H - GRID_Y - FOOTER_H - GAP * (ROWS - 1)) / ROWS)
+  );
 
+  // Pre-load all OpenMoji images in parallel
+  const imageMap = new Map();
+  await Promise.all(display.map(async food => {
+    const cp = FOOD_EMOJI[food];
+    if (cp) {
+      const img = await loadEmojiImage(cp);
+      if (img) imageMap.set(food, img);
+    }
+  }));
+
+  // ── Draw cells ───────────────────────────────────────────────────────────────
   display.forEach((food, i) => {
-    const col = i % COLS;
-    const row = Math.floor(i / COLS);
-    const x   = PAD + col * (CELL + GAP);
-    const y   = GRID_Y + row * (CELL + GAP);
-    const cx  = x + CELL / 2;
-    const cy  = y + CELL / 2;
+    const col  = i % COLS;
+    const row  = Math.floor(i / COLS);
+    const x    = PAD + col * (CELL + GAP);
+    const y    = GRID_Y + row * (CELL + GAP);
+    const cx   = x + CELL / 2;
+    const eY   = y + CELL * 0.44;
+    const r    = CELL * 0.28;
 
     // Cell background
     ctx.fillStyle = 'rgba(255,255,255,0.11)';
     ctx.beginPath(); ctx.roundRect(x, y, CELL, CELL, 18); ctx.fill();
 
-    // Solid light circle so emoji render with full color against a bright surface
-    const emojiSize = Math.floor(CELL * 0.44);
-    const labelY    = y + CELL * 0.74;
-    const eBgR      = emojiSize * 0.62;
-    ctx.fillStyle = 'rgba(255,255,255,0.92)';
-    ctx.beginPath(); ctx.arc(cx, cy - CELL * 0.06, eBgR, 0, Math.PI * 2); ctx.fill();
+    // White circle backdrop
+    ctx.fillStyle = 'rgba(255,255,255,0.93)';
+    ctx.beginPath(); ctx.arc(cx, eY, r, 0, Math.PI * 2); ctx.fill();
 
-    const emoji = FOOD_EMOJI[food] ?? null;
-
-    if (emoji) {
-      ctx.font = `${emojiSize}px 'Apple Color Emoji','Noto Color Emoji','Segoe UI Emoji',sans-serif`;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(emoji, cx, cy - CELL * 0.06);
+    const img = imageMap.get(food);
+    if (img) {
+      // Clip to circle, draw OpenMoji PNG
+      ctx.save();
+      ctx.beginPath(); ctx.arc(cx, eY, r * 0.95, 0, Math.PI * 2); ctx.clip();
+      ctx.drawImage(img, cx - r, eY - r, r * 2, r * 2);
+      ctx.restore();
     } else {
-      // Colored circle with initial letter
+      // Fallback: colored circle + initial
       ctx.fillStyle = foodColor(food);
-      ctx.beginPath();
-      ctx.arc(cx, cy - CELL * 0.06, emojiSize * 0.46, 0, Math.PI * 2);
-      ctx.fill();
+      ctx.beginPath(); ctx.arc(cx, eY, r, 0, Math.PI * 2); ctx.fill();
       ctx.fillStyle = '#fff';
-      ctx.font = `700 ${Math.floor(emojiSize * 0.46)}px system-ui, sans-serif`;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(food[0].toUpperCase(), cx, cy - CELL * 0.06);
+      ctx.font = `700 ${Math.floor(r * 0.9)}px system-ui, sans-serif`;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(food[0].toUpperCase(), cx, eY);
     }
 
-    // Food label
-    ctx.fillStyle = 'rgba(255,255,255,0.6)';
-    ctx.font = `400 ${Math.max(18, Math.floor(CELL * 0.105))}px system-ui, sans-serif`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'top';
+    // Label
+    ctx.fillStyle = 'rgba(255,255,255,0.65)';
+    ctx.font = `400 ${Math.max(18, Math.floor(CELL * 0.1))}px system-ui, sans-serif`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'top';
     const label = tFood(food);
-    ctx.fillText(label.length > 11 ? label.slice(0, 10) + '…' : label, cx, labelY);
+    ctx.fillText(label.length > 11 ? label.slice(0, 10) + '…' : label, cx, y + CELL * 0.76);
   });
 
-  // +N more indicator if foods were clipped
   if (foods.length > MAX_SHOW) {
-    const extra = foods.length - MAX_SHOW;
     ctx.fillStyle = 'rgba(255,255,255,0.4)';
-    ctx.font = `400 36px system-ui, sans-serif`;
-    ctx.textAlign = 'right';
-    ctx.textBaseline = 'top';
-    ctx.fillText(`+${extra} more`, W - PAD, GRID_Y + ROWS * (CELL + GAP));
+    ctx.font = '400 36px system-ui, sans-serif';
+    ctx.textAlign = 'right'; ctx.textBaseline = 'top';
+    ctx.fillText(`+${foods.length - MAX_SHOW} more`, W - PAD, GRID_Y + ROWS * (CELL + GAP));
   }
 
   // ── Footer ───────────────────────────────────────────────────────────────────
   const footerY = H - FOOTER_H + 20;
-
   ctx.strokeStyle = 'rgba(255,255,255,0.1)';
   ctx.lineWidth = 1.5;
   ctx.beginPath(); ctx.moveTo(PAD, footerY); ctx.lineTo(W - PAD, footerY); ctx.stroke();
-
   ctx.fillStyle = '#ffffff';
-  ctx.font = `700 62px system-ui, sans-serif`;
-  ctx.textAlign = 'left';
-  ctx.textBaseline = 'top';
+  ctx.font = '700 62px system-ui, sans-serif';
+  ctx.textAlign = 'left'; ctx.textBaseline = 'top';
   ctx.fillText(t(n === 1 ? 'x_plants' : 'x_plants_plural', { n }), PAD, footerY + 36);
-
   ctx.fillStyle = 'rgba(160,220,180,0.5)';
-  ctx.font = `400 38px system-ui, sans-serif`;
-  ctx.fillText('🌿 Veggie Tracker', PAD, footerY + 118);
+  ctx.font = '400 38px system-ui, sans-serif';
+  ctx.fillText('Veggie Tracker', PAD, footerY + 118);
 
   return canvas;
 }
 
-function renderDailyCards() {
+async function renderDailyCards() {
   const { entries } = getData();
   const container = document.getElementById('dailyCards');
 
@@ -1268,7 +1264,6 @@ function renderDailyCards() {
     return;
   }
 
-  // Reuse DOM nodes whose food list hasn't changed (avoids redrawing)
   const existing = new Map();
   container.querySelectorAll('.day-card[data-date]').forEach(el =>
     existing.set(el.dataset.date, el)
@@ -1286,27 +1281,29 @@ function renderDailyCards() {
       continue;
     }
 
-    const canvas = drawDayCard(date, foods);
-    canvas.style.cssText = 'width:100%;height:100%;display:block;';
-
-    const dlBtn = document.createElement('button');
-    dlBtn.className = 'day-card-dl';
-    dlBtn.title = t('btn_download_card');
-    dlBtn.textContent = '↓';
-    dlBtn.addEventListener('click', e => {
-      e.stopPropagation();
-      const a = document.createElement('a');
-      a.download = `veggie-${date}.png`;
-      a.href = canvas.toDataURL('image/png');
-      a.click();
-    });
-
+    // Append wrapper immediately so layout doesn't jump
     const wrapper = document.createElement('div');
     wrapper.className = 'day-card';
     wrapper.dataset.date = date;
     wrapper.dataset.seed = String(seed);
-    wrapper.append(canvas, dlBtn);
     container.appendChild(wrapper);
+
+    // Draw async — images load then canvas is inserted
+    drawDayCard(date, foods).then(canvas => {
+      canvas.style.cssText = 'width:100%;height:100%;display:block;';
+      const dlBtn = document.createElement('button');
+      dlBtn.className = 'day-card-dl';
+      dlBtn.title = t('btn_download_card');
+      dlBtn.textContent = '↓';
+      dlBtn.addEventListener('click', e => {
+        e.stopPropagation();
+        const a = document.createElement('a');
+        a.download = `veggie-${date}.png`;
+        a.href = canvas.toDataURL('image/png');
+        a.click();
+      });
+      wrapper.append(canvas, dlBtn);
+    });
   }
 }
 
