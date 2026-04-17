@@ -561,6 +561,7 @@ async function renderNutritionTab(quiet = false) {
     document.getElementById('nutritionTable').innerHTML = empty;
     document.getElementById('nutritionTotals').innerHTML = empty;
     document.getElementById('nutritionDGE').innerHTML = '<p class="empty">Log foods to see top sources.</p>';
+    document.getElementById('nutritionSuggestions').innerHTML = '<p class="empty">Log foods to see suggestions.</p>';
     return;
   }
 
@@ -578,6 +579,7 @@ async function renderNutritionTab(quiet = false) {
     document.getElementById('nutritionTable').innerHTML = '<p class="empty">Fetching nutrition data…</p>';
     document.getElementById('nutritionTotals').innerHTML = '<p class="empty">Fetching nutrition data…</p>';
     document.getElementById('nutritionDGE').innerHTML = '<p class="empty">Fetching nutrition data…</p>';
+    document.getElementById('nutritionSuggestions').innerHTML = '<p class="empty">Fetching nutrition data…</p>';
   }
 
   const rawResults = await fetchNutritionForAll(uniqueFoods);
@@ -587,6 +589,7 @@ async function renderNutritionTab(quiet = false) {
     document.getElementById('nutritionTable').innerHTML = noData;
     document.getElementById('nutritionTotals').innerHTML = noData;
     document.getElementById('nutritionDGE').innerHTML = noData;
+    document.getElementById('nutritionSuggestions').innerHTML = noData;
     return;
   }
 
@@ -714,7 +717,82 @@ async function renderNutritionTab(quiet = false) {
 
   document.getElementById('nutritionDGE').innerHTML = `<div class="src-list">${sourceRows}</div>`;
 
+  renderNutrientSuggestions(totals, uniqueFoods);
+
   await renderNutrientTrend();
+}
+
+// ── Missing nutrient suggestions ─────────────────────────────────────────────
+
+// Internal weekly reference values (used only for ranking coverage, not displayed).
+// Based on rough adult daily requirements × 7.
+const NUTRIENT_WEEKLY_REF = {
+  fibre:     210,   // 30 g/day
+  vita:      5600,  // 800 µg/day
+  b1:        8.4,   // 1.2 mg/day
+  b2:        9.8,   // 1.4 mg/day
+  b3:        112,   // 16 mg/day
+  b5:        35,    // 5 mg/day
+  b6:        9.8,   // 1.4 mg/day
+  b9:        2800,  // 400 µg/day
+  vitc:      525,   // 75 mg/day
+  vitd:      140,   // 20 µg/day
+  vite:      91,    // 13 mg/day
+  vitk:      560,   // 80 µg/day
+  iron:      63,    // 9 mg/day
+  calcium:   7000,  // 1000 mg/day
+  magnesium: 2450,  // 350 mg/day
+  potassium: 24500, // 3500 mg/day
+  zinc:      70,    // 10 mg/day
+};
+
+function renderNutrientSuggestions(totals, loggedFoodsThisWeek) {
+  const el = document.getElementById('nutritionSuggestions');
+
+  // Score each nutrient: ratio of logged total vs weekly reference (lower = more lacking)
+  const scored = NUTRIENT_DEFS
+    .filter(({ key }) => totals[key] != null && NUTRIENT_WEEKLY_REF[key])
+    .map(({ key, label, unit }) => ({
+      key, label, unit,
+      total: totals[key],
+      coverage: totals[key] / NUTRIENT_WEEKLY_REF[key],
+    }))
+    .sort((a, b) => a.coverage - b.coverage)
+    .slice(0, 4);
+
+  if (!scored.length) {
+    el.innerHTML = '<p class="empty">Not enough data to make suggestions yet.</p>';
+    return;
+  }
+
+  const loggedSet = new Set(loggedFoodsThisWeek.map(f => f.toLowerCase()));
+
+  const rows = scored.map(({ key, label, unit, total }) => {
+    // Find best foods in static data for this nutrient, not yet logged this week
+    const suggestions = Object.entries(NUTRITION_DATA)
+      .filter(([name]) => !loggedSet.has(name))
+      .map(([name, d]) => ({ name, val: d[key] != null ? +(d[key] * d.g / 100).toFixed(1) : null }))
+      .filter(s => s.val > 0)
+      .sort((a, b) => b.val - a.val)
+      .slice(0, 4);
+
+    const chips = suggestions.map((s, i) => {
+      const cls = i === 0 ? 'sugg-chip sugg-chip--top' : 'sugg-chip';
+      const foodName = s.name.replace(/\b\w/g, c => c.toUpperCase());
+      return `<span class="${cls}">${esc(foodName)} <em>${s.val} ${esc(unit)}</em></span>`;
+    }).join('');
+
+    return `
+      <div class="sugg-row">
+        <div class="sugg-left">
+          <span class="sugg-label">${esc(label)}</span>
+          <span class="sugg-total">${fmtVal(total)} ${esc(unit)} this week</span>
+        </div>
+        <div class="sugg-chips">${chips || '<span class="n-na">No suggestions</span>'}</div>
+      </div>`;
+  }).join('');
+
+  el.innerHTML = `<div class="sugg-list">${rows}</div>`;
 }
 
 // ── Nutrient trend chart ──────────────────────────────────────────────────────

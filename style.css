@@ -547,6 +547,51 @@ main {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--c-pale); border-radius: 2px; }
 
+/* ── Nutrient suggestions ────────────────────────────────────────────────── */
+.sugg-list { display: flex; flex-direction: column; }
+.sugg-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--c-bg2);
+}
+.sugg-row:last-child { border-bottom: none; }
+.sugg-left {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 110px;
+  flex-shrink: 0;
+}
+.sugg-label {
+  font-weight: 700;
+  font-size: .82rem;
+  color: var(--c-dark);
+}
+.sugg-total {
+  font-size: .7rem;
+  color: var(--c-text3);
+}
+.sugg-chips { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
+.sugg-chip {
+  background: var(--c-bg2);
+  border: 1px solid var(--c-pale);
+  border-radius: 99px;
+  padding: 3px 10px;
+  font-size: .75rem;
+  color: var(--c-text2);
+}
+.sugg-chip em { font-style: normal; color: var(--c-text3); margin-left: 3px; }
+.sugg-chip--top {
+  background: #fff8e1;
+  border-color: #ffe082;
+  color: #5d4037;
+  font-weight: 600;
+}
+.sugg-chip--top em { color: #8d6e63; }
+
 /* ── Trend select ────────────────────────────────────────────────────────── */
 .trend-select {
   padding: 5px 10px;
