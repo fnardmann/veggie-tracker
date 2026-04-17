@@ -1024,6 +1024,287 @@ function renderHeatmap() {
   if (wrap) wrap.scrollLeft = wrap.scrollWidth;
 }
 
+// ── Plant Gallery ────────────────────────────────────────────────────────────
+
+function simpleHash(str) {
+  let h = 0;
+  for (const c of str) h = Math.imul(31, h) + c.charCodeAt(0) | 0;
+  return Math.abs(h);
+}
+
+// Maps English canonical food name → emoji character (null = use colored-circle fallback)
+const FOOD_EMOJI = {
+  // Vegetables
+  'Aubergine': '🍆', 'Avocado': '🥑', 'Bamboo Shoots': '🎋',
+  'Bean Sprouts': '🌱', 'Bell Pepper': '🫑', 'Bok Choy': '🥬',
+  'Broccoli': '🥦', 'Brussels Sprouts': '🥦', 'Butternut Squash': '🎃',
+  'Cabbage': '🥬', 'Carrot': '🥕', 'Cauliflower': '🥦',
+  'Celery': '🌿', 'Chard': '🥬', 'Chicory': '🥬',
+  'Chilli': '🌶️', 'Chives': '🌿', 'Courgette': '🥒',
+  'Cucumber': '🥒', 'Edamame': '🫘', 'Endive': '🥬',
+  'Fennel': '🌿', 'Garlic': '🧄', 'Green Beans': '🫘',
+  'Jalapeño': '🌶️', 'Kale': '🥬', 'Leek': '🧅',
+  'Lettuce': '🥬', 'Mangetout': '🫛', 'Mushroom': '🍄',
+  'Onion': '🧅', 'Oyster Mushroom': '🍄', 'Pak Choi': '🥬',
+  'Parsnip': '🥕', 'Peas': '🫛', 'Portobello': '🍄',
+  'Potato': '🥔', 'Pumpkin': '🎃', 'Radicchio': '🥬',
+  'Radish': '🌱', 'Red Cabbage': '🥬', 'Red Onion': '🧅',
+  'Romanesco': '🥦', 'Savoy Cabbage': '🥬', 'Shallot': '🧅',
+  'Shiitake': '🍄', 'Spinach': '🥬', 'Spring Onion': '🧅',
+  'Squash': '🎃', 'Swede': '🥕', 'Sweet Corn': '🌽',
+  'Sweet Potato': '🍠', 'Swiss Chard': '🥬', 'Taro': '🥔',
+  'Tenderstem Broccoli': '🥦', 'Tomato': '🍅', 'Turnip': '🥕',
+  'Watercress': '🌿', 'White Cabbage': '🥬', 'Yam': '🍠',
+  'Zucchini': '🥒', 'Cavolo Nero': '🥬', 'Purple Sprouting Broccoli': '🥦',
+  'Green Asparagus': '🌿', 'Olives': '🫒',
+  // Fruits
+  'Apple': '🍎', 'Apricot': '🍑', 'Banana': '🍌',
+  'Blackberry': '🫐', 'Blackcurrant': '🫐', 'Blueberry': '🫐',
+  'Cherry': '🍒', 'Clementine': '🍊', 'Cranberry': '🍒',
+  'Elderberry': '🫐', 'Gooseberry': '🫐', 'Grape': '🍇',
+  'Grapefruit': '🍊', 'Guava': '🍈', 'Jackfruit': '🍈',
+  'Kiwi': '🥝', 'Lemon': '🍋', 'Lime': '🍋',
+  'Mango': '🥭', 'Melon': '🍈', 'Nectarine': '🍑',
+  'Orange': '🍊', 'Papaya': '🥭', 'Peach': '🍑',
+  'Pear': '🍐', 'Pineapple': '🍍', 'Plum': '🍑',
+  'Raspberry': '🫐', 'Redcurrant': '🍒', 'Satsuma': '🍊',
+  'Strawberry': '🍓', 'Tangerine': '🍊', 'Watermelon': '🍉',
+  'Coconut': '🥥', 'Mulberry': '🫐', 'Persimmon': '🍊',
+  'Plantain': '🍌', 'Quince': '🍐',
+  'Raisins': '🍇', 'Sultanas': '🍇', 'Dried Apricots': '🍑',
+  'Prunes': '🍑', 'Dried Cranberries': '🍒', 'Dried Figs': '🍑',
+  'Dried Mango': '🥭', 'Goji Berries': '🫐',
+  // Seeds & nuts
+  'Chia Seeds': '🌱', 'Flaxseeds': '🌾', 'Linseeds': '🌾',
+  'Hemp Seeds': '🌿', 'Pumpkin Seeds': '🎃', 'Sesame Seeds': '🌾',
+  'Sunflower Seeds': '🌻', 'Poppy Seeds': '🌺',
+  'Almonds': '🥜', 'Brazil Nuts': '🌰', 'Cashews': '🥜',
+  'Hazelnuts': '🌰', 'Macadamia Nuts': '🥜', 'Peanuts': '🥜',
+  'Pecans': '🌰', 'Pine Nuts': '🌲', 'Pistachios': '🥜',
+  'Walnuts': '🌰',
+  // Legumes
+  'Chickpeas': '🫘', 'Lentils': '🫘', 'Red Lentils': '🫘',
+  'Green Lentils': '🫘', 'Black Beans': '🫘', 'Kidney Beans': '🫘',
+  'Butter Beans': '🫘', 'Cannellini Beans': '🫘', 'Pinto Beans': '🫘',
+  'Mung Beans': '🫘', 'Broad Beans': '🫘', 'Soybeans': '🫘',
+  // Herbs
+  'Parsley': '🌿', 'Coriander': '🌿', 'Mint': '🌿',
+  'Basil': '🌿', 'Dill': '🌿', 'Oregano': '🌿',
+  'Thyme': '🌿', 'Rosemary': '🌿',
+  // Sea veg
+  'Nori': '🌊', 'Wakame': '🌊', 'Kelp': '🌊', 'Spirulina': '🌊',
+};
+
+// Deterministic color from food name, used for fallback circles
+function foodColor(name) {
+  const palette = [
+    '#ef5350','#ec407a','#ab47bc','#7e57c2',
+    '#42a5f5','#26c6da','#66bb6a','#d4e157',
+    '#ffa726','#ff7043',
+  ];
+  return palette[simpleHash(name) % palette.length];
+}
+
+function drawDayCard(date, foods) {
+  const W = 1080, H = 1350;
+  const canvas = document.createElement('canvas');
+  canvas.width = W;
+  canvas.height = H;
+  const ctx = canvas.getContext('2d');
+
+  // ── Background ──────────────────────────────────────────────────────────────
+  const bg = ctx.createLinearGradient(0, 0, W, H);
+  bg.addColorStop(0,   '#0b1f13');
+  bg.addColorStop(0.5, '#16352200');
+  bg.addColorStop(1,   '#0b1f13');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, W, H);
+
+  // Solid mid-layer so the transparent stop works
+  const bg2 = ctx.createLinearGradient(0, H * 0.2, W * 0.8, H * 0.8);
+  bg2.addColorStop(0, '#163522');
+  bg2.addColorStop(1, '#0f2a1a');
+  ctx.fillStyle = bg2;
+  ctx.fillRect(0, 0, W, H);
+
+  // Subtle dot grid texture
+  ctx.fillStyle = 'rgba(255,255,255,0.028)';
+  for (let x = 36; x < W; x += 60)
+    for (let y = 36; y < H; y += 60) {
+      ctx.beginPath(); ctx.arc(x, y, 2, 0, Math.PI * 2); ctx.fill();
+    }
+
+  // ── Header ──────────────────────────────────────────────────────────────────
+  const PAD = 72;
+  const d = new Date(date + 'T12:00:00');
+  const dayName  = d.toLocaleDateString(dateLocale(), { weekday: 'long' }).toUpperCase();
+  const dayNum   = String(d.getDate()).padStart(2, '0');
+  const monthYr  = d.toLocaleDateString(dateLocale(), { month: 'long', year: 'numeric' }).toUpperCase();
+
+  ctx.textAlign = 'left';
+
+  ctx.fillStyle = 'rgba(160,220,180,0.55)';
+  ctx.font = `400 46px system-ui, sans-serif`;
+  ctx.fillText(dayName, PAD, 104);
+
+  ctx.fillStyle = '#ffffff';
+  ctx.font = `800 210px system-ui, sans-serif`;
+  ctx.fillText(dayNum, PAD - 6, 300);
+
+  ctx.fillStyle = 'rgba(160,220,180,0.55)';
+  ctx.font = `400 46px system-ui, sans-serif`;
+  ctx.fillText(monthYr, PAD, 352);
+
+  // Divider
+  ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(PAD, 388); ctx.lineTo(W - PAD, 388); ctx.stroke();
+
+  // ── Food grid ───────────────────────────────────────────────────────────────
+  const MAX_SHOW = 16;
+  const display  = foods.slice(0, MAX_SHOW);
+  const n        = display.length;
+  const COLS     = n <= 2 ? n : n <= 4 ? 2 : n <= 9 ? 3 : 4;
+  const ROWS     = Math.ceil(n / COLS);
+  const GAP      = 16;
+  const GRID_Y   = 412;
+  const FOOTER_H = 220;
+  const maxCell  = Math.floor((W - PAD * 2 - GAP * (COLS - 1)) / COLS);
+  const maxByH   = Math.floor((H - GRID_Y - FOOTER_H - GAP * (ROWS - 1)) / ROWS);
+  const CELL     = Math.min(maxCell, maxByH);
+
+  display.forEach((food, i) => {
+    const col = i % COLS;
+    const row = Math.floor(i / COLS);
+    const x   = PAD + col * (CELL + GAP);
+    const y   = GRID_Y + row * (CELL + GAP);
+    const cx  = x + CELL / 2;
+    const cy  = y + CELL / 2;
+
+    // Cell background pill
+    ctx.fillStyle = 'rgba(255,255,255,0.06)';
+    ctx.beginPath(); ctx.roundRect(x, y, CELL, CELL, 18); ctx.fill();
+
+    const emoji     = FOOD_EMOJI[food] ?? null;
+    const emojiSize = Math.floor(CELL * 0.44);
+    const labelY    = y + CELL * 0.74;
+
+    if (emoji) {
+      ctx.font = `${emojiSize}px sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(emoji, cx, cy - CELL * 0.06);
+    } else {
+      // Colored circle with initial letter
+      ctx.fillStyle = foodColor(food);
+      ctx.beginPath();
+      ctx.arc(cx, cy - CELL * 0.06, emojiSize * 0.46, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#fff';
+      ctx.font = `700 ${Math.floor(emojiSize * 0.46)}px system-ui, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(food[0].toUpperCase(), cx, cy - CELL * 0.06);
+    }
+
+    // Food label
+    ctx.fillStyle = 'rgba(255,255,255,0.6)';
+    ctx.font = `400 ${Math.max(18, Math.floor(CELL * 0.105))}px system-ui, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    const label = tFood(food);
+    ctx.fillText(label.length > 11 ? label.slice(0, 10) + '…' : label, cx, labelY);
+  });
+
+  // +N more indicator if foods were clipped
+  if (foods.length > MAX_SHOW) {
+    const extra = foods.length - MAX_SHOW;
+    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+    ctx.font = `400 36px system-ui, sans-serif`;
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'top';
+    ctx.fillText(`+${extra} more`, W - PAD, GRID_Y + ROWS * (CELL + GAP));
+  }
+
+  // ── Footer ───────────────────────────────────────────────────────────────────
+  const footerY = H - FOOTER_H + 20;
+
+  ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(PAD, footerY); ctx.lineTo(W - PAD, footerY); ctx.stroke();
+
+  ctx.fillStyle = '#ffffff';
+  ctx.font = `700 62px system-ui, sans-serif`;
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'top';
+  ctx.fillText(t(n === 1 ? 'x_plants' : 'x_plants_plural', { n }), PAD, footerY + 36);
+
+  ctx.fillStyle = 'rgba(160,220,180,0.5)';
+  ctx.font = `400 38px system-ui, sans-serif`;
+  ctx.fillText('🌿 Veggie Tracker', PAD, footerY + 118);
+
+  return canvas;
+}
+
+function renderDailyCards() {
+  const { entries } = getData();
+  const container = document.getElementById('dailyCards');
+
+  const byDate = new Map();
+  for (const e of entries) {
+    if (!byDate.has(e.date)) byDate.set(e.date, new Set());
+    byDate.get(e.date).add(e.vegetable);
+  }
+
+  const dates = [...byDate.keys()].sort().reverse().slice(0, 5);
+
+  if (dates.length === 0) {
+    container.innerHTML = `<p class="empty">${t('no_history')}</p>`;
+    return;
+  }
+
+  // Reuse DOM nodes whose food list hasn't changed (avoids redrawing)
+  const existing = new Map();
+  container.querySelectorAll('.day-card[data-date]').forEach(el =>
+    existing.set(el.dataset.date, el)
+  );
+
+  container.innerHTML = '';
+
+  for (const date of dates) {
+    const foods = [...byDate.get(date)];
+    const seed  = simpleHash(date + ':' + [...foods].sort().join(','));
+
+    const prev = existing.get(date);
+    if (prev && prev.dataset.seed === String(seed)) {
+      container.appendChild(prev);
+      continue;
+    }
+
+    const canvas = drawDayCard(date, foods);
+    canvas.style.cssText = 'width:100%;height:100%;display:block;';
+
+    const dlBtn = document.createElement('button');
+    dlBtn.className = 'day-card-dl';
+    dlBtn.title = t('btn_download_card');
+    dlBtn.textContent = '↓';
+    dlBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      const a = document.createElement('a');
+      a.download = `veggie-${date}.png`;
+      a.href = canvas.toDataURL('image/png');
+      a.click();
+    });
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'day-card';
+    wrapper.dataset.date = date;
+    wrapper.dataset.seed = String(seed);
+    wrapper.append(canvas, dlBtn);
+    container.appendChild(wrapper);
+  }
+}
+
 function renderAll() {
   renderWeeklyProgress();
   renderToday();
@@ -1032,6 +1313,7 @@ function renderAll() {
   renderWeeklyChart();
   renderMonthlyChart();
   renderHeatmap();
+  renderDailyCards();
   renderStreaks();
   renderHistory();
   // Nutrition tab renders on demand when the tab is opened,
