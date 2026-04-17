@@ -423,6 +423,7 @@ main {
   padding: 10px 12px 12px;
   border-top: 1px solid var(--c-pale);
 }
+.vs-detail[hidden] { display: none; }
 .vs-stat {
   flex: 1;
   text-align: center;
