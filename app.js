@@ -551,6 +551,10 @@ function renderStreaks() {
         <div class="vs-stat">
           <div class="vs-stat-val">${d.avgPerWeek}×</div>
           <div class="vs-stat-lbl">${t('streak_avg_week')}</div>
+        </div>
+        <div class="vs-stat">
+          <div class="vs-stat-val">${d.total}</div>
+          <div class="vs-stat-lbl">${t('streak_total')}</div>
         </div>`;
       detail.hidden = false;
       row.classList.add('vs-row--open');
