@@ -1,5 +1,16 @@
 'use strict';
 
+let NUTRITION_DATA = {};
+
+async function loadNutritionData() {
+  try {
+    const r = await fetch('./nutrition-data.json');
+    NUTRITION_DATA = await r.json();
+  } catch {
+    NUTRITION_DATA = {};
+  }
+}
+
 const NUTRITION_CACHE_KEY = 'veggie-nutrition-v1';
 const NUTRITION_CACHE_TTL = 30 * 24 * 60 * 60 * 1000; // 30 days
 

@@ -1995,7 +1995,8 @@ function renderPortionSettings() {
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 
-function init() {
+async function init() {
+  await loadNutritionData();
   applyStaticTranslations();
 
   // Populate datalist for autocomplete (rebuilt on language change)

@@ -547,17 +547,59 @@ const FOOD_NAMES_DE_REVERSE = Object.fromEntries(
   Object.entries(FOOD_NAMES_DE).map(([en, de]) => [de.toLowerCase(), en])
 );
 
+// Extra synonyms not covered by the primary maps (lowercase → English canonical)
+const FOOD_ALIASES = {
+  de: {
+    'heidelbeere':    'Blueberry',
+    'heidelbeeren':   'Blueberry',
+    'möhre':          'Carrot',
+    'möhren':         'Carrot',
+    'salat':          'Lettuce',
+    'paranuss':       'Brazil Nuts',
+    'erbse':          'Peas',
+    'walnuss':        'Walnuts',
+    'mandel':         'Almonds',
+    'haselnuss':      'Hazelnuts',
+    'erdnuss':        'Peanuts',
+    'cashew':         'Cashews',
+    'pistazie':       'Pistachios',
+    'kiwifrucht':     'Kiwi',
+    'papaya':         'Papaya',
+    'schwarzkohl':    'Cavolo Nero',
+    'brunnenkresse':  'Watercress',
+  },
+  en: {
+    'eggplant':       'Aubergine',
+    'cilantro':       'Coriander',
+    'scallion':       'Spring Onion',
+    'scallions':      'Spring Onion',
+    'butternut':      'Butternut Squash',
+    'snap peas':      'Mangetout',
+    'snow peas':      'Mangetout',
+    'bok choy':       'Pak Choi',
+    'swiss chard':    'Chard',
+    'arugula':        'Rocket',
+    'blueberries':    'Blueberry',
+    'strawberries':   'Strawberry',
+    'raspberries':    'Raspberry',
+  },
+};
+
 // Translate a stored (English canonical) food name for display
 function tFood(name) {
   if (getLang() !== 'de') return name;
   return FOOD_NAMES_DE[name] ?? name;
 }
 
-// Given a user-typed name (possibly German), return the English canonical name for storage
+// Given a user-typed name (possibly German or aliased), return the English canonical name for storage
 function canonicalFood(name) {
   const trimmed = name.trim();
-  if (getLang() !== 'de') return trimmed;
-  return FOOD_NAMES_DE_REVERSE[trimmed.toLowerCase()] ?? trimmed;
+  const lower = trimmed.toLowerCase();
+  const lang = getLang();
+  if (lang === 'de') {
+    return FOOD_NAMES_DE_REVERSE[lower] ?? FOOD_ALIASES.de[lower] ?? trimmed;
+  }
+  return FOOD_ALIASES.en[lower] ?? trimmed;
 }
 
 const LANG_KEY = 'veggie-lang-v1';
