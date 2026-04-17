@@ -497,7 +497,8 @@ function renderStreaks() {
   document.getElementById('weeklyStreakDesc').innerHTML =
     `${t('week_streak_desc')}<br><small>${t('week_streak_sub', { goal: getGoal() })}</small>`;
 
-  const streaks = veggieStreaks();
+  const allStreaks = veggieStreaks();
+  const streaks = allStreaks.filter(s => s.streak >= 3).slice(0, 6);
   const container = document.getElementById('veggieStreaks');
 
   if (streaks.length === 0) {
@@ -505,13 +506,11 @@ function renderStreaks() {
     return;
   }
 
-  const tier = n => n >= 7 ? 'hot' : n >= 3 ? 'warm' : n >= 1 ? 'active' : '';
+  const tier = n => n >= 7 ? 'hot' : n >= 3 ? 'warm' : '';
 
   container.innerHTML = streaks.map(s => {
     const t_ = tier(s.streak);
-    const streakLabel = s.streak > 0
-      ? `🔥 ${t(s.streak === 1 ? 'streak_day' : 'streak_days', { n: s.streak })}`
-      : `${t('col_last')}: ${fmtDate(s.last)}`;
+    const streakLabel = `🔥 ${t(s.streak === 1 ? 'streak_day' : 'streak_days', { n: s.streak })}`;
     return `
       <div class="vs-row${t_ ? ' vs-row--' + t_ : ''}" data-food="${esc(s.name)}">
         <div class="vs-row-main">

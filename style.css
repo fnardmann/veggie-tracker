@@ -366,10 +366,6 @@ main {
   gap: 8px;
   padding: 8px 10px 8px 12px;
 }
-.vs-row--active {
-  background: #f0faf4;
-  border: 1px solid var(--c-pale);
-}
 .vs-row--warm {
   background: #e4f5ec;
   border: 1px solid #95d5ad;
@@ -407,7 +403,6 @@ main {
   color: var(--c-text2);
   white-space: nowrap;
 }
-.vs-row--active .vs-streak,
 .vs-row--warm .vs-streak { color: var(--c-main); }
 .vs-row--hot .vs-streak { color: #bf5a20; font-size: .82rem; }
 .vs-chevron {
