@@ -129,9 +129,11 @@ function getWeekStart(dateStr) {
   return addDays(dateStr, dow === 0 ? -6 : 1 - dow);
 }
 
+function dateLocale() { return getLang() === 'de' ? 'de-DE' : 'en-GB'; }
+
 function fmtDate(dateStr) {
   const [y, m, day] = dateStr.split('-').map(Number);
-  return new Date(y, m - 1, day).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+  return new Date(y, m - 1, day).toLocaleDateString(dateLocale(), { day: 'numeric', month: 'short' });
 }
 
 function fmtWeekRange(weekStart) {
@@ -140,7 +142,7 @@ function fmtWeekRange(weekStart) {
 
 function fmtMonthKey(mk) {
   const [y, m] = mk.split('-').map(Number);
-  return new Date(y, m - 1, 1).toLocaleDateString('en-GB', { month: 'short', year: '2-digit' });
+  return new Date(y, m - 1, 1).toLocaleDateString(dateLocale(), { month: 'short', year: '2-digit' });
 }
 
 // ── Analytics ─────────────────────────────────────────────────────────────────
@@ -314,7 +316,7 @@ function renderWeeklyChart() {
           pointRadius: 0,
           fill: false,
           tension: 0,
-          label: `Goal (${getGoal()})`,
+          label: t('goal_label', { n: getGoal() }),
         },
       ],
     },
@@ -392,7 +394,7 @@ function renderWeeklyProgress() {
 
   document.getElementById('weeklyVeggies').innerHTML =
     uniqueNames.map(v => `<span class="chip">${esc(v)}</span>`).join('') ||
-    '<p class="empty">None yet this week.</p>';
+    `<p class="empty">${t('none_this_week')}</p>`;
 }
 
 // ── Section renderers ─────────────────────────────────────────────────────────
@@ -400,14 +402,14 @@ function renderWeeklyProgress() {
 function renderToday() {
   const today = todayStr();
   document.getElementById('todayHeading').textContent =
-    `Today · ${new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short' })}`;
+    `${t('today')} · ${new Date().toLocaleDateString(dateLocale(), { weekday: 'long', day: 'numeric', month: 'short' })}`;
 
   const { entries } = getData();
   const todayEntries = entries.filter(e => e.date === today);
   const container = document.getElementById('todayList');
 
   if (todayEntries.length === 0) {
-    container.innerHTML = '<p class="empty">No vegetables logged today yet.</p>';
+    container.innerHTML = `<p class="empty">${t('no_logged_today')}</p>`;
   } else {
     container.innerHTML = todayEntries.map(e => `
       <div class="entry-row">
@@ -440,7 +442,7 @@ function renderQuickAdd() {
 
   const container = document.getElementById('quickAdd');
   if (recent.length === 0) {
-    container.innerHTML = '<p class="empty" style="font-size:.75rem">All recent veg already logged today!</p>';
+    container.innerHTML = `<p class="empty" style="font-size:.75rem">${t('all_logged_today')}</p>`;
     return;
   }
   container.innerHTML = recent
@@ -457,15 +459,19 @@ function renderStreaks() {
   document.getElementById('dailyStreak').textContent = ds;
   document.getElementById('weeklyStreak').textContent = ws;
   document.getElementById('headerDailyStreak').textContent =
-    ds === 0 ? 'No streak' : `${ds} day streak`;
+    ds === 0 ? t('no_streak') : t('x_day_streak', { n: ds });
   document.getElementById('headerWeeklyStreak').textContent =
-    ws === 0 ? 'No week streak' : `${ws} week streak`;
+    ws === 0 ? t('no_week_streak') : t('x_week_streak', { n: ws });
+  document.getElementById('dailyStreakDesc').innerHTML =
+    `${t('day_streak_desc')}<br><small>${t('day_streak_sub')}</small>`;
+  document.getElementById('weeklyStreakDesc').innerHTML =
+    `${t('week_streak_desc')}<br><small>${t('week_streak_sub', { goal: getGoal() })}</small>`;
 
   const streaks = veggieStreaks();
   const container = document.getElementById('veggieStreaks');
 
   if (streaks.length === 0) {
-    container.innerHTML = '<p class="empty">Log vegetables to see streaks.</p>';
+    container.innerHTML = `<p class="empty">${t('no_streaks_yet')}</p>`;
     return;
   }
 
@@ -473,17 +479,17 @@ function renderStreaks() {
     <table>
       <thead>
         <tr>
-          <th>Vegetable</th>
-          <th>Current streak</th>
-          <th>Total days</th>
-          <th>Last eaten</th>
+          <th>${t('col_food')}</th>
+          <th>${t('col_streak')}</th>
+          <th>${t('col_total')}</th>
+          <th>${t('col_last')}</th>
         </tr>
       </thead>
       <tbody>
         ${streaks.map(s => `
           <tr>
             <td>${esc(s.name)}</td>
-            <td>${s.streak > 0 ? `🔥 ${s.streak} day${s.streak > 1 ? 's' : ''}` : '—'}</td>
+            <td>${s.streak > 0 ? `🔥 ${t(s.streak === 1 ? 'streak_day' : 'streak_days', { n: s.streak })}` : '—'}</td>
             <td>${s.total}</td>
             <td>${fmtDate(s.last)}</td>
           </tr>
@@ -498,7 +504,7 @@ function renderHistory() {
   const container = document.getElementById('historyList');
 
   if (entries.length === 0) {
-    container.innerHTML = '<p class="empty">No history yet.</p>';
+    container.innerHTML = `<p class="empty">${t('no_history')}</p>`;
     return;
   }
 
@@ -517,7 +523,7 @@ function renderHistory() {
       <div class="history-day">
         <div class="history-date">
           ${fmtDate(date)}
-          <span class="history-count"> · ${uniq} veg</span>
+          <span class="history-count"> · ${t(uniq === 1 ? 'x_plants' : 'x_plants_plural', { n: uniq })}</span>
         </div>
         <div class="history-chips">
           ${dayEntries.map(e => `
@@ -555,13 +561,13 @@ function fmtVal(val) {
 
 async function renderNutritionTab(quiet = false) {
   const entries = thisWeekEntries();
-  const empty = '<p class="empty">Log foods to see nutrition data.</p>';
+  const empty = `<p class="empty">${t('empty_log_nutrition')}</p>`;
 
   if (entries.length === 0) {
     document.getElementById('nutritionTable').innerHTML = empty;
     document.getElementById('nutritionTotals').innerHTML = empty;
-    document.getElementById('nutritionDGE').innerHTML = '<p class="empty">Log foods to see top sources.</p>';
-    document.getElementById('nutritionSuggestions').innerHTML = '<p class="empty">Log foods to see suggestions.</p>';
+    document.getElementById('nutritionDGE').innerHTML = `<p class="empty">${t('empty_log_sources')}</p>`;
+    document.getElementById('nutritionSuggestions').innerHTML = `<p class="empty">${t('empty_log_suggestions')}</p>`;
     return;
   }
 
@@ -576,16 +582,16 @@ async function renderNutritionTab(quiet = false) {
   const uniqueFoods = [...foodCounts.values()].map(f => f.name).sort();
 
   if (!quiet) {
-    document.getElementById('nutritionTable').innerHTML = '<p class="empty">Fetching nutrition data…</p>';
-    document.getElementById('nutritionTotals').innerHTML = '<p class="empty">Fetching nutrition data…</p>';
-    document.getElementById('nutritionDGE').innerHTML = '<p class="empty">Fetching nutrition data…</p>';
-    document.getElementById('nutritionSuggestions').innerHTML = '<p class="empty">Fetching nutrition data…</p>';
+    document.getElementById('nutritionTable').innerHTML = `<p class="empty">${t('fetching')}</p>`;
+    document.getElementById('nutritionTotals').innerHTML = `<p class="empty">${t('fetching')}</p>`;
+    document.getElementById('nutritionDGE').innerHTML = `<p class="empty">${t('fetching')}</p>`;
+    document.getElementById('nutritionSuggestions').innerHTML = `<p class="empty">${t('fetching')}</p>`;
   }
 
   const rawResults = await fetchNutritionForAll(uniqueFoods);
 
   if (!rawResults.some(r => r.nutrition)) {
-    const noData = '<p class="empty">No nutrition data available for this week\'s foods.</p>';
+    const noData = `<p class="empty">${t('no_nutrition_data')}</p>`;
     document.getElementById('nutritionTable').innerHTML = noData;
     document.getElementById('nutritionTotals').innerHTML = noData;
     document.getElementById('nutritionDGE').innerHTML = noData;
@@ -604,7 +610,7 @@ async function renderNutritionTab(quiet = false) {
 
   // ── Per-food table ──
   const headerCells = NUTRIENT_DEFS
-    .map(d => `<th>${esc(d.label)}<br><small>${esc(d.unit)}</small></th>`)
+    .map(d => `<th>${esc(t('nutrient_' + d.key))}<br><small>${esc(d.unit)}</small></th>`)
     .join('');
 
   const tableRows = results.map(({ vegetable, nutrition: n }) => {
@@ -632,7 +638,7 @@ async function renderNutritionTab(quiet = false) {
   tableEl.innerHTML = `
     <div class="nutrition-scroll">
       <table class="nutrition-table">
-        <thead><tr><th>Food <span class="n-portion">portion</span></th>${headerCells}</tr></thead>
+        <thead><tr><th>${t('col_food')} <span class="n-portion">${t('col_portion')}</span></th>${headerCells}</tr></thead>
         <tbody>${tableRows}</tbody>
       </table>
     </div>`;
@@ -678,13 +684,13 @@ async function renderNutritionTab(quiet = false) {
   document.getElementById('nutritionTotals').innerHTML = `
     <div class="nutrition-scroll">
       <table class="nutrition-table">
-        <thead><tr><th>Total this week</th>${headerCells}</tr></thead>
-        <tbody><tr><td class="n-veggie">All logged plants</td>${totalCells}</tr></tbody>
+        <thead><tr><th>${t('total_this_week')}</th>${headerCells}</tr></thead>
+        <tbody><tr><td class="n-veggie">${t('all_logged')}</td>${totalCells}</tr></tbody>
       </table>
     </div>`;
 
   // ── Top sources per nutrient ──
-  const sourceRows = NUTRIENT_DEFS.map(({ key, label, unit }) => {
+  const sourceRows = NUTRIENT_DEFS.map(({ key, unit }) => {
     // For each food, compute its total contribution this week (portion × count)
     const ranked = results
       .map(({ vegetable, nutrition: n }) => {
@@ -699,8 +705,8 @@ async function renderNutritionTab(quiet = false) {
 
     if (!ranked.length) return `
       <div class="src-row">
-        <span class="src-label">${esc(label)}</span>
-        <span class="n-na">No data this week</span>
+        <span class="src-label">${esc(t('nutrient_' + key))}</span>
+        <span class="n-na">${t('no_data_week')}</span>
       </div>`;
 
     const chips = ranked.map((r, i) => {
@@ -710,7 +716,7 @@ async function renderNutritionTab(quiet = false) {
 
     return `
       <div class="src-row">
-        <span class="src-label">${esc(label)}</span>
+        <span class="src-label">${esc(t('nutrient_' + key))}</span>
         <div class="src-chips">${chips}</div>
       </div>`;
   }).join('');
@@ -761,13 +767,13 @@ function renderNutrientSuggestions(totals, loggedFoodsThisWeek) {
     .slice(0, 4);
 
   if (!scored.length) {
-    el.innerHTML = '<p class="empty">Not enough data to make suggestions yet.</p>';
+    el.innerHTML = `<p class="empty">${t('not_enough_data')}</p>`;
     return;
   }
 
   const loggedSet = new Set(loggedFoodsThisWeek.map(f => f.toLowerCase()));
 
-  const rows = scored.map(({ key, label, unit, total }) => {
+  const rows = scored.map(({ key, unit, total }) => {
     // Find best foods in static data for this nutrient, not yet logged this week
     const suggestions = Object.entries(NUTRITION_DATA)
       .filter(([name]) => !loggedSet.has(name))
@@ -785,10 +791,10 @@ function renderNutrientSuggestions(totals, loggedFoodsThisWeek) {
     return `
       <div class="sugg-row">
         <div class="sugg-left">
-          <span class="sugg-label">${esc(label)}</span>
-          <span class="sugg-total">${fmtVal(total)} ${esc(unit)} this week</span>
+          <span class="sugg-label">${esc(t('nutrient_' + key))}</span>
+          <span class="sugg-total">${t('this_week_suffix', { amount: fmtVal(total), unit: esc(unit) })}</span>
         </div>
-        <div class="sugg-chips">${chips || '<span class="n-na">No suggestions</span>'}</div>
+        <div class="sugg-chips">${chips || `<span class="n-na">${t('no_suggestions')}</span>`}</div>
       </div>`;
   }).join('');
 
@@ -818,7 +824,7 @@ async function renderNutrientTrend() {
   const wrap = document.getElementById('trendChartWrap');
 
   if (allFoods.length === 0) {
-    wrap.innerHTML = '<p class="empty">Log foods to see nutrient trends.</p>';
+    wrap.innerHTML = `<p class="empty">${t('empty_log_trend')}</p>`;
     return;
   }
 
@@ -885,7 +891,7 @@ async function renderNutrientTrend() {
         legend: { display: false },
         tooltip: {
           callbacks: {
-            label: ctx => ctx.raw != null ? `${ctx.raw} ${def.unit}` : 'No data',
+            label: ctx => ctx.raw != null ? `${ctx.raw} ${def.unit}` : t('tooltip_no_data'),
           },
         },
       },
@@ -962,7 +968,7 @@ function renderHeatmap() {
   const weeksHtml = weeks.map(week => {
     const cells = week.days.map(day => {
       const cls = heatClass(day.count, day.isFuture);
-      const tip = day.isFuture ? '' : `${day.date}: ${day.count} plant${day.count !== 1 ? 's' : ''}`;
+      const tip = day.isFuture ? '' : t(day.count === 1 ? 'heatmap_tip' : 'heatmap_tip_plural', { date: day.date, n: day.count });
       return `<div class="heat-cell ${cls}" title="${esc(tip)}"></div>`;
     }).join('');
     return `<div class="heat-week">${cells}</div>`;
@@ -973,7 +979,7 @@ function renderHeatmap() {
       <div class="heat-left">
         <div class="heat-spacer"></div>
         <div class="heat-days">
-          <span>Mon</span><span></span><span>Wed</span><span></span><span>Fri</span><span></span><span></span>
+          <span>${t('heatmap_mon')}</span><span></span><span>${t('heatmap_wed')}</span><span></span><span>${t('heatmap_fri')}</span><span></span><span></span>
         </div>
       </div>
       <div class="heat-right">
@@ -982,13 +988,13 @@ function renderHeatmap() {
       </div>
     </div>
     <div class="heat-legend">
-      <span class="heat-legend-text">Less</span>
+      <span class="heat-legend-text">${t('heatmap_less')}</span>
       <div class="heat-cell heat-0"></div>
       <div class="heat-cell heat-1"></div>
       <div class="heat-cell heat-2"></div>
       <div class="heat-cell heat-3"></div>
       <div class="heat-cell heat-4"></div>
-      <span class="heat-legend-text">More</span>
+      <span class="heat-legend-text">${t('heatmap_more')}</span>
     </div>
   `;
 
@@ -1050,6 +1056,8 @@ function importData(file) {
 // ── Init ──────────────────────────────────────────────────────────────────────
 
 function init() {
+  applyStaticTranslations();
+
   // Populate datalist for autocomplete
   const datalist = document.getElementById('veggie-list');
   FOODS.forEach(v => {
@@ -1090,14 +1098,30 @@ function init() {
 
   // Nutrient trend select
   const trendSelect = document.getElementById('trendNutrient');
-  NUTRIENT_DEFS.forEach(({ key, label, unit }) => {
-    const opt = document.createElement('option');
-    opt.value = key;
-    opt.textContent = `${label} (${unit})`;
-    if (key === 'vitc') opt.selected = true;
-    trendSelect.appendChild(opt);
-  });
+  function populateTrendSelect() {
+    const current = trendSelect.value || 'vitc';
+    trendSelect.innerHTML = '';
+    NUTRIENT_DEFS.forEach(({ key, unit }) => {
+      const opt = document.createElement('option');
+      opt.value = key;
+      opt.textContent = `${t('nutrient_' + key)} (${unit})`;
+      if (key === current) opt.selected = true;
+      trendSelect.appendChild(opt);
+    });
+  }
+  populateTrendSelect();
   trendSelect.addEventListener('change', renderNutrientTrend);
+
+  // Language select
+  const langSelect = document.getElementById('langSelect');
+  langSelect.value = getLang();
+  langSelect.addEventListener('change', () => {
+    setLang(langSelect.value);
+    applyStaticTranslations();
+    populateTrendSelect();
+    renderAll();
+    if (!document.getElementById('tab-nutrition').hidden) renderNutritionTab();
+  });
 
   // Settings: weekly goal
   const goalInput = document.getElementById('goalInput');

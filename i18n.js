@@ -1,0 +1,259 @@
+'use strict';
+
+const TRANSLATIONS = {
+  en: {
+    // Meta
+    title:                      'Veggie Tracker',
+    subtitle:                   'Eat 30 different plants every week',
+    // Tabs
+    tab_overview:               'Overview',
+    tab_nutrition:              'Nutrition',
+    tab_settings:               'Settings',
+    // Log food card
+    log_food:                   'Log Food',
+    label_date:                 'Date',
+    label_food:                 'Food',
+    food_placeholder:           'e.g. Broccoli, Apple, Almonds',
+    btn_add:                    'Add',
+    quick_add_label:            'Quick add (today):',
+    // Cards
+    this_week:                  'This Week',
+    today:                      'Today',
+    // Chart headings
+    daily_heading:              'Daily — last 14 days',
+    weekly_heading:             'Weekly — last 12 weeks',
+    monthly_heading:            'Monthly — last 12 months',
+    activity_heading:           'Activity — last 12 months',
+    // Streaks
+    streaks:                    'Streaks',
+    day_streak_desc:            'Day streak',
+    day_streak_sub:             'eating any plant',
+    week_streak_desc:           'Week streak',
+    week_streak_sub:            'hitting {goal} goal',
+    per_food:                   'Per Food',
+    col_food:                   'Food',
+    col_streak:                 'Current streak',
+    col_total:                  'Total days',
+    col_last:                   'Last eaten',
+    // History
+    history:                    'History',
+    btn_export:                 'Export',
+    btn_import:                 'Import',
+    // Settings
+    settings_goal_heading:      'Weekly Goal',
+    settings_goal_title:        'Plants per week target',
+    settings_goal_desc:         'How many different plants you aim to eat each week. The classic guideline is 30.',
+    settings_lang_heading:      'Language',
+    settings_lang_title:        'Display language',
+    btn_reset:                  'Reset',
+    // Nutrition headings
+    nutrition_per_food_heading: 'This Week — Per Food',
+    nutrition_per_food_note:    'per typical portion · static data + Open Food Facts',
+    nutrition_totals_heading:   'This Week — Totals',
+    nutrition_totals_note:      'sum of all portions logged · from logged plants only',
+    nutrition_sugg_heading:     'What to Eat More Of',
+    nutrition_sugg_note:        'nutrients lowest this week · suggested foods not yet logged',
+    nutrition_sources_heading:  'Top Sources This Week',
+    nutrition_sources_note:     'which of your logged plants contributed most to each nutrient',
+    nutrition_trend_heading:    'Nutrient Trend — last 12 weeks',
+    // Dynamic UI strings
+    no_streak:                  'No streak',
+    x_day_streak:               '{n} day streak',
+    no_week_streak:             'No week streak',
+    x_week_streak:              '{n} week streak',
+    no_logged_today:            'No foods logged today yet.',
+    all_logged_today:           'All recent foods already logged today!',
+    none_this_week:             'None yet this week.',
+    err_no_date:                'Please select a date.',
+    err_no_food:                'Please enter a food name.',
+    err_duplicate:              '{food} already logged for {date}.',
+    streak_day:                 '{n} day',
+    streak_days:                '{n} days',
+    no_streaks_yet:             'Log foods to see streaks.',
+    no_history:                 'No history yet.',
+    x_plants:                   '{n} plant',
+    x_plants_plural:            '{n} plants',
+    // Nutrition states
+    fetching:                   'Fetching nutrition data…',
+    empty_log_nutrition:        'Log foods to see nutrition data.',
+    empty_log_totals:           'Log foods to see weekly totals.',
+    empty_log_sources:          'Log foods to see top sources.',
+    empty_log_suggestions:      'Log foods to see suggestions.',
+    empty_log_trend:            'Log foods to see nutrient trends.',
+    no_nutrition_data:          "No nutrition data available for this week's foods.",
+    col_portion:                'portion',
+    total_this_week:            'Total this week',
+    all_logged:                 'All logged plants',
+    no_data_week:               'No data this week',
+    no_suggestions:             'No suggestions',
+    not_enough_data:            'Not enough data to make suggestions yet.',
+    this_week_suffix:           '{amount} {unit} this week',
+    tooltip_no_data:            'No data',
+    // Heatmap
+    heatmap_mon:                'Mon',
+    heatmap_wed:                'Wed',
+    heatmap_fri:                'Fri',
+    heatmap_less:               'Less',
+    heatmap_more:               'More',
+    heatmap_tip:                '{date}: {n} plant',
+    heatmap_tip_plural:         '{date}: {n} plants',
+    // Chart
+    goal_label:                 'Goal ({n})',
+    chart_unique:               'Unique plants',
+    // Nutrient names
+    nutrient_fibre:             'Fibre',
+    nutrient_vita:              'Vitamin A',
+    nutrient_b1:                'B1',
+    nutrient_b2:                'B2',
+    nutrient_b3:                'B3',
+    nutrient_b5:                'B5',
+    nutrient_b6:                'B6',
+    nutrient_b9:                'Folate',
+    nutrient_vitc:              'Vitamin C',
+    nutrient_vitd:              'Vitamin D',
+    nutrient_vite:              'Vitamin E',
+    nutrient_vitk:              'Vitamin K',
+    nutrient_iron:              'Iron',
+    nutrient_calcium:           'Calcium',
+    nutrient_magnesium:         'Magnesium',
+    nutrient_potassium:         'Potassium',
+    nutrient_zinc:              'Zinc',
+  },
+
+  de: {
+    title:                      'Pflanzen-Tracker',
+    subtitle:                   '30 verschiedene Pflanzen pro Woche essen',
+    tab_overview:               'Übersicht',
+    tab_nutrition:              'Nährwerte',
+    tab_settings:               'Einstellungen',
+    log_food:                   'Eintragen',
+    label_date:                 'Datum',
+    label_food:                 'Pflanze',
+    food_placeholder:           'z.B. Brokkoli, Apfel, Mandeln',
+    btn_add:                    'Hinzufügen',
+    quick_add_label:            'Schnell hinzufügen (heute):',
+    this_week:                  'Diese Woche',
+    today:                      'Heute',
+    daily_heading:              'Täglich — letzte 14 Tage',
+    weekly_heading:             'Wöchentlich — letzte 12 Wochen',
+    monthly_heading:            'Monatlich — letzte 12 Monate',
+    activity_heading:           'Aktivität — letzte 12 Monate',
+    streaks:                    'Serien',
+    day_streak_desc:            'Tages-Serie',
+    day_streak_sub:             'irgendeine Pflanze gegessen',
+    week_streak_desc:           'Wochen-Serie',
+    week_streak_sub:            'Ziel von {goal} erreicht',
+    per_food:                   'Pro Pflanze',
+    col_food:                   'Pflanze',
+    col_streak:                 'Aktuelle Serie',
+    col_total:                  'Tage gesamt',
+    col_last:                   'Zuletzt gegessen',
+    history:                    'Verlauf',
+    btn_export:                 'Exportieren',
+    btn_import:                 'Importieren',
+    settings_goal_heading:      'Wochenziel',
+    settings_goal_title:        'Pflanzen pro Woche',
+    settings_goal_desc:         'Wie viele verschiedene Pflanzen du pro Woche essen möchtest. Die klassische Empfehlung sind 30.',
+    settings_lang_heading:      'Sprache',
+    settings_lang_title:        'Anzeigesprache',
+    btn_reset:                  'Zurücksetzen',
+    nutrition_per_food_heading: 'Diese Woche — Pro Pflanze',
+    nutrition_per_food_note:    'pro typische Portion · statische Daten + Open Food Facts',
+    nutrition_totals_heading:   'Diese Woche — Gesamt',
+    nutrition_totals_note:      'Summe aller Portionen · nur eingetragene Pflanzen',
+    nutrition_sugg_heading:     'Was du mehr essen solltest',
+    nutrition_sugg_note:        'diese Woche am niedrigsten · noch nicht eingetragene Empfehlungen',
+    nutrition_sources_heading:  'Top-Quellen diese Woche',
+    nutrition_sources_note:     'welche Pflanzen am meisten zu jedem Nährstoff beigetragen haben',
+    nutrition_trend_heading:    'Nährstoff-Verlauf — letzte 12 Wochen',
+    no_streak:                  'Keine Serie',
+    x_day_streak:               '{n}-Tage-Serie',
+    no_week_streak:             'Keine Wochen-Serie',
+    x_week_streak:              '{n}-Wochen-Serie',
+    no_logged_today:            'Heute noch nichts eingetragen.',
+    all_logged_today:           'Alle letzten Pflanzen heute bereits eingetragen!',
+    none_this_week:             'Diese Woche noch nichts.',
+    err_no_date:                'Bitte ein Datum auswählen.',
+    err_no_food:                'Bitte einen Pflanzennamen eingeben.',
+    err_duplicate:              '{food} wurde für {date} bereits eingetragen.',
+    streak_day:                 '{n} Tag',
+    streak_days:                '{n} Tage',
+    no_streaks_yet:             'Pflanzen eintragen, um Serien zu sehen.',
+    no_history:                 'Noch kein Verlauf.',
+    x_plants:                   '{n} Pflanze',
+    x_plants_plural:            '{n} Pflanzen',
+    fetching:                   'Nährwerte werden geladen…',
+    empty_log_nutrition:        'Pflanzen eintragen, um Nährwerte zu sehen.',
+    empty_log_totals:           'Pflanzen eintragen, um Gesamtwerte zu sehen.',
+    empty_log_sources:          'Pflanzen eintragen, um Top-Quellen zu sehen.',
+    empty_log_suggestions:      'Pflanzen eintragen, um Empfehlungen zu sehen.',
+    empty_log_trend:            'Pflanzen eintragen, um den Verlauf zu sehen.',
+    no_nutrition_data:          'Keine Nährwertdaten für die Pflanzen dieser Woche.',
+    col_portion:                'Portion',
+    total_this_week:            'Gesamt diese Woche',
+    all_logged:                 'Alle eingetragenen Pflanzen',
+    no_data_week:               'Keine Daten diese Woche',
+    no_suggestions:             'Keine Empfehlungen',
+    not_enough_data:            'Noch nicht genug Daten für Empfehlungen.',
+    this_week_suffix:           '{amount} {unit} diese Woche',
+    tooltip_no_data:            'Keine Daten',
+    heatmap_mon:                'Mo',
+    heatmap_wed:                'Mi',
+    heatmap_fri:                'Fr',
+    heatmap_less:               'Weniger',
+    heatmap_more:               'Mehr',
+    heatmap_tip:                '{date}: {n} Pflanze',
+    heatmap_tip_plural:         '{date}: {n} Pflanzen',
+    goal_label:                 'Ziel ({n})',
+    chart_unique:               'Einzigartige Pflanzen',
+    nutrient_fibre:             'Ballaststoffe',
+    nutrient_vita:              'Vitamin A',
+    nutrient_b1:                'B1',
+    nutrient_b2:                'B2',
+    nutrient_b3:                'B3',
+    nutrient_b5:                'B5',
+    nutrient_b6:                'B6',
+    nutrient_b9:                'Folat',
+    nutrient_vitc:              'Vitamin C',
+    nutrient_vitd:              'Vitamin D',
+    nutrient_vite:              'Vitamin E',
+    nutrient_vitk:              'Vitamin K',
+    nutrient_iron:              'Eisen',
+    nutrient_calcium:           'Kalzium',
+    nutrient_magnesium:         'Magnesium',
+    nutrient_potassium:         'Kalium',
+    nutrient_zinc:              'Zink',
+  },
+};
+
+const LANG_KEY = 'veggie-lang-v1';
+
+function getLang() {
+  return localStorage.getItem(LANG_KEY) || 'en';
+}
+
+function setLang(lang) {
+  localStorage.setItem(LANG_KEY, lang);
+}
+
+function t(key, vars) {
+  const lang = getLang();
+  let str = (TRANSLATIONS[lang] || TRANSLATIONS.en)[key] ?? TRANSLATIONS.en[key] ?? key;
+  if (vars) {
+    for (const [k, v] of Object.entries(vars)) {
+      str = str.replaceAll(`{${k}}`, v);
+    }
+  }
+  return str;
+}
+
+function applyStaticTranslations() {
+  document.title = t('title');
+  document.documentElement.lang = getLang();
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    el.textContent = t(el.dataset.i18n);
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    el.placeholder = t(el.dataset.i18nPlaceholder);
+  });
+}
