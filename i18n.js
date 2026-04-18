@@ -564,7 +564,7 @@ const FOOD_NAMES_DE = {
   'Green Asparagus': 'Grüner Spargel',
   'Olives': 'Oliven',
   // Grains
-  'Oats': 'Hafer',
+  'Oats': 'Haferflocken',
   'Quinoa': 'Quinoa',
   'Brown Rice': 'Brauner Reis',
   'Barley': 'Gerste',
@@ -602,6 +602,7 @@ const FOOD_NAMES_DE_REVERSE = Object.fromEntries(
 const FOOD_ALIASES = {
   de: {
     // already existing variants
+    'hafer':             'Oats',
     'heidelbeere':       'Blueberry',
     'heidelbeeren':      'Blueberry',
     'möhre':             'Carrot',
