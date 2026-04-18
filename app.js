@@ -899,6 +899,12 @@ const PLANT_GROUPS = [
   { label: 'Beans',         members: ['black beans', 'butter beans', 'cannellini beans', 'kidney beans', 'pinto beans', 'mung beans', 'broad beans'] },
   { label: 'Onion family',  members: ['onion', 'red onion', 'shallot', 'spring onion'] },
   { label: 'Asparagus',     members: ['asparagus', 'green asparagus'] },
+  { label: 'Pak Choi',      members: ['pak choi', 'bok choy'] },
+  { label: 'Squash',        members: ['pumpkin', 'squash', 'butternut squash'] },
+  { label: 'Chard',         members: ['chard', 'swiss chard'] },
+  { label: 'Rocket',        members: ['rocket', 'arugula'] },
+  { label: 'Courgette',     members: ['courgette', 'zucchini'] },
+  { label: 'Flaxseeds',     members: ['flaxseeds', 'linseeds'] },
 ];
 
 const _plantGroupMap = new Map(
