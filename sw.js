@@ -1,6 +1,6 @@
 'use strict';
 
-const CACHE = 'veggie-tracker-v8';
+const CACHE = 'veggie-tracker-v9';
 const ASSETS = [
   './',
   './index.html',
@@ -10,6 +10,8 @@ const ASSETS = [
   './nutrition.js',
   './app.js',
   './icon.svg',
+  './icon-192.png',
+  './icon-512.png',
   './manifest.json',
   'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js',
 ];

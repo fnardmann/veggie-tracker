@@ -67,6 +67,10 @@ const FOODS = [
   // Other veg
   'Cavolo Nero', 'Purple Sprouting Broccoli', 'Green Asparagus',
   'Broad Beans', 'Olives',
+  // Grains
+  'Oats', 'Quinoa', 'Brown Rice', 'Barley', 'Rye', 'Buckwheat',
+  'Millet', 'Spelt', 'Amaranth', 'Teff', 'Sorghum', 'Farro',
+  'Wild Rice', 'Bulgur', 'Freekeh', 'Kamut', 'Einkorn',
 ].sort();
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
