@@ -698,6 +698,13 @@ main {
   color: var(--c-text2);
 }
 .sugg-nut-chip em { font-style: normal; color: var(--c-text3); margin-left: 3px; }
+.sugg-section--animal .sugg-section-header { background: rgba(244,162,97,.12); }
+.sugg-section--animal .sugg-section-nutrient { color: #b85c00; }
+.sugg-food-portion {
+  font-size: .7rem;
+  color: var(--c-text3);
+  margin-right: auto;
+}
 
 /* ── Plant Gallery ───────────────────────────────────────────────────────── */
 .daily-cards-wrap {

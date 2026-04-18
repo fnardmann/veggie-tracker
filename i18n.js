@@ -118,6 +118,10 @@ const TRANSLATIONS = {
     celebrate_weekly_sub:    '{n} plants this week — amazing!',
     celebrate_daily_title:   'Daily goal reached!',
     celebrate_daily_sub:     '{n} plants today — keep it up!',
+    settings_animal_sugg_heading: 'Animal Food Suggestions',
+    settings_animal_sugg_title:   'Suggest animal foods',
+    settings_animal_sugg_desc:    'When nutrients are low, also suggest animal foods (eggs, fish, dairy).',
+    sugg_animal_label:            'Also consider (animal foods)',
     fact_fibre:   'Feeds your gut microbiome and keeps digestion on track. Most adults get less than half the recommended daily amount.',
     fact_vita:    'Vital for night vision, immune defence, and cell growth. One medium carrot covers a full day\'s needs.',
     fact_b1:      'Converts carbohydrates into energy your cells can use. Critical for brain and nerve function.',
@@ -295,6 +299,10 @@ const TRANSLATIONS = {
     celebrate_weekly_sub:    '{n} Pflanzen diese Woche — fantastisch!',
     celebrate_daily_title:   'Tagesziel erreicht!',
     celebrate_daily_sub:     '{n} Pflanzen heute — weiter so!',
+    settings_animal_sugg_heading: 'Tierische Lebensmittelvorschläge',
+    settings_animal_sugg_title:   'Tierische Lebensmittel vorschlagen',
+    settings_animal_sugg_desc:    'Bei Nährstoffmängeln auch tierische Lebensmittel (Eier, Fisch, Milchprodukte) vorschlagen.',
+    sugg_animal_label:            'Außerdem empfehlenswert (tierisch)',
     fact_fibre:   'Nährt deine Darmbakterien und hält die Verdauung in Schwung. Die meisten Menschen nehmen weniger als die Hälfte der empfohlenen Menge auf.',
     fact_vita:    'Wichtig für Nachtsehen, Immunabwehr und Zellwachstum. Eine mittelgroße Karotte deckt den Tagesbedarf.',
     fact_b1:      'Wandelt Kohlenhydrate in verwertbare Energie um. Unverzichtbar für Gehirn und Nervensystem.',
@@ -548,6 +556,16 @@ const FOOD_NAMES_DE = {
   'Purple Sprouting Broccoli': 'Lila Brokkolini',
   'Green Asparagus': 'Grüner Spargel',
   'Olives': 'Oliven',
+  // Animal foods (for nutrition suggestions)
+  'Eggs': 'Eier',
+  'Salmon': 'Lachs',
+  'Sardines': 'Sardinen',
+  'Mackerel': 'Makrele',
+  'Chicken Liver': 'Hähnchenleber',
+  'Oysters': 'Austern',
+  'Full-fat Yogurt': 'Vollfett-Joghurt',
+  'Cheddar': 'Cheddar',
+  'Milk': 'Milch',
 };
 
 // Reverse map: German display name → English canonical

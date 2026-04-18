@@ -15,6 +15,7 @@ function getAdvancedPortions() { return getSettings().advancedPortions ?? false;
 function getFunFacts()      { return getSettings().funFacts      ?? true; }
 function getFoodFacts()    { return getSettings().foodFacts    ?? true; }
 function getNutrientFacts(){ return getSettings().nutrientFacts ?? true; }
+function getAnimalSuggestions() { return getSettings().animalSuggestions ?? true; }
 
 const FOODS = [
   // Vegetables
@@ -870,6 +871,21 @@ const NUTRIENT_WEEKLY_REF = {
   // b12 intentionally omitted: plants contain none, so it would only clog suggestions
 };
 
+// b12 included here because animal foods are its primary source
+const ANIMAL_WEEKLY_REF = { ...NUTRIENT_WEEKLY_REF, b12: 98 }; // 14 µg/day × 7
+
+const ANIMAL_FOODS = [
+  { name: 'Eggs',           portion: '2 medium (120 g)', nutrients: { b2: 0.54, vitd: 3.4, selenium: 30, zinc: 1.3, b12: 2.4, b5: 1.9, vita: 160, b6: 0.18 } },
+  { name: 'Salmon',         portion: '150 g fillet',     nutrients: { vitd: 11,  b12: 4.2, b3: 12,  selenium: 43, b2: 0.5,  b6: 1.2, b5: 2.0 } },
+  { name: 'Sardines',       portion: '90 g (tin)',        nutrients: { vitd: 4.8, b12: 3.5, calcium: 350, selenium: 30, b3: 5.4, b2: 0.22 } },
+  { name: 'Mackerel',       portion: '150 g fillet',     nutrients: { vitd: 6.3, b12: 5.4, selenium: 53, b2: 0.5, b3: 9.0, b6: 0.7 } },
+  { name: 'Chicken Liver',  portion: '75 g',             nutrients: { vita: 6400, b12: 18, b9: 600, b2: 1.3, iron: 7.5, zinc: 3.0, selenium: 35 } },
+  { name: 'Oysters',        portion: '6 medium (85 g)',  nutrients: { zinc: 39, b12: 16, selenium: 55, iron: 4.6, vitd: 3.2 } },
+  { name: 'Full-fat Yogurt',portion: '150 g',            nutrients: { calcium: 240, b12: 0.9, b2: 0.27, zinc: 0.9 } },
+  { name: 'Cheddar',        portion: '30 g',             nutrients: { calcium: 218, b12: 0.5, b2: 0.15, zinc: 0.9 } },
+  { name: 'Milk',           portion: '200 ml',           nutrients: { calcium: 240, b12: 0.9, vitd: 1.6, b2: 0.22 } },
+];
+
 function renderNutrientSuggestions(totals, loggedFoodsThisWeek) {
   const el = document.getElementById('nutritionSuggestions');
 
@@ -883,76 +899,128 @@ function renderNutrientSuggestions(totals, loggedFoodsThisWeek) {
     .filter(n => n.coverage < 1)
     .sort((a, b) => a.coverage - b.coverage);
 
+  let plantHtml = '';
+
   if (!gapNutrients.length) {
-    el.innerHTML = `<p class="empty">${t('sugg_all_covered')}</p>`;
-    return;
+    plantHtml = `<p class="empty">${t('sugg_all_covered')}</p>`;
+  } else {
+    const loggedSet = new Set(loggedFoodsThisWeek.map(f => f.toLowerCase()));
+
+    // For each unlogged food, find which gap nutrients it meaningfully covers (≥5% of weekly ref)
+    const MIN_COVERAGE = 0.05;
+    const foodScores = Object.entries(NUTRITION_DATA)
+      .filter(([name]) => !loggedSet.has(name))
+      .map(([name, d]) => {
+        const covered = gapNutrients
+          .map(({ key, unit }) => {
+            const amount = d[key] != null ? +(d[key] * d.g / 100).toFixed(1) : 0;
+            const pct = amount / NUTRIENT_WEEKLY_REF[key];
+            return pct >= MIN_COVERAGE ? { key, unit, amount, pct } : null;
+          })
+          .filter(Boolean);
+        const totalScore = covered.reduce((s, n) => s + n.pct, 0);
+        return { name, covered, totalScore };
+      })
+      .filter(f => f.covered.length > 0)
+      .sort((a, b) => b.covered.length - a.covered.length || b.totalScore - a.totalScore)
+      .slice(0, 8);
+
+    if (!foodScores.length) {
+      plantHtml = `<p class="empty">${t('no_suggestions')}</p>`;
+    } else {
+      // Group foods by their top gap nutrient to render superpower sections
+      const sections = [];
+      const assignedFoods = new Set();
+      for (const gap of gapNutrients) {
+        const foods = foodScores.filter(f => !assignedFoods.has(f.name) && f.covered.some(c => c.key === gap.key));
+        if (!foods.length) continue;
+        foods.forEach(f => assignedFoods.add(f.name));
+        sections.push({ gapKey: gap.key, foods });
+      }
+
+      plantHtml = sections.map(({ gapKey, foods }) => {
+        const nutrientLabel = esc(t('nutrient_' + gapKey));
+        const factText = esc(t('fact_' + gapKey));
+        const rows = foods.map(({ name, covered }) => {
+          const foodName = name.replace(/\b\w/g, c => c.toUpperCase());
+          const countKey = covered.length === 1 ? 'covers_1_gap' : 'covers_n_gaps';
+          const chips = covered.map(({ key, unit, amount }) =>
+            `<span class="sugg-nut-chip">${esc(t('nutrient_' + key))} <em>${amount} ${esc(unit)}</em></span>`
+          ).join('');
+          return `
+            <div class="sugg-food-row">
+              <div class="sugg-food-header">
+                <span class="sugg-food-name">${esc(tFood(foodName))}</span>
+                <span class="sugg-food-badge">${t(countKey, { n: covered.length })}</span>
+              </div>
+              <div class="sugg-nut-chips">${chips}</div>
+            </div>`;
+        }).join('');
+        return `
+          <div class="sugg-section">
+            <div class="sugg-section-header">
+              <span class="sugg-section-nutrient">${nutrientLabel}</span>
+              <p class="sugg-section-fact">${factText}</p>
+            </div>
+            <div class="sugg-food-list">${rows}</div>
+          </div>`;
+      }).join('');
+    }
   }
 
-  const loggedSet = new Set(loggedFoodsThisWeek.map(f => f.toLowerCase()));
-
-  // For each unlogged food, find which gap nutrients it meaningfully covers (≥5% of weekly ref)
-  const MIN_COVERAGE = 0.05;
-  const foodScores = Object.entries(NUTRITION_DATA)
-    .filter(([name]) => !loggedSet.has(name))
-    .map(([name, d]) => {
-      const covered = gapNutrients
-        .map(({ key, unit }) => {
-          const amount = d[key] != null ? +(d[key] * d.g / 100).toFixed(1) : 0;
-          const pct = amount / NUTRIENT_WEEKLY_REF[key];
+  // Animal food suggestions (b12 always a gap since plants contain none)
+  let animalHtml = '';
+  if (getAnimalSuggestions()) {
+    const MIN_COVERAGE = 0.05;
+    const animalGaps = NUTRIENT_DEFS
+      .filter(({ key }) => ANIMAL_WEEKLY_REF[key] && totals[key] != null)
+      .map(({ key, unit }) => ({ key, unit, coverage: (totals[key] ?? 0) / ANIMAL_WEEKLY_REF[key] }))
+      .filter(n => n.coverage < 1);
+    if (!animalGaps.find(n => n.key === 'b12')) {
+      animalGaps.push({ key: 'b12', unit: 'µg', coverage: 0 });
+    }
+    const animalScores = ANIMAL_FOODS
+      .map(food => {
+        const covered = animalGaps.map(({ key, unit }) => {
+          const amount = food.nutrients[key] ?? 0;
+          const ref = ANIMAL_WEEKLY_REF[key];
+          if (!ref || !amount) return null;
+          const pct = amount / ref;
           return pct >= MIN_COVERAGE ? { key, unit, amount, pct } : null;
-        })
-        .filter(Boolean);
-      const totalScore = covered.reduce((s, n) => s + n.pct, 0);
-      return { name, covered, totalScore };
-    })
-    .filter(f => f.covered.length > 0)
-    .sort((a, b) => b.covered.length - a.covered.length || b.totalScore - a.totalScore)
-    .slice(0, 8);
+        }).filter(Boolean);
+        return { ...food, covered, totalScore: covered.reduce((s, n) => s + n.pct, 0) };
+      })
+      .filter(f => f.covered.length > 0)
+      .sort((a, b) => b.covered.length - a.covered.length || b.totalScore - a.totalScore)
+      .slice(0, 5);
 
-  if (!foodScores.length) {
-    el.innerHTML = `<p class="empty">${t('no_suggestions')}</p>`;
-    return;
-  }
-
-  // Group foods by their top gap nutrient to render superpower sections
-  const sections = [];
-  const assignedFoods = new Set();
-  for (const gap of gapNutrients) {
-    const foods = foodScores.filter(f => !assignedFoods.has(f.name) && f.covered.some(c => c.key === gap.key));
-    if (!foods.length) continue;
-    foods.forEach(f => assignedFoods.add(f.name));
-    sections.push({ gapKey: gap.key, foods });
-  }
-
-  const html = sections.map(({ gapKey, foods }) => {
-    const nutrientLabel = esc(t('nutrient_' + gapKey));
-    const factText = esc(t('fact_' + gapKey));
-    const rows = foods.map(({ name, covered }) => {
-      const foodName = name.replace(/\b\w/g, c => c.toUpperCase());
-      const countKey = covered.length === 1 ? 'covers_1_gap' : 'covers_n_gaps';
-      const chips = covered.map(({ key, unit, amount }) =>
-        `<span class="sugg-nut-chip">${esc(t('nutrient_' + key))} <em>${amount} ${esc(unit)}</em></span>`
-      ).join('');
-      return `
-        <div class="sugg-food-row">
-          <div class="sugg-food-header">
-            <span class="sugg-food-name">${esc(tFood(foodName))}</span>
-            <span class="sugg-food-badge">${t(countKey, { n: covered.length })}</span>
+    if (animalScores.length) {
+      const rows = animalScores.map(({ name, portion, covered }) => {
+        const countKey = covered.length === 1 ? 'covers_1_gap' : 'covers_n_gaps';
+        const chips = covered.map(({ key, unit, amount }) =>
+          `<span class="sugg-nut-chip">${esc(t('nutrient_' + key))} <em>${+amount.toFixed(1)} ${esc(unit)}</em></span>`
+        ).join('');
+        return `
+          <div class="sugg-food-row">
+            <div class="sugg-food-header">
+              <span class="sugg-food-name">${esc(tFood(name))}</span>
+              <span class="sugg-food-portion">${esc(portion)}</span>
+              <span class="sugg-food-badge">${t(countKey, { n: covered.length })}</span>
+            </div>
+            <div class="sugg-nut-chips">${chips}</div>
+          </div>`;
+      }).join('');
+      animalHtml = `
+        <div class="sugg-section sugg-section--animal">
+          <div class="sugg-section-header">
+            <span class="sugg-section-nutrient">${esc(t('sugg_animal_label'))}</span>
           </div>
-          <div class="sugg-nut-chips">${chips}</div>
+          <div class="sugg-food-list">${rows}</div>
         </div>`;
-    }).join('');
-    return `
-      <div class="sugg-section">
-        <div class="sugg-section-header">
-          <span class="sugg-section-nutrient">${nutrientLabel}</span>
-          <p class="sugg-section-fact">${factText}</p>
-        </div>
-        <div class="sugg-food-list">${rows}</div>
-      </div>`;
-  }).join('');
+    }
+  }
 
-  el.innerHTML = html;
+  el.innerHTML = plantHtml + animalHtml;
 }
 
 // ── Nutrient trend chart ──────────────────────────────────────────────────────
@@ -2236,6 +2304,16 @@ async function init() {
   // Initial render
   renderNutrientFacts();
 
+  // Settings: animal food suggestions toggle
+  const animalSuggestionsToggle = document.getElementById('animalSuggestionsToggle');
+  animalSuggestionsToggle.checked = getAnimalSuggestions();
+  animalSuggestionsToggle.addEventListener('change', () => {
+    const s = getSettings();
+    s.animalSuggestions = animalSuggestionsToggle.checked;
+    saveSettings(s);
+    if (!document.getElementById('tab-nutrition').hidden) renderNutritionTab(true);
+  });
+
   // Settings: advanced portions toggle
   const advancedPortionsToggle = document.getElementById('advancedPortionsToggle');
   advancedPortionsToggle.checked = getAdvancedPortions();
@@ -2281,6 +2359,7 @@ async function init() {
         renderEmojiPreview(getEmojiStyle());
         foodFactsToggle.checked = getFoodFacts();
         funFactsToggle.checked = getNutrientFacts();
+        animalSuggestionsToggle.checked = getAnimalSuggestions();
         advancedPortionsToggle.checked = getAdvancedPortions();
         renderPortionSettings();
       }
