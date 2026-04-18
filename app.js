@@ -2000,6 +2000,74 @@ function renderPortionSettings() {
   });
 }
 
+// ── Celebrations ─────────────────────────────────────────────────────────────
+
+function launchConfetti(type) {
+  const weekly = type === 'weekly';
+
+  const canvas = document.createElement('canvas');
+  canvas.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:9999';
+  document.body.appendChild(canvas);
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width  = window.innerWidth;
+  const H = canvas.height = window.innerHeight;
+
+  const N        = weekly ? 170 : 55;
+  const DURATION = weekly ? 4500 : 2400;
+  const COLORS   = ['#40916c','#52b788','#74c69d','#b7e4c7','#f4a261','#e76f51','#e9c46a','#a8dadc'];
+
+  const particles = Array.from({ length: N }, () => ({
+    x:     Math.random() * W,
+    y:     -10 - Math.random() * (weekly ? 120 : 60),
+    vx:    (Math.random() - 0.5) * (weekly ? 6 : 3),
+    vy:    1 + Math.random() * (weekly ? 4 : 2),
+    w:     5 + Math.random() * (weekly ? 12 : 6),
+    h:     3 + Math.random() * 4,
+    color: COLORS[Math.floor(Math.random() * COLORS.length)],
+    rot:   Math.random() * Math.PI * 2,
+    rotV:  (Math.random() - 0.5) * 0.22,
+    shape: Math.random() > 0.4 ? 'rect' : 'circle',
+  }));
+
+  const start = performance.now();
+  function frame(now) {
+    const elapsed = now - start;
+    if (elapsed > DURATION) { canvas.remove(); return; }
+    const alpha = elapsed > DURATION * 0.65
+      ? 1 - (elapsed - DURATION * 0.65) / (DURATION * 0.35) : 1;
+    ctx.clearRect(0, 0, W, H);
+    for (const p of particles) {
+      p.vy += 0.13; p.x += p.vx; p.y += p.vy; p.rot += p.rotV;
+      if (p.y > H + 20) continue;
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot);
+      ctx.fillStyle = p.color;
+      if (p.shape === 'circle') {
+        ctx.beginPath(); ctx.arc(0, 0, p.w / 2, 0, Math.PI * 2); ctx.fill();
+      } else {
+        ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+      }
+      ctx.restore();
+    }
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+
+  const toast = document.createElement('div');
+  toast.className = `confetti-toast${weekly ? ' confetti-toast--weekly' : ''}`;
+  const goal = weekly ? getGoal() : getDailyGoal();
+  toast.innerHTML = `
+    <span class="confetti-toast__emoji">${weekly ? '🎉' : '✅'}</span>
+    <span class="confetti-toast__title">${t(weekly ? 'celebrate_weekly_title' : 'celebrate_daily_title')}</span>
+    <span class="confetti-toast__sub">${t(weekly ? 'celebrate_weekly_sub' : 'celebrate_daily_sub', { n: goal })}</span>`;
+  document.body.appendChild(toast);
+  const outDelay = weekly ? 3600 : 1900;
+  setTimeout(() => toast.classList.add('confetti-toast--out'), outDelay);
+  setTimeout(() => toast.remove(), outDelay + 500);
+}
+
 // ── Init ──────────────────────────────────────────────────────────────────────
 
 async function init() {
@@ -2028,6 +2096,15 @@ async function init() {
     if (!date)   { msg.textContent = t('err_no_date'); return; }
     if (!veggie) { msg.textContent = t('err_no_food'); return; }
 
+    // Snapshot counts before adding to detect goal crossings
+    const ws = getWeekStart(todayStr());
+    const we = addDays(ws, 6);
+    const isCurrentWeek = date >= ws && date <= we;
+    const isToday = date === todayStr();
+    const snapEntries = getData().entries;
+    const weeklyBefore = isCurrentWeek ? uniqueVeggies(entriesInRange(snapEntries, ws, we)).length : -1;
+    const dailyBefore  = isToday       ? uniqueVeggies(snapEntries.filter(e => e.date === date)).length : -1;
+
     const result = addEntry(date, canonicalFood(veggie));
     if (result === 'duplicate') {
       msg.textContent = t('err_duplicate', { food: tFood(toTitleCase(canonicalFood(veggie))), date: fmtDate(date) });
@@ -2035,6 +2112,24 @@ async function init() {
     }
     msg.textContent = '';
     document.getElementById('veggieInput').value = '';
+
+    // Detect and celebrate goal crossings
+    const newEntries = getData().entries;
+    let celebrated = false;
+    if (isCurrentWeek) {
+      const weeklyAfter = uniqueVeggies(entriesInRange(newEntries, ws, we)).length;
+      if (weeklyBefore < getGoal() && weeklyAfter >= getGoal()) {
+        launchConfetti('weekly');
+        celebrated = true;
+      }
+    }
+    if (!celebrated && isToday) {
+      const dailyAfter = uniqueVeggies(newEntries.filter(e => e.date === date)).length;
+      if (dailyBefore < getDailyGoal() && dailyAfter >= getDailyGoal()) {
+        launchConfetti('daily');
+      }
+    }
+
     renderAll();
   });
 
