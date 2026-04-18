@@ -414,7 +414,7 @@ function renderWeeklyProgress() {
 
   const uniqueNames = [...new Map(
     entries.map(e => [e.vegetable.toLowerCase(), e.vegetable])
-  ).values()].sort();
+  ).values()].sort((a, b) => tFood(a).localeCompare(tFood(b), getLang()));
 
   document.getElementById('weeklyVeggies').innerHTML =
     uniqueNames.map(v => `<span class="chip">${esc(tFood(v))}</span>`).join('') ||
@@ -689,7 +689,8 @@ async function renderNutritionTab(quiet = false) {
     foodCounts.get(key).count++;
   }
 
-  const uniqueFoods = [...foodCounts.values()].map(f => f.name).sort();
+  const uniqueFoods = [...foodCounts.values()].map(f => f.name)
+    .sort((a, b) => tFood(a).localeCompare(tFood(b), getLang()));
 
   if (!quiet) {
     _suggExpanded = false;
@@ -2070,7 +2071,8 @@ function renderPortionSettings() {
   const filterEl = document.getElementById('portionFilter');
   const filter = filterEl ? filterEl.value.trim().toLowerCase() : '';
   const portions = getPortions();
-  const allFoods = Object.keys(NUTRITION_DATA).sort();
+  const allFoods = Object.keys(NUTRITION_DATA)
+    .sort((a, b) => tFood(toTitleCase(a)).localeCompare(tFood(toTitleCase(b)), getLang()));
 
   const foods = filter
     ? allFoods.filter(f => f.includes(filter))
@@ -2211,7 +2213,7 @@ async function init() {
   const datalist = document.getElementById('veggie-list');
   function populateDatalist() {
     datalist.innerHTML = '';
-    FOODS.forEach(v => {
+    [...FOODS].sort((a, b) => tFood(a).localeCompare(tFood(b), getLang())).forEach(v => {
       const opt = document.createElement('option');
       opt.value = tFood(v);
       datalist.appendChild(opt);
