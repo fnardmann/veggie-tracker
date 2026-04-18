@@ -706,6 +706,17 @@ main {
   color: var(--c-text3);
   margin-right: auto;
 }
+.sugg-food-variety {
+  font-size: .72rem;
+  color: var(--c-text3);
+  margin: 2px 0 4px;
+  display: block;
+}
+.sugg-show-more {
+  width: 100%;
+  margin-top: 12px;
+  text-align: center;
+}
 
 /* ── Plant Gallery ───────────────────────────────────────────────────────── */
 .daily-cards-wrap {

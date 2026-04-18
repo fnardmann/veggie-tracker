@@ -692,6 +692,7 @@ async function renderNutritionTab(quiet = false) {
   const uniqueFoods = [...foodCounts.values()].map(f => f.name).sort();
 
   if (!quiet) {
+    _suggExpanded = false;
     document.getElementById('nutritionTable').innerHTML = `<p class="empty">${t('fetching')}</p>`;
     document.getElementById('nutritionTotals').innerHTML = `<p class="empty">${t('fetching')}</p>`;
     document.getElementById('nutritionDGE').innerHTML = `<p class="empty">${t('fetching')}</p>`;
@@ -890,6 +891,26 @@ const ANIMAL_FOODS = [
   { name: 'Milk',           portion: '200 ml',           nutrients: { calcium: 240, b12: 0.9, vitd: 1.6, b2: 0.22 } },
 ];
 
+const PLANT_GROUPS = [
+  { label: 'Lentils',       members: ['lentils', 'green lentils', 'red lentils'] },
+  { label: 'Broccoli',      members: ['broccoli', 'tenderstem broccoli', 'purple sprouting broccoli'] },
+  { label: 'Cabbage',       members: ['cabbage', 'red cabbage', 'savoy cabbage', 'white cabbage'] },
+  { label: 'Mushrooms',     members: ['mushroom', 'oyster mushroom', 'portobello', 'shiitake'] },
+  { label: 'Beans',         members: ['black beans', 'butter beans', 'cannellini beans', 'kidney beans', 'pinto beans', 'mung beans', 'broad beans'] },
+  { label: 'Onion family',  members: ['onion', 'red onion', 'shallot', 'spring onion'] },
+  { label: 'Asparagus',     members: ['asparagus', 'green asparagus'] },
+];
+
+const _plantGroupMap = new Map(
+  PLANT_GROUPS.flatMap(g => g.members.map(m => [m, g]))
+);
+
+let _suggExpanded = false;
+window._expandSugg = function () {
+  _suggExpanded = true;
+  renderNutritionTab(true);
+};
+
 function renderNutrientSuggestions(totals, loggedFoodsThisWeek) {
   const el = document.getElementById('nutritionSuggestions');
 
@@ -910,9 +931,8 @@ function renderNutrientSuggestions(totals, loggedFoodsThisWeek) {
   } else {
     const loggedSet = new Set(loggedFoodsThisWeek.map(f => f.toLowerCase()));
 
-    // For each unlogged food, find which gap nutrients it meaningfully covers (≥5% of weekly ref)
     const MIN_COVERAGE = 0.05;
-    const foodScores = Object.entries(NUTRITION_DATA)
+    const rawScores = Object.entries(NUTRITION_DATA)
       .filter(([name]) => !loggedSet.has(name))
       .map(([name, d]) => {
         const covered = gapNutrients
@@ -922,21 +942,48 @@ function renderNutrientSuggestions(totals, loggedFoodsThisWeek) {
             return pct >= MIN_COVERAGE ? { key, unit, amount, pct } : null;
           })
           .filter(Boolean);
-        const totalScore = covered.reduce((s, n) => s + n.pct, 0);
-        return { name, covered, totalScore };
+        return { name, covered, totalScore: covered.reduce((s, n) => s + n.pct, 0) };
       })
       .filter(f => f.covered.length > 0)
-      .sort((a, b) => b.covered.length - a.covered.length || b.totalScore - a.totalScore)
-      .slice(0, 8);
+      .sort((a, b) => b.covered.length - a.covered.length || b.totalScore - a.totalScore);
 
-    if (!foodScores.length) {
+    // Merge foods that belong to the same plant group into one entry
+    const seenGroups = new Map();
+    const foodScores = [];
+    for (const food of rawScores) {
+      const group = _plantGroupMap.get(food.name);
+      if (group) {
+        if (seenGroups.has(group.label)) {
+          const entry = seenGroups.get(group.label);
+          entry.members.push(food.name);
+          for (const c of food.covered) {
+            const existing = entry.covered.find(x => x.key === c.key);
+            if (!existing) entry.covered.push({ ...c });
+            else if (c.pct > existing.pct) Object.assign(existing, c);
+          }
+          entry.totalScore = entry.covered.reduce((s, n) => s + n.pct, 0);
+        } else {
+          const entry = { name: group.label, members: [food.name], covered: [...food.covered], totalScore: food.totalScore, isGroup: true };
+          seenGroups.set(group.label, entry);
+          foodScores.push(entry);
+        }
+      } else {
+        foodScores.push({ ...food, members: null, isGroup: false });
+      }
+    }
+
+    const INITIAL_SHOW = 8;
+    const visibleScores = _suggExpanded ? foodScores : foodScores.slice(0, INITIAL_SHOW);
+    const hiddenCount = foodScores.length - visibleScores.length;
+
+    if (!visibleScores.length) {
       plantHtml = `<p class="empty">${t('no_suggestions')}</p>`;
     } else {
       // Group foods by their top gap nutrient to render superpower sections
       const sections = [];
       const assignedFoods = new Set();
       for (const gap of gapNutrients) {
-        const foods = foodScores.filter(f => !assignedFoods.has(f.name) && f.covered.some(c => c.key === gap.key));
+        const foods = visibleScores.filter(f => !assignedFoods.has(f.name) && f.covered.some(c => c.key === gap.key));
         if (!foods.length) continue;
         foods.forEach(f => assignedFoods.add(f.name));
         sections.push({ gapKey: gap.key, foods });
@@ -945,18 +992,22 @@ function renderNutrientSuggestions(totals, loggedFoodsThisWeek) {
       plantHtml = sections.map(({ gapKey, foods }) => {
         const nutrientLabel = esc(t('nutrient_' + gapKey));
         const factText = esc(t('fact_' + gapKey));
-        const rows = foods.map(({ name, covered }) => {
-          const foodName = name.replace(/\b\w/g, c => c.toUpperCase());
+        const rows = foods.map(({ name, members, isGroup, covered }) => {
+          const displayName = isGroup ? name : name.replace(/\b\w/g, c => c.toUpperCase());
           const countKey = covered.length === 1 ? 'covers_1_gap' : 'covers_n_gaps';
           const chips = covered.map(({ key, unit, amount }) =>
             `<span class="sugg-nut-chip">${esc(t('nutrient_' + key))} <em>${amount} ${esc(unit)}</em></span>`
           ).join('');
+          const groupSub = isGroup
+            ? `<span class="sugg-food-variety">${esc(t('sugg_variety_label'))}: ${members.map(m => esc(tFood(m.replace(/\b\w/g, c => c.toUpperCase())))).join(', ')}</span>`
+            : '';
           return `
             <div class="sugg-food-row">
               <div class="sugg-food-header">
-                <span class="sugg-food-name">${esc(tFood(foodName))}</span>
+                <span class="sugg-food-name">${esc(tFood(displayName))}</span>
                 <span class="sugg-food-badge">${t(countKey, { n: covered.length })}</span>
               </div>
+              ${groupSub}
               <div class="sugg-nut-chips">${chips}</div>
             </div>`;
         }).join('');
@@ -969,6 +1020,10 @@ function renderNutrientSuggestions(totals, loggedFoodsThisWeek) {
             <div class="sugg-food-list">${rows}</div>
           </div>`;
       }).join('');
+
+      if (hiddenCount > 0) {
+        plantHtml += `<button class="btn-secondary sugg-show-more" onclick="_expandSugg()">${esc(t('sugg_show_more', { n: hiddenCount }))}</button>`;
+      }
     }
   }
 
