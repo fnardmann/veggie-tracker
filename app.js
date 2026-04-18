@@ -212,15 +212,22 @@ function dailyStreak() {
     dateMap.get(e.date).add(e.vegetable.toLowerCase());
   }
   const min = getDailyGoal();
-  let streak = 0, d = todayStr();
+  const today = todayStr();
+  // If today's goal isn't met yet, preserve yesterday's streak (Duolingo-style grace)
+  const start = (dateMap.get(today)?.size ?? 0) >= min ? today : addDays(today, -1);
+  let streak = 0, d = start;
   while ((dateMap.get(d)?.size ?? 0) >= min) { streak++; d = addDays(d, -1); }
   return streak;
 }
 
 function weeklyGoalStreak() {
   const { entries } = getData();
-  let streak = 0;
   let ws = getWeekStart(todayStr());
+  // If this week's goal isn't met yet, preserve last week's streak
+  if (uniqueVeggies(entriesInRange(entries, ws, addDays(ws, 6))).length < getGoal()) {
+    ws = addDays(ws, -7);
+  }
+  let streak = 0;
   for (let i = 0; i < 104; i++) {
     const we = addDays(ws, 6);
     if (uniqueVeggies(entriesInRange(entries, ws, we)).length >= getGoal()) {
