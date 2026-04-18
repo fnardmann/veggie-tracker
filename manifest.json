@@ -1,7 +1,7 @@
 {
   "name": "Veggie Tracker",
   "short_name": "Veggies",
-  "description": "Track 30 different vegetables every week",
+  "description": "Track 30 different plants every week",
   "start_url": ".",
   "scope": ".",
   "display": "standalone",
