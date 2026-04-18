@@ -91,7 +91,8 @@ main {
   flex-direction: column;
   gap: 20px;
 }
-.tab-pane { display: flex; flex-direction: column; gap: 20px; }
+.tab-pane { display: none; flex-direction: column; gap: 20px; }
+.tab-pane:not([hidden]) { display: flex; }
 .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
 .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
 
@@ -104,7 +105,7 @@ main {
   .tab-nav { padding: 8px 16px 0; gap: 3px; }
   .tab-btn { padding: 5px 14px; font-size: .78rem; }
   main { padding: 16px 12px 40px; gap: 14px; }
-  .tab-pane { gap: 14px; }
+  .tab-pane:not([hidden]) { gap: 14px; }
   .card { padding: 16px; }
   .chart-container { height: 160px; }
   .doughnut-wrapper { width: 120px; height: 120px; }
