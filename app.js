@@ -16,6 +16,7 @@ function getFunFacts()      { return getSettings().funFacts      ?? true; }
 function getFoodFacts()    { return getSettings().foodFacts    ?? true; }
 function getNutrientFacts(){ return getSettings().nutrientFacts ?? true; }
 function getAnimalSuggestions() { return getSettings().animalSuggestions ?? true; }
+function getSeasonalCountry()  { return getSettings().seasonalCountry  ?? 'de'; }
 
 const FOODS = [
   // Vegetables
@@ -892,6 +893,73 @@ const ANIMAL_FOODS = [
   { name: 'Milk',           portion: '200 ml',           nutrients: { calcium: 240, b12: 0.9, vitd: 1.6, b2: 0.22 } },
 ];
 
+// Seasonal availability by food (lowercase) → months in season (1=Jan…12=Dec)
+// Reference: Germany (de). AT/CH reuse DE; UK has minor overrides.
+const SEASONAL_CALENDAR = {
+  de: {
+    'asparagus':                 [4,5,6],
+    'green asparagus':           [4,5,6],
+    'purple sprouting broccoli': [2,3,4],
+    'broccoli':                  [5,6,7,8,9,10,11],
+    'tenderstem broccoli':       [6,7,8,9,10,11],
+    'cauliflower':               [6,7,8,9,10,11],
+    'cabbage':                   [9,10,11,12,1,2,3],
+    'red cabbage':               [10,11,12,1,2,3],
+    'savoy cabbage':             [10,11,12,1,2,3],
+    'white cabbage':             [10,11,12,1,2,3],
+    'kale':                      [11,12,1,2,3],
+    'brussels sprouts':          [10,11,12,1,2],
+    'spinach':                   [4,5,9,10,11],
+    'chard':                     [6,7,8,9,10],
+    'swiss chard':               [6,7,8,9,10],
+    'rocket':                    [4,5,6,7,8,9,10],
+    'arugula':                   [4,5,6,7,8,9,10],
+    'lettuce':                   [4,5,6,7,8,9,10],
+    'radish':                    [4,5,6,7,8,9,10],
+    'spring onion':              [4,5,6,7,8,9,10],
+    'leek':                      [9,10,11,12,1,2,3,4],
+    'peas':                      [5,6,7,8],
+    'broad beans':               [5,6,7,8],
+    'courgette':                 [6,7,8,9],
+    'zucchini':                  [6,7,8,9],
+    'cucumber':                  [6,7,8,9],
+    'tomato':                    [7,8,9],
+    'aubergine':                 [7,8,9],
+    'pepper':                    [7,8,9],
+    'fennel':                    [7,8,9,10],
+    'kohlrabi':                  [5,6,7,8,9,10],
+    'corn':                      [7,8,9,10],
+    'beetroot':                  [7,8,9,10,11],
+    'celery':                    [8,9,10],
+    'celeriac':                  [9,10,11,12,1,2,3],
+    'carrot':                    [8,9,10,11,12,1,2,3],
+    'parsnip':                   [10,11,12,1,2,3],
+    'turnip':                    [9,10,11],
+    'pumpkin':                   [9,10,11],
+    'squash':                    [9,10,11],
+    'butternut squash':          [9,10,11],
+    'rhubarb':                   [4,5,6],
+    'strawberry':                [5,6,7],
+    'gooseberry':                [6,7,8],
+    'cherry':                    [6,7,8],
+    'raspberry':                 [6,7,8,9],
+    'redcurrant':                [7,8],
+    'blueberry':                 [7,8,9],
+    'blackberry':                [8,9,10],
+    'apple':                     [8,9,10,11],
+    'pear':                      [8,9,10],
+    'plum':                      [7,8,9],
+  },
+};
+SEASONAL_CALENDAR.at = SEASONAL_CALENDAR.de;
+SEASONAL_CALENDAR.ch = SEASONAL_CALENDAR.de;
+SEASONAL_CALENDAR.uk = {
+  ...SEASONAL_CALENDAR.de,
+  'strawberry': [5,6,7,8],
+  'broad beans': [5,6,7],
+  'asparagus': [4,5,6],
+};
+
 const PLANT_GROUPS = [
   { label: 'Lentils',       members: ['lentils', 'green lentils', 'red lentils'] },
   { label: 'Broccoli',      members: ['broccoli', 'tenderstem broccoli', 'purple sprouting broccoli'] },
@@ -939,6 +1007,10 @@ function renderNutrientSuggestions(totals, loggedFoodsThisWeek) {
     const loggedSet = new Set(loggedFoodsThisWeek.map(f => f.toLowerCase()));
 
     const MIN_COVERAGE = 0.05;
+    const seasonCountry = getSeasonalCountry();
+    const seasonMap = seasonCountry !== 'off' ? (SEASONAL_CALENDAR[seasonCountry] ?? {}) : {};
+    const currentMonth = new Date().getMonth() + 1;
+
     const rawScores = Object.entries(NUTRITION_DATA)
       .filter(([name]) => !loggedSet.has(name))
       .map(([name, d]) => {
@@ -949,7 +1021,9 @@ function renderNutrientSuggestions(totals, loggedFoodsThisWeek) {
             return pct >= MIN_COVERAGE ? { key, unit, amount, pct } : null;
           })
           .filter(Boolean);
-        return { name, covered, totalScore: covered.reduce((s, n) => s + n.pct, 0) };
+        const inSeason = seasonMap[name]?.includes(currentMonth) ?? false;
+        const baseScore = covered.reduce((s, n) => s + n.pct, 0);
+        return { name, covered, totalScore: inSeason ? baseScore * 1.3 : baseScore, inSeason };
       })
       .filter(f => f.covered.length > 0)
       .sort((a, b) => b.covered.length - a.covered.length || b.totalScore - a.totalScore);
@@ -963,6 +1037,7 @@ function renderNutrientSuggestions(totals, loggedFoodsThisWeek) {
         if (seenGroups.has(group.label)) {
           const entry = seenGroups.get(group.label);
           entry.members.push(food.name);
+          if (food.inSeason) entry.inSeason = true;
           for (const c of food.covered) {
             const existing = entry.covered.find(x => x.key === c.key);
             if (!existing) entry.covered.push({ ...c });
@@ -970,7 +1045,7 @@ function renderNutrientSuggestions(totals, loggedFoodsThisWeek) {
           }
           entry.totalScore = entry.covered.reduce((s, n) => s + n.pct, 0);
         } else {
-          const entry = { name: group.label, members: [food.name], covered: [...food.covered], totalScore: food.totalScore, isGroup: true };
+          const entry = { name: group.label, members: [food.name], covered: [...food.covered], totalScore: food.totalScore, isGroup: true, inSeason: food.inSeason };
           seenGroups.set(group.label, entry);
           foodScores.push(entry);
         }
@@ -999,7 +1074,7 @@ function renderNutrientSuggestions(totals, loggedFoodsThisWeek) {
       plantHtml = sections.map(({ gapKey, foods }) => {
         const nutrientLabel = esc(t('nutrient_' + gapKey));
         const factText = esc(t('fact_' + gapKey));
-        const rows = foods.map(({ name, members, isGroup, covered }) => {
+        const rows = foods.map(({ name, members, isGroup, covered, inSeason }) => {
           const displayName = isGroup ? name : name.replace(/\b\w/g, c => c.toUpperCase());
           const countKey = covered.length === 1 ? 'covers_1_gap' : 'covers_n_gaps';
           const chips = covered.map(({ key, unit, amount }) =>
@@ -1008,10 +1083,14 @@ function renderNutrientSuggestions(totals, loggedFoodsThisWeek) {
           const groupSub = isGroup
             ? `<span class="sugg-food-variety">${esc(t('sugg_variety_label'))}: ${members.map(m => esc(tFood(m.replace(/\b\w/g, c => c.toUpperCase())))).join(', ')}</span>`
             : '';
+          const seasonBadge = inSeason
+            ? `<span class="sugg-season-badge">${esc(t('season_badge'))}</span>`
+            : '';
           return `
             <div class="sugg-food-row">
               <div class="sugg-food-header">
                 <span class="sugg-food-name">${esc(tFood(displayName))}</span>
+                ${seasonBadge}
                 <span class="sugg-food-badge">${t(countKey, { n: covered.length })}</span>
               </div>
               ${groupSub}
@@ -2381,6 +2460,16 @@ async function init() {
     if (!document.getElementById('tab-nutrition').hidden) renderNutritionTab(true);
   });
 
+  // Settings: seasonal country select
+  const seasonalCountrySelect = document.getElementById('seasonalCountrySelect');
+  seasonalCountrySelect.value = getSeasonalCountry();
+  seasonalCountrySelect.addEventListener('change', () => {
+    const s = getSettings();
+    s.seasonalCountry = seasonalCountrySelect.value;
+    saveSettings(s);
+    if (!document.getElementById('tab-nutrition').hidden) renderNutritionTab(true);
+  });
+
   // Settings: advanced portions toggle
   const advancedPortionsToggle = document.getElementById('advancedPortionsToggle');
   advancedPortionsToggle.checked = getAdvancedPortions();
@@ -2427,6 +2516,7 @@ async function init() {
         foodFactsToggle.checked = getFoodFacts();
         funFactsToggle.checked = getNutrientFacts();
         animalSuggestionsToggle.checked = getAnimalSuggestions();
+        seasonalCountrySelect.value = getSeasonalCountry();
         advancedPortionsToggle.checked = getAdvancedPortions();
         renderPortionSettings();
       }

@@ -717,6 +717,27 @@ main {
   margin-top: 12px;
   text-align: center;
 }
+.sugg-season-badge {
+  font-size: .7rem;
+  background: var(--c-pale);
+  color: var(--c-mid);
+  padding: 1px 7px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.settings-select {
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1.5px solid var(--c-pale);
+  background: var(--c-bg);
+  color: var(--c-text);
+  font-size: .9rem;
+  cursor: pointer;
+}
+.settings-select:focus {
+  outline: none;
+  border-color: var(--c-main);
+}
 
 /* ── Plant Gallery ───────────────────────────────────────────────────────── */
 .daily-cards-wrap {
