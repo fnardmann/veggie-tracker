@@ -521,6 +521,7 @@ main {
 }
 .nutr-bar-fill--full { background: var(--c-mid); }
 .nutr-bar-fill--low  { background: var(--c-amber); }
+.nutr-progress-hint { margin: 4px 0 0; font-size: .75rem; color: var(--c-text2); }
 .nutrition-scroll { overflow-x: auto; }
 .nutrition-table {
   width: 100%;

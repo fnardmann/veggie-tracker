@@ -805,6 +805,7 @@ async function renderNutritionTab(quiet = false) {
       const pct = Math.min(1, val / ref);
       const pctDisplay = Math.round(pct * 100);
       const fillCls = pct >= 1 ? 'nutr-bar-fill--full' : pct < 0.5 ? 'nutr-bar-fill--low' : '';
+      const hint = key === 'vitD' ? `<p class="nutr-progress-hint">Raus an die Sonne! ☀️ Pflanzen haben kaum was</p>` : '';
       return `
         <div class="nutr-progress-row">
           <div class="nutr-progress-header">
@@ -814,6 +815,7 @@ async function renderNutritionTab(quiet = false) {
           <div class="nutr-bar-track">
             <div class="nutr-bar-fill ${fillCls}" style="width:${pct * 100}%"></div>
           </div>
+          ${hint}
         </div>`;
     }).join('');
 
