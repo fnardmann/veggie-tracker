@@ -811,7 +811,7 @@ async function renderNutritionTab(quiet = false) {
       const fillCls = pct >= 1 ? 'nutr-bar-fill--full' : pct < 0.5 ? 'nutr-bar-fill--low' : '';
       const hint = key === 'vitD' ? `<p class="nutr-progress-hint">Raus an die Sonne! ☀️ Pflanzen haben kaum was</p>` : '';
       return `
-        <div class="nutr-progress-row">
+        <div class="nutr-progress-row nutr-progress-row--clickable" data-nutrient-key="${key}">
           <div class="nutr-progress-header">
             <span class="nutr-progress-label">${esc(t('nutrient_' + key))}</span>
             <span class="nutr-progress-value">${fmtVal(val)} / ${fmtVal(ref)} ${esc(unit)} · <strong>${pctDisplay}%</strong></span>
@@ -824,8 +824,26 @@ async function renderNutritionTab(quiet = false) {
         </div>`;
     }).join('');
 
-  document.getElementById('nutritionTotals').innerHTML =
-    `<div class="nutr-progress-list">${progressRows}</div>`;
+  const nutritionTotalsEl = document.getElementById('nutritionTotals');
+  nutritionTotalsEl.innerHTML = `<div class="nutr-progress-list">${progressRows}</div>`;
+  nutritionTotalsEl.onclick = e => {
+    const row = e.target.closest('[data-nutrient-key]');
+    if (!row) return;
+    const key = row.dataset.nutrientKey;
+    if (_suggExpanded === false) {
+      _suggExpanded = true;
+      renderNutritionTab(true);
+    }
+    const section = document.getElementById('sugg-section-' + key);
+    if (section) {
+      section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      section.classList.add('sugg-section--highlight');
+      setTimeout(() => section.classList.remove('sugg-section--highlight'), 1800);
+    } else {
+      const suggEl = document.getElementById('nutritionSuggestions');
+      if (suggEl) suggEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
 
   // ── Top sources per nutrient ──
   const sourceRows = NUTRIENT_DEFS.map(({ key, unit }) => {
@@ -1090,39 +1108,54 @@ function renderNutrientSuggestions(totals, loggedFoodsThisWeek) {
         sections.push({ gapKey: gap.key, foods });
       }
 
-      plantHtml = sections.map(({ gapKey, foods }) => {
+      // For gap nutrients with no scored plant food, add a "poor plant source" fallback section
+      const coveredGapKeys = new Set(sections.map(s => s.gapKey));
+      for (const gap of gapNutrients) {
+        if (coveredGapKeys.has(gap.key)) continue;
+        if (!t('poorplant_' + gap.key)) continue; // only for known poor-plant nutrients
+        sections.push({ gapKey: gap.key, foods: [], poorPlantSource: true });
+      }
+
+      const renderFoodRow = ({ name, members, isGroup, covered, inSeason }) => {
+        const displayName = isGroup ? name : name.replace(/\b\w/g, c => c.toUpperCase());
+        const countKey = covered.length === 1 ? 'covers_1_gap' : 'covers_n_gaps';
+        const chips = covered.map(({ key, unit, amount }) =>
+          `<span class="sugg-nut-chip">${esc(t('nutrient_' + key))} <em>${amount} ${esc(unit)}</em></span>`
+        ).join('');
+        const groupSub = isGroup
+          ? `<span class="sugg-food-variety">${esc(t('sugg_variety_label'))}: ${members.map(m => esc(tFood(m.replace(/\b\w/g, c => c.toUpperCase())))).join(', ')}</span>`
+          : '';
+        const seasonBadge = inSeason
+          ? `<span class="sugg-season-badge">${esc(t('season_badge'))}</span>`
+          : '';
+        return `
+          <div class="sugg-food-row">
+            <div class="sugg-food-header">
+              <span class="sugg-food-name">${esc(tFood(displayName))}</span>
+              ${seasonBadge}
+              <span class="sugg-food-badge">${t(countKey, { n: covered.length })}</span>
+            </div>
+            ${groupSub}
+            <div class="sugg-nut-chips">${chips}</div>
+          </div>`;
+      };
+
+      plantHtml = sections.map(({ gapKey, foods, poorPlantSource }) => {
         const nutrientLabel = esc(t('nutrient_' + gapKey));
         const factText = esc(t('fact_' + gapKey));
-        const rows = foods.map(({ name, members, isGroup, covered, inSeason }) => {
-          const displayName = isGroup ? name : name.replace(/\b\w/g, c => c.toUpperCase());
-          const countKey = covered.length === 1 ? 'covers_1_gap' : 'covers_n_gaps';
-          const chips = covered.map(({ key, unit, amount }) =>
-            `<span class="sugg-nut-chip">${esc(t('nutrient_' + key))} <em>${amount} ${esc(unit)}</em></span>`
-          ).join('');
-          const groupSub = isGroup
-            ? `<span class="sugg-food-variety">${esc(t('sugg_variety_label'))}: ${members.map(m => esc(tFood(m.replace(/\b\w/g, c => c.toUpperCase())))).join(', ')}</span>`
-            : '';
-          const seasonBadge = inSeason
-            ? `<span class="sugg-season-badge">${esc(t('season_badge'))}</span>`
-            : '';
-          return `
-            <div class="sugg-food-row">
-              <div class="sugg-food-header">
-                <span class="sugg-food-name">${esc(tFood(displayName))}</span>
-                ${seasonBadge}
-                <span class="sugg-food-badge">${t(countKey, { n: covered.length })}</span>
-              </div>
-              ${groupSub}
-              <div class="sugg-nut-chips">${chips}</div>
-            </div>`;
-        }).join('');
+        const poorPlantMsg = poorPlantSource ? t('poorplant_' + gapKey) : '';
+        const disclaimer = poorPlantMsg
+          ? `<p class="sugg-poor-plant-note">⚠️ ${esc(poorPlantMsg)}</p>`
+          : '';
+        const rows = foods.map(renderFoodRow).join('');
         return `
-          <div class="sugg-section">
+          <div class="sugg-section" id="sugg-section-${gapKey}">
             <div class="sugg-section-header">
               <span class="sugg-section-nutrient">${nutrientLabel}</span>
               <p class="sugg-section-fact">${factText}</p>
             </div>
-            <div class="sugg-food-list">${rows}</div>
+            ${disclaimer}
+            ${rows ? `<div class="sugg-food-list">${rows}</div>` : ''}
           </div>`;
       }).join('');
 
