@@ -1448,11 +1448,14 @@ const FOOD_EMOJI = {
   'Hazelnuts': '1F330', 'Macadamia Nuts': '1F95C', 'Peanuts': '1F95C',
   'Pecans': '1F330', 'Pine Nuts': '1F332', 'Pistachios': '1F95C',
   'Walnuts': '1F330',
-  // Legumes
+  // Legumes & soy
   'Chickpeas': '1FAD8', 'Lentils': '1FAD8', 'Red Lentils': '1FAD8',
   'Green Lentils': '1FAD8', 'Black Beans': '1FAD8', 'Kidney Beans': '1FAD8',
   'Butter Beans': '1FAD8', 'Cannellini Beans': '1FAD8', 'Pinto Beans': '1FAD8',
   'Mung Beans': '1FAD8', 'Broad Beans': '1FAD8', 'Soybeans': '1FAD8',
+  'Tofu': '1FAD8',
+  // Dried fruits
+  'Date': '1F351', 'Dates': '1F351',
   // Herbs
   'Parsley': '1F33F', 'Coriander': '1F33F', 'Mint': '1F33F',
   'Basil': '1F33F', 'Dill': '1F33F', 'Oregano': '1F33F',
@@ -1693,23 +1696,29 @@ async function drawWeekCard(weekStart, foods, style) {
   ctx.lineWidth = 1.5;
   ctx.beginPath(); ctx.moveTo(PAD, 388); ctx.lineTo(W - PAD, 388); ctx.stroke();
 
-  // ── Grid layout ─────────────────────────────────────────────────────────────
-  const MAX_SHOW = 16;
-  const display  = foods.slice(0, MAX_SHOW);
-  const n        = display.length;
-  const COLS     = n <= 2 ? n : n <= 4 ? 2 : n <= 9 ? 3 : 4;
+  // ── Grid layout — show ALL foods, grow canvas height to fit ─────────────────
+  const n        = foods.length;
+  const COLS     = n <= 2 ? n : n <= 4 ? 2 : n <= 9 ? 3 : n <= 25 ? 4 : 5;
   const ROWS     = Math.ceil(n / COLS);
   const GAP      = 16;
   const GRID_Y   = 412;
   const FOOTER_H = 220;
-  const CELL     = Math.min(
-    Math.floor((W - PAD * 2 - GAP * (COLS - 1)) / COLS),
-    Math.floor((H - GRID_Y - FOOTER_H - GAP * (ROWS - 1)) / ROWS)
-  );
+  const CELL     = Math.floor((W - PAD * 2 - GAP * (COLS - 1)) / COLS);
+  canvas.height  = GRID_Y + ROWS * (CELL + GAP) - GAP + FOOTER_H + 40;
+
+  // Re-draw background for new canvas height
+  const bg2 = ctx.createLinearGradient(0, canvas.height * 0.2, W * 0.8, canvas.height * 0.8);
+  bg2.addColorStop(0, '#163522'); bg2.addColorStop(1, '#0f2a1a');
+  ctx.fillStyle = bg2; ctx.fillRect(0, 0, W, canvas.height);
+  ctx.fillStyle = 'rgba(255,255,255,0.028)';
+  for (let x = 36; x < W; x += 60)
+    for (let y = 36; y < canvas.height; y += 60) {
+      ctx.beginPath(); ctx.arc(x, y, 2, 0, Math.PI * 2); ctx.fill();
+    }
 
   // Pre-load emoji images in parallel
   const imageMap = new Map();
-  await Promise.all(display.map(async food => {
+  await Promise.all(foods.map(async food => {
     const cp = FOOD_EMOJI[food];
     if (cp) {
       const img = await loadEmojiImage(cp, style);
@@ -1718,7 +1727,7 @@ async function drawWeekCard(weekStart, foods, style) {
   }));
 
   // ── Draw cells ───────────────────────────────────────────────────────────────
-  display.forEach((food, i) => {
+  foods.forEach((food, i) => {
     const col  = i % COLS;
     const row  = Math.floor(i / COLS);
     const x    = PAD + col * (CELL + GAP);
@@ -1773,15 +1782,8 @@ async function drawWeekCard(weekStart, foods, style) {
     });
   });
 
-  if (foods.length > MAX_SHOW) {
-    ctx.fillStyle = 'rgba(255,255,255,0.4)';
-    ctx.font = '400 36px system-ui, sans-serif';
-    ctx.textAlign = 'right'; ctx.textBaseline = 'top';
-    ctx.fillText(`+${foods.length - MAX_SHOW} more`, W - PAD, GRID_Y + ROWS * (CELL + GAP));
-  }
-
   // ── Footer ───────────────────────────────────────────────────────────────────
-  const footerY = H - FOOTER_H + 20;
+  const footerY = canvas.height - FOOTER_H + 20;
   const goal = getGoal();
   ctx.strokeStyle = 'rgba(255,255,255,0.1)';
   ctx.lineWidth = 1.5;
