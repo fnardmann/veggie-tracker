@@ -718,6 +718,9 @@ main {
   line-height: 1.5;
 }
 .sugg-food-list { display: flex; flex-direction: column; gap: 2px; }
+.sugg-food-row--weak { opacity: .75; }
+.sugg-food-badge--weak { background: var(--c-bg2); color: var(--c-text2); font-weight: 400; }
+.sugg-nut-chip--weak { background: var(--c-bg2); color: var(--c-text2); }
 .sugg-food-row {
   padding: 10px 12px;
   border-radius: 8px;

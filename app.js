@@ -1113,7 +1113,18 @@ function renderNutrientSuggestions(totals, loggedFoodsThisWeek) {
       for (const gap of gapNutrients) {
         if (coveredGapKeys.has(gap.key)) continue;
         if (!t('poorplant_' + gap.key)) continue; // only for known poor-plant nutrients
-        sections.push({ gapKey: gap.key, foods: [], poorPlantSource: true });
+        // Top 3 plant foods by absolute amount of this nutrient per portion, ignoring MIN_COVERAGE
+        const top3 = Object.entries(NUTRITION_DATA)
+          .filter(([name]) => !loggedSet.has(name) && NUTRITION_DATA[name][gap.key] != null)
+          .map(([name, d]) => {
+            const amount = +(d[gap.key] * d.g / 100).toFixed(2);
+            const pct = Math.round(amount / NUTRIENT_WEEKLY_REF[gap.key] * 100);
+            return { name, amount, pct, unit: gap.unit };
+          })
+          .filter(f => f.amount > 0)
+          .sort((a, b) => b.amount - a.amount)
+          .slice(0, 3);
+        sections.push({ gapKey: gap.key, foods: [], poorPlantSource: true, top3 });
       }
 
       const renderFoodRow = ({ name, members, isGroup, covered, inSeason }) => {
@@ -1140,7 +1151,7 @@ function renderNutrientSuggestions(totals, loggedFoodsThisWeek) {
           </div>`;
       };
 
-      plantHtml = sections.map(({ gapKey, foods, poorPlantSource }) => {
+      plantHtml = sections.map(({ gapKey, foods, poorPlantSource, top3 }) => {
         const nutrientLabel = esc(t('nutrient_' + gapKey));
         const factText = esc(t('fact_' + gapKey));
         const poorPlantMsg = poorPlantSource ? t('poorplant_' + gapKey) : '';
@@ -1148,6 +1159,16 @@ function renderNutrientSuggestions(totals, loggedFoodsThisWeek) {
           ? `<p class="sugg-poor-plant-note">⚠️ ${esc(poorPlantMsg)}</p>`
           : '';
         const rows = foods.map(renderFoodRow).join('');
+        const weakRows = (top3 ?? []).map(({ name, amount, pct, unit }) => `
+          <div class="sugg-food-row sugg-food-row--weak">
+            <div class="sugg-food-header">
+              <span class="sugg-food-name">${esc(tFood(name.replace(/\b\w/g, c => c.toUpperCase())))}</span>
+              <span class="sugg-food-badge sugg-food-badge--weak">${pct}% / Woche</span>
+            </div>
+            <div class="sugg-nut-chips">
+              <span class="sugg-nut-chip sugg-nut-chip--weak">${esc(t('nutrient_' + gapKey))} <em>${fmtVal(amount)} ${esc(unit)}</em></span>
+            </div>
+          </div>`).join('');
         return `
           <div class="sugg-section" id="sugg-section-${gapKey}">
             <div class="sugg-section-header">
@@ -1156,6 +1177,7 @@ function renderNutrientSuggestions(totals, loggedFoodsThisWeek) {
             </div>
             ${disclaimer}
             ${rows ? `<div class="sugg-food-list">${rows}</div>` : ''}
+            ${weakRows ? `<div class="sugg-food-list">${weakRows}</div>` : ''}
           </div>`;
       }).join('');
 
