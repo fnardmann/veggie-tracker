@@ -72,6 +72,20 @@ const FOODS = [
   'Oats', 'Quinoa', 'Brown Rice', 'Barley', 'Rye', 'Buckwheat',
   'Millet', 'Spelt', 'Amaranth', 'Teff', 'Sorghum', 'Farro',
   'Wild Rice', 'Bulgur', 'Freekeh', 'Kamut', 'Einkorn',
+  // Spices (each counts as a separate plant)
+  'Turmeric', 'Cumin', 'Cardamom', 'Cinnamon', 'Cloves', 'Black Pepper',
+  'Paprika Powder', 'Fenugreek', 'Mustard Seeds', 'Caraway Seeds',
+  'Fennel Seeds', 'Star Anise', 'Nutmeg', 'Allspice', 'Chili Powder',
+  'Coriander Seeds', 'Cayenne Pepper',
+  // Hot drinks
+  'Coffee', 'Green Tea', 'Black Tea', 'White Tea', 'Matcha',
+  'Chamomile', 'Rooibos', 'Peppermint Tea', 'Ginger Tea',
+  // Fermented plant foods
+  'Kimchi', 'Sauerkraut', 'Miso', 'Kombucha',
+  // Cacao
+  'Dark Chocolate', 'Cacao Nibs',
+  // Other
+  'Psyllium Husk',
 ].sort();
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -1011,6 +1025,8 @@ const PLANT_GROUPS = [
   { label: 'Rocket',        members: ['rocket', 'arugula'] },
   { label: 'Courgette',     members: ['courgette', 'zucchini'] },
   { label: 'Flaxseeds',     members: ['flaxseeds', 'linseeds'] },
+  { label: 'Tea',           members: ['green tea', 'black tea', 'white tea', 'matcha'] },
+  { label: 'Coriander',     members: ['coriander', 'coriander seeds'] },
 ];
 
 const _plantGroupMap = new Map(
@@ -1523,6 +1539,23 @@ const FOOD_EMOJI = {
   'Thyme': '1F33F', 'Rosemary': '1F33F',
   // Sea veg
   'Nori': '1F30A', 'Wakame': '1F30A', 'Kelp': '1F30A', 'Spirulina': '1F30A',
+  // Spices
+  'Turmeric': '1F9C2', 'Cumin': '1F9C2', 'Cardamom': '1F9C2',
+  'Cinnamon': '1F9C2', 'Cloves': '1F9C2', 'Black Pepper': '1F9C2',
+  'Paprika Powder': '1F9C2', 'Fenugreek': '1F9C2', 'Mustard Seeds': '1F9C2',
+  'Caraway Seeds': '1F9C2', 'Fennel Seeds': '1F9C2', 'Star Anise': '1F9C2',
+  'Nutmeg': '1F9C2', 'Allspice': '1F9C2', 'Chili Powder': '1F336',
+  'Coriander Seeds': '1F9C2', 'Cayenne Pepper': '1F336',
+  // Hot drinks
+  'Coffee': '2615', 'Green Tea': '1F375', 'Black Tea': '1F375',
+  'White Tea': '1F375', 'Matcha': '1F375', 'Chamomile': '1F375',
+  'Rooibos': '1F375', 'Peppermint Tea': '1F375', 'Ginger Tea': '1F375',
+  // Fermented
+  'Kimchi': '1F96C', 'Sauerkraut': '1F96C', 'Miso': '1F35C', 'Kombucha': '1FAD9',
+  // Cacao
+  'Dark Chocolate': '1F36B', 'Cacao Nibs': '1F36B',
+  // Other
+  'Psyllium Husk': '1F33E',
 };
 
 // Deterministic color from food name, used for fallback circles
