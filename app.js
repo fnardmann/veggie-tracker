@@ -1511,6 +1511,12 @@ const FOOD_EMOJI = {
   'Tofu': '1FAD8',
   // Dried fruits
   'Date': '1F351', 'Dates': '1F351',
+  // Grains
+  'Oats': '1F33E', 'Brown Rice': '1F33E', 'Quinoa': '1F33E', 'Barley': '1F33E',
+  'Rye': '1F33E', 'Buckwheat': '1F33E', 'Millet': '1F33E', 'Spelt': '1F33E',
+  'Amaranth': '1F33E', 'Teff': '1F33E', 'Sorghum': '1F33E', 'Farro': '1F33E',
+  'Wild Rice': '1F33E', 'Bulgur': '1F33E', 'Freekeh': '1F33E', 'Kamut': '1F33E',
+  'Einkorn': '1F33E',
   // Herbs
   'Parsley': '1F33F', 'Coriander': '1F33F', 'Mint': '1F33F',
   'Basil': '1F33F', 'Dill': '1F33F', 'Oregano': '1F33F',
@@ -1734,9 +1740,30 @@ async function drawWeekCard(weekStart, foods, style) {
       ctx.beginPath(); ctx.arc(x, y, 2, 0, Math.PI * 2); ctx.fill();
     }
 
-  // ── Header ──────────────────────────────────────────────────────────────────
-  const PAD = 72;
-  const weekNum = getISOWeekNumber(weekStart);
+  // ── Grid layout — show ALL foods, grow canvas height to fit ─────────────────
+  const PAD      = 72;
+  const weekNum  = getISOWeekNumber(weekStart);
+  const n        = foods.length;
+  const COLS     = n <= 2 ? n : n <= 4 ? 2 : n <= 9 ? 3 : n <= 25 ? 4 : 5;
+  const ROWS     = Math.ceil(n / COLS);
+  const GAP      = 16;
+  const GRID_Y   = 412;
+  const FOOTER_H = 220;
+  const CELL     = Math.floor((W - PAD * 2 - GAP * (COLS - 1)) / COLS);
+  // Resizing canvas clears it — set height first, then draw everything
+  canvas.height  = GRID_Y + ROWS * (CELL + GAP) - GAP + FOOTER_H + 40;
+
+  // Background
+  const bg2 = ctx.createLinearGradient(0, canvas.height * 0.2, W * 0.8, canvas.height * 0.8);
+  bg2.addColorStop(0, '#163522'); bg2.addColorStop(1, '#0f2a1a');
+  ctx.fillStyle = bg2; ctx.fillRect(0, 0, W, canvas.height);
+  ctx.fillStyle = 'rgba(255,255,255,0.028)';
+  for (let x = 36; x < W; x += 60)
+    for (let y = 36; y < canvas.height; y += 60) {
+      ctx.beginPath(); ctx.arc(x, y, 2, 0, Math.PI * 2); ctx.fill();
+    }
+
+  // Header (redrawn after canvas resize)
   ctx.textAlign = 'left';
   ctx.fillStyle = 'rgba(160,220,180,0.55)';
   ctx.font = '400 46px system-ui, sans-serif';
@@ -1750,26 +1777,6 @@ async function drawWeekCard(weekStart, foods, style) {
   ctx.strokeStyle = 'rgba(255,255,255,0.1)';
   ctx.lineWidth = 1.5;
   ctx.beginPath(); ctx.moveTo(PAD, 388); ctx.lineTo(W - PAD, 388); ctx.stroke();
-
-  // ── Grid layout — show ALL foods, grow canvas height to fit ─────────────────
-  const n        = foods.length;
-  const COLS     = n <= 2 ? n : n <= 4 ? 2 : n <= 9 ? 3 : n <= 25 ? 4 : 5;
-  const ROWS     = Math.ceil(n / COLS);
-  const GAP      = 16;
-  const GRID_Y   = 412;
-  const FOOTER_H = 220;
-  const CELL     = Math.floor((W - PAD * 2 - GAP * (COLS - 1)) / COLS);
-  canvas.height  = GRID_Y + ROWS * (CELL + GAP) - GAP + FOOTER_H + 40;
-
-  // Re-draw background for new canvas height
-  const bg2 = ctx.createLinearGradient(0, canvas.height * 0.2, W * 0.8, canvas.height * 0.8);
-  bg2.addColorStop(0, '#163522'); bg2.addColorStop(1, '#0f2a1a');
-  ctx.fillStyle = bg2; ctx.fillRect(0, 0, W, canvas.height);
-  ctx.fillStyle = 'rgba(255,255,255,0.028)';
-  for (let x = 36; x < W; x += 60)
-    for (let y = 36; y < canvas.height; y += 60) {
-      ctx.beginPath(); ctx.arc(x, y, 2, 0, Math.PI * 2); ctx.fill();
-    }
 
   // Pre-load emoji images in parallel
   const imageMap = new Map();
