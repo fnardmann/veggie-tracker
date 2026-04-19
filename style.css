@@ -31,6 +31,7 @@ header {
   background: var(--c-dark);
   color: #fff;
   padding: 18px 24px;
+  padding-top: calc(env(safe-area-inset-top, 0px) + 18px);
   position: sticky;
   top: 0;
   z-index: 100;
@@ -100,7 +101,7 @@ main {
 @media (max-width: 660px)  { .grid-3, .grid-2 { grid-template-columns: 1fr; } }
 
 @media (max-width: 660px) {
-  header { padding: 12px 16px 0; }
+  header { padding: 12px 16px 0; padding-top: calc(env(safe-area-inset-top, 0px) + 12px); }
   header h1 { font-size: 1.2rem; }
   .tab-nav { padding: 8px 16px 0; gap: 3px; }
   .tab-btn { padding: 5px 14px; font-size: .78rem; }
@@ -493,6 +494,33 @@ main {
   font-size: .7rem;
   color: var(--c-text3);
 }
+.nutr-progress-list { display: flex; flex-direction: column; gap: 10px; }
+.nutr-progress-row {}
+.nutr-progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 5px;
+  font-size: .82rem;
+  flex-wrap: wrap;
+}
+.nutr-progress-label { font-weight: 600; color: var(--c-text); }
+.nutr-progress-value { color: var(--c-text2); font-size: .78rem; }
+.nutr-bar-track {
+  background: var(--c-bg2);
+  border-radius: 999px;
+  height: 8px;
+  overflow: hidden;
+}
+.nutr-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--c-main);
+  transition: width .4s ease;
+}
+.nutr-bar-fill--full { background: var(--c-mid); }
+.nutr-bar-fill--low  { background: var(--c-amber); }
 .nutrition-scroll { overflow-x: auto; }
 .nutrition-table {
   width: 100%;

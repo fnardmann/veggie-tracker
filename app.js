@@ -796,17 +796,29 @@ async function renderNutritionTab(quiet = false) {
     if (totals[key] != null) totals[key] = +(totals[key].toFixed(1));
   }
 
-  const totalCells = NUTRIENT_DEFS.map(({ key }) =>
-    totals[key] != null ? `<td><strong>${fmtVal(totals[key])}</strong></td>` : '<td class="n-na">—</td>'
-  ).join('');
+  const progressRows = NUTRIENT_DEFS
+    .filter(({ key }) => NUTRIENT_WEEKLY_REF[key])
+    .map(({ key, unit }) => {
+      const val = totals[key];
+      const ref = NUTRIENT_WEEKLY_REF[key];
+      if (val == null) return '';
+      const pct = Math.min(1, val / ref);
+      const pctDisplay = Math.round(pct * 100);
+      const fillCls = pct >= 1 ? 'nutr-bar-fill--full' : pct < 0.5 ? 'nutr-bar-fill--low' : '';
+      return `
+        <div class="nutr-progress-row">
+          <div class="nutr-progress-header">
+            <span class="nutr-progress-label">${esc(t('nutrient_' + key))}</span>
+            <span class="nutr-progress-value">${fmtVal(val)} / ${fmtVal(ref)} ${esc(unit)} · <strong>${pctDisplay}%</strong></span>
+          </div>
+          <div class="nutr-bar-track">
+            <div class="nutr-bar-fill ${fillCls}" style="width:${pct * 100}%"></div>
+          </div>
+        </div>`;
+    }).join('');
 
-  document.getElementById('nutritionTotals').innerHTML = `
-    <div class="nutrition-scroll">
-      <table class="nutrition-table">
-        <thead><tr><th>${t('total_this_week')}</th>${headerCells}</tr></thead>
-        <tbody><tr><td class="n-veggie">${t('all_logged')}</td>${totalCells}</tr></tbody>
-      </table>
-    </div>`;
+  document.getElementById('nutritionTotals').innerHTML =
+    `<div class="nutr-progress-list">${progressRows}</div>`;
 
   // ── Top sources per nutrient ──
   const sourceRows = NUTRIENT_DEFS.map(({ key, unit }) => {

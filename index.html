@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Veggie Tracker</title>
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#1a3a2a">
@@ -322,20 +322,11 @@
       <!-- Nutrient fact of the day -->
       <section class="card nutrient-fact-card" id="nutritionFacts"></section>
 
-      <!-- Per-food breakdown -->
+      <!-- Weekly progress vs. recommended -->
       <section class="card">
         <div class="nutrition-header">
-          <h2 data-i18n="nutrition_per_food_heading">This Week — Per Food</h2>
-          <span class="nutrition-note" data-i18n="nutrition_per_food_note">per typical portion · static data + Open Food Facts</span>
-        </div>
-        <div id="nutritionTable"><p class="empty" data-i18n="empty_log_nutrition">Log foods to see nutrition data.</p></div>
-      </section>
-
-      <!-- Weekly totals -->
-      <section class="card">
-        <div class="nutrition-header">
-          <h2 data-i18n="nutrition_totals_heading">This Week — Totals</h2>
-          <span class="nutrition-note" data-i18n="nutrition_totals_note">sum of all portions logged · from logged plants only</span>
+          <h2 data-i18n="nutrition_totals_heading">This Week — vs. Recommended</h2>
+          <span class="nutrition-note" data-i18n="nutrition_totals_note">% of weekly reference intake · from logged plants only</span>
         </div>
         <div id="nutritionTotals"><p class="empty" data-i18n="empty_log_totals">Log foods to see weekly totals.</p></div>
       </section>
@@ -367,6 +358,15 @@
         <div class="chart-container" id="trendChartWrap">
           <canvas id="trendChart"></canvas>
         </div>
+      </section>
+
+      <!-- Per-food breakdown (detail table at bottom) -->
+      <section class="card">
+        <div class="nutrition-header">
+          <h2 data-i18n="nutrition_per_food_heading">This Week — Per Food</h2>
+          <span class="nutrition-note" data-i18n="nutrition_per_food_note">per typical portion · static data + Open Food Facts</span>
+        </div>
+        <div id="nutritionTable"><p class="empty" data-i18n="empty_log_nutrition">Log foods to see nutrition data.</p></div>
       </section>
 
     </div>
