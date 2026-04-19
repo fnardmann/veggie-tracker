@@ -508,10 +508,20 @@ main {
 .nutr-progress-label { font-weight: 600; color: var(--c-text); }
 .nutr-progress-value { color: var(--c-text2); font-size: .78rem; }
 .nutr-bar-track {
+  position: relative;
   background: var(--c-bg2);
   border-radius: 999px;
   height: 8px;
-  overflow: hidden;
+  overflow: visible;
+  clip-path: inset(0 round 999px);
+}
+.nutr-bar-pace {
+  position: absolute;
+  top: 0; bottom: 0;
+  width: 2px;
+  background: rgba(0,0,0,0.25);
+  transform: translateX(-50%);
+  pointer-events: none;
 }
 .nutr-bar-fill {
   height: 100%;

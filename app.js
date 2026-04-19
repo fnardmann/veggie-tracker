@@ -796,6 +796,10 @@ async function renderNutritionTab(quiet = false) {
     if (totals[key] != null) totals[key] = +(totals[key].toFixed(1));
   }
 
+  const dow = new Date().getDay(); // 0=Sun
+  const dayOfWeek = dow === 0 ? 7 : dow; // Mon=1 … Sun=7
+  const pacePct = (dayOfWeek / 7) * 100;
+
   const progressRows = NUTRIENT_DEFS
     .filter(({ key }) => NUTRIENT_WEEKLY_REF[key])
     .map(({ key, unit }) => {
@@ -814,6 +818,7 @@ async function renderNutritionTab(quiet = false) {
           </div>
           <div class="nutr-bar-track">
             <div class="nutr-bar-fill ${fillCls}" style="width:${pct * 100}%"></div>
+            <div class="nutr-bar-pace" style="left:${pacePct}%"></div>
           </div>
           ${hint}
         </div>`;
