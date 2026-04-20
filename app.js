@@ -2278,7 +2278,8 @@ function renderAll() {
 // ── Export / Import ───────────────────────────────────────────────────────────
 
 function exportData() {
-  const blob = new Blob([JSON.stringify(getData(), null, 2)], { type: 'application/json' });
+  const payload = { ...getData(), portions: getPortions() };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
@@ -2300,6 +2301,10 @@ function importData(file) {
       }
       current.entries.sort((a, b) => b.date.localeCompare(a.date));
       saveData(current);
+      if (imported.portions && typeof imported.portions === 'object') {
+        const merged = { ...getPortions(), ...imported.portions };
+        localStorage.setItem(PORTION_KEY, JSON.stringify(merged));
+      }
       renderAll();
     } catch {
       alert(t('err_import_failed'));
