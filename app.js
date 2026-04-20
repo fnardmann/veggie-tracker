@@ -1138,7 +1138,8 @@ function renderNutrientSuggestions(totals, loggedFoodsThisWeek) {
       const coveredGapKeys = new Set(sections.map(s => s.gapKey));
       for (const gap of gapNutrients) {
         if (coveredGapKeys.has(gap.key)) continue;
-        if (!t('poorplant_' + gap.key)) continue; // only for known poor-plant nutrients
+        const ppKey = 'poorplant_' + gap.key;
+        if (t(ppKey) === ppKey) continue; // skip if no translation exists (t() returns raw key as fallback)
         // Top 3 plant foods by absolute amount of this nutrient per portion, ignoring MIN_COVERAGE
         const top3 = Object.entries(NUTRITION_DATA)
           .filter(([name]) => !loggedSet.has(name) && NUTRITION_DATA[name][gap.key] != null)
