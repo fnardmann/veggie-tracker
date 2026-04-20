@@ -855,21 +855,22 @@ async function renderNutritionTab(quiet = false) {
     if (!row) return;
     const key = row.dataset.nutrientKey;
 
-    // Expand suggestions without touching nutritionTotals DOM (avoids scroll jump)
+    // Expand suggestions without rebuilding nutritionTotals (avoids scroll jump)
     if (!_suggExpanded && _lastSuggTotals) {
       _suggExpanded = true;
       renderNutrientSuggestions(_lastSuggTotals, _lastSuggFoods);
     }
 
-    // Scroll now — row is still live in the DOM
     const headerH = document.querySelector('header')?.offsetHeight ?? 0;
-    const targetY = row.getBoundingClientRect().top + window.scrollY - headerH - 8;
-    window.scrollTo({ top: targetY, behavior: 'smooth' });
-
     const section = document.getElementById('sugg-section-' + key);
-    if (section) {
-      section.classList.add('sugg-section--highlight');
-      setTimeout(() => section.classList.remove('sugg-section--highlight'), 1800);
+    const target = section || document.getElementById('nutritionSuggestions');
+    if (target) {
+      const targetY = target.getBoundingClientRect().top + window.scrollY - headerH - 8;
+      window.scrollTo({ top: targetY, behavior: 'smooth' });
+      if (section) {
+        section.classList.add('sugg-section--highlight');
+        setTimeout(() => section.classList.remove('sugg-section--highlight'), 1800);
+      }
     }
   };
 
