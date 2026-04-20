@@ -850,26 +850,29 @@ async function renderNutritionTab(quiet = false) {
 
   const nutritionTotalsEl = document.getElementById('nutritionTotals');
   nutritionTotalsEl.innerHTML = `<div class="nutr-progress-list">${progressRows}</div>`;
-  nutritionTotalsEl.onclick = async e => {
+  nutritionTotalsEl.onclick = e => {
     const row = e.target.closest('[data-nutrient-key]');
     if (!row) return;
     const key = row.dataset.nutrientKey;
+
+    // Scroll now — row is live in the DOM, no need to wait
+    const headerH = document.querySelector('header')?.offsetHeight ?? 0;
+    row.style.scrollMarginTop = (headerH + 8) + 'px';
+    row.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    // Expand suggestions in background if needed, then highlight
+    const highlight = () => {
+      const section = document.getElementById('sugg-section-' + key);
+      if (section) {
+        section.classList.add('sugg-section--highlight');
+        setTimeout(() => section.classList.remove('sugg-section--highlight'), 1800);
+      }
+    };
     if (_suggExpanded === false) {
       _suggExpanded = true;
-      await renderNutritionTab(true);
-    }
-    // Wait two animation frames so the browser has finished layout after re-render
-    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
-    const freshRow = document.querySelector(`[data-nutrient-key="${CSS.escape(key)}"]`);
-    if (freshRow) {
-      const headerH = document.querySelector('header')?.offsetHeight ?? 0;
-      freshRow.style.scrollMarginTop = (headerH + 8) + 'px';
-      freshRow.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-    const section = document.getElementById('sugg-section-' + key);
-    if (section) {
-      section.classList.add('sugg-section--highlight');
-      setTimeout(() => section.classList.remove('sugg-section--highlight'), 1800);
+      renderNutritionTab(true).then(highlight);
+    } else {
+      highlight();
     }
   };
 
