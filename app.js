@@ -527,7 +527,10 @@ function renderStreaks() {
     `${t('week_streak_desc')}<br><small>${t('week_streak_sub', { goal: getGoal() })}</small>`;
 
   const allStreaks = veggieStreaks();
-  const streaks = allStreaks.filter(s => s.streak >= 3).slice(0, 6);
+  const long = allStreaks.filter(s => s.streak >= 3);
+  const streaks = long.length >= 6
+    ? long.slice(0, 6)
+    : [...long, ...allStreaks.filter(s => s.streak < 3)].slice(0, 6);
   const container = document.getElementById('veggieStreaks');
 
   if (streaks.length === 0) {
