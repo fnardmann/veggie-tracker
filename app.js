@@ -850,15 +850,16 @@ async function renderNutritionTab(quiet = false) {
 
   const nutritionTotalsEl = document.getElementById('nutritionTotals');
   nutritionTotalsEl.innerHTML = `<div class="nutr-progress-list">${progressRows}</div>`;
-  nutritionTotalsEl.onclick = e => {
+  nutritionTotalsEl.onclick = async e => {
     const row = e.target.closest('[data-nutrient-key]');
     if (!row) return;
     const key = row.dataset.nutrientKey;
     if (_suggExpanded === false) {
       _suggExpanded = true;
-      renderNutritionTab(true);
+      await renderNutritionTab(true);
     }
-    row.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const freshRow = document.querySelector(`[data-nutrient-key="${CSS.escape(key)}"]`);
+    if (freshRow) freshRow.scrollIntoView({ behavior: 'smooth', block: 'start' });
     const section = document.getElementById('sugg-section-' + key);
     if (section) {
       section.classList.add('sugg-section--highlight');
