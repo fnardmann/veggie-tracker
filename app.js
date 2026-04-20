@@ -859,7 +859,11 @@ async function renderNutritionTab(quiet = false) {
       await renderNutritionTab(true);
     }
     const freshRow = document.querySelector(`[data-nutrient-key="${CSS.escape(key)}"]`);
-    if (freshRow) freshRow.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (freshRow) {
+      const headerH = document.querySelector('header')?.offsetHeight ?? 0;
+      const top = freshRow.getBoundingClientRect().top + window.scrollY - headerH - 8;
+      window.scrollTo({ top, behavior: 'smooth' });
+    }
     const section = document.getElementById('sugg-section-' + key);
     if (section) {
       section.classList.add('sugg-section--highlight');
