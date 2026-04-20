@@ -822,7 +822,14 @@ async function renderNutritionTab(quiet = false) {
       if (val == null) return '';
       const pct = Math.min(1, val / ref);
       const pctDisplay = Math.round(pct * 100);
-      const fillCls = pct >= 1 ? 'nutr-bar-fill--full' : pct < 0.5 ? 'nutr-bar-fill--low' : '';
+      const pace = pacePct / 100;
+      const ratio = pace > 0 ? Math.min(pct / pace, 1.4) : 1;
+      const h = ratio >= 1
+        ? 130 + (ratio - 1) * 15
+        : 5 + ratio * 125;
+      const s = ratio >= 1 ? 52 + (ratio - 1) * 10 : 78;
+      const l = ratio >= 1 ? 44 - (ratio - 1) * 8 : 52 - Math.abs(ratio - 0.55) * 6;
+      const barColor = `hsl(${h.toFixed(0)},${s.toFixed(0)}%,${l.toFixed(0)}%)`;
       const hint = key === 'vitD' ? `<p class="nutr-progress-hint">Raus an die Sonne! ☀️ Pflanzen haben kaum was</p>` : '';
       return `
         <div class="nutr-progress-row nutr-progress-row--clickable" data-nutrient-key="${key}">
@@ -831,7 +838,7 @@ async function renderNutritionTab(quiet = false) {
             <span class="nutr-progress-value">${fmtVal(val)} / ${fmtVal(ref)} ${esc(unit)} · <strong>${pctDisplay}%</strong></span>
           </div>
           <div class="nutr-bar-track">
-            <div class="nutr-bar-fill ${fillCls}" style="width:${pct * 100}%"></div>
+            <div class="nutr-bar-fill" style="width:${pct * 100}%;background:${barColor}"></div>
             <div class="nutr-bar-pace" style="left:${pacePct}%"></div>
           </div>
           ${hint}
