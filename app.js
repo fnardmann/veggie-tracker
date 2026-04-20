@@ -863,8 +863,8 @@ async function renderNutritionTab(quiet = false) {
 
     // Scroll now — row is still live in the DOM
     const headerH = document.querySelector('header')?.offsetHeight ?? 0;
-    row.style.scrollMarginTop = (headerH + 8) + 'px';
-    row.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const targetY = row.getBoundingClientRect().top + window.scrollY - headerH - 8;
+    window.scrollTo({ top: targetY, behavior: 'smooth' });
 
     const section = document.getElementById('sugg-section-' + key);
     if (section) {
