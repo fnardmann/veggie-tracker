@@ -1770,50 +1770,55 @@ function getISOWeekNumber(dateStr) {
   return Math.round((d - week1Mon) / (7 * 86400000)) + 1;
 }
 
-async function drawWeekCard(weekStart, foods, style) {
+async function drawWeekCard(weekStart, foods, style, thumbMode = false) {
   style = style ?? getEmojiStyle();
-  const W = 1080, H = 1350;
-  const canvas = document.createElement('canvas');
-  canvas.width = W; canvas.height = H;
-  const ctx = canvas.getContext('2d');
-
-  // ── Background ──────────────────────────────────────────────────────────────
-  const bg = ctx.createLinearGradient(0, H * 0.2, W * 0.8, H * 0.8);
-  bg.addColorStop(0, '#163522');
-  bg.addColorStop(1, '#0f2a1a');
-  ctx.fillStyle = bg;
-  ctx.fillRect(0, 0, W, H);
-
-  ctx.fillStyle = 'rgba(255,255,255,0.028)';
-  for (let x = 36; x < W; x += 60)
-    for (let y = 36; y < H; y += 60) {
-      ctx.beginPath(); ctx.arc(x, y, 2, 0, Math.PI * 2); ctx.fill();
-    }
-
-  // ── Grid layout — show ALL foods, grow canvas height to fit ─────────────────
+  const W        = 1080;
   const PAD      = 72;
-  const weekNum  = getISOWeekNumber(weekStart);
-  const n        = foods.length;
-  const COLS     = n <= 2 ? n : n <= 4 ? 2 : n <= 9 ? 3 : 4;
-  const ROWS     = Math.ceil(n / COLS);
   const GAP      = 16;
   const GRID_Y   = 412;
   const FOOTER_H = 220;
-  const CELL     = Math.floor((W - PAD * 2 - GAP * (COLS - 1)) / COLS);
-  // Resizing canvas clears it — set height first, then draw everything
-  canvas.height  = GRID_Y + ROWS * (CELL + GAP) - GAP + FOOTER_H + 40;
+  const weekNum  = getISOWeekNumber(weekStart);
+  const n        = foods.length;
+  const goal     = getGoal();
 
-  // Background
-  const bg2 = ctx.createLinearGradient(0, canvas.height * 0.2, W * 0.8, canvas.height * 0.8);
-  bg2.addColorStop(0, '#163522'); bg2.addColorStop(1, '#0f2a1a');
-  ctx.fillStyle = bg2; ctx.fillRect(0, 0, W, canvas.height);
+  // Thumbnail: fixed 4:5 canvas, max 16 items, "+N more" badge
+  // Full card: grows to fit all items
+  const MAX_THUMB  = 16;
+  const displayFoods = thumbMode ? foods.slice(0, MAX_THUMB) : foods;
+  const overflow     = thumbMode ? Math.max(0, n - MAX_THUMB) : 0;
+
+  const COLS = displayFoods.length <= 2 ? displayFoods.length
+             : displayFoods.length <= 4 ? 2
+             : displayFoods.length <= 9 ? 3 : 4;
+  const ROWS = Math.ceil(displayFoods.length / COLS);
+
+  const canvas = document.createElement('canvas');
+  canvas.width = W;
+
+  let canvasH;
+  if (thumbMode) {
+    canvasH = 1350; // fixed 4:5
+  } else {
+    const CELL_full = Math.floor((W - PAD * 2 - GAP * (COLS - 1)) / COLS);
+    canvasH = GRID_Y + ROWS * (CELL_full + GAP) - GAP + FOOTER_H + 40;
+  }
+  canvas.height = canvasH;
+
+  const CELL = Math.floor((W - PAD * 2 - GAP * (COLS - 1)) / COLS);
+
+  const ctx = canvas.getContext('2d');
+
+  // ── Background ──────────────────────────────────────────────────────────────
+  const bg = ctx.createLinearGradient(0, canvasH * 0.2, W * 0.8, canvasH * 0.8);
+  bg.addColorStop(0, '#163522'); bg.addColorStop(1, '#0f2a1a');
+  ctx.fillStyle = bg; ctx.fillRect(0, 0, W, canvasH);
   ctx.fillStyle = 'rgba(255,255,255,0.028)';
   for (let x = 36; x < W; x += 60)
-    for (let y = 36; y < canvas.height; y += 60) {
+    for (let y = 36; y < canvasH; y += 60) {
       ctx.beginPath(); ctx.arc(x, y, 2, 0, Math.PI * 2); ctx.fill();
     }
 
-  // Header (redrawn after canvas resize)
+  // ── Header ───────────────────────────────────────────────────────────────────
   ctx.textAlign = 'left';
   ctx.fillStyle = 'rgba(160,220,180,0.55)';
   ctx.font = '400 46px system-ui, sans-serif';
@@ -1828,9 +1833,9 @@ async function drawWeekCard(weekStart, foods, style) {
   ctx.lineWidth = 1.5;
   ctx.beginPath(); ctx.moveTo(PAD, 388); ctx.lineTo(W - PAD, 388); ctx.stroke();
 
-  // Pre-load emoji images in parallel
+  // ── Pre-load emoji images ────────────────────────────────────────────────────
   const imageMap = new Map();
-  await Promise.all(foods.map(async food => {
+  await Promise.all(displayFoods.map(async food => {
     const cp = FOOD_EMOJI[food];
     if (cp) {
       const img = await loadEmojiImage(cp, style);
@@ -1839,7 +1844,7 @@ async function drawWeekCard(weekStart, foods, style) {
   }));
 
   // ── Draw cells ───────────────────────────────────────────────────────────────
-  foods.forEach((food, i) => {
+  displayFoods.forEach((food, i) => {
     const col  = i % COLS;
     const row  = Math.floor(i / COLS);
     const x    = PAD + col * (CELL + GAP);
@@ -1894,9 +1899,26 @@ async function drawWeekCard(weekStart, foods, style) {
     });
   });
 
+  // ── "+N more" badge (thumb mode only) ────────────────────────────────────────
+  if (overflow > 0) {
+    const lastIdx  = displayFoods.length; // slot after last shown item
+    const col      = lastIdx % COLS;
+    const row      = Math.floor(lastIdx / COLS);
+    // If there's a slot left in the last row, use it; otherwise place badge below grid
+    const bx = PAD + col * (CELL + GAP);
+    const by = GRID_Y + row * (CELL + GAP);
+    if (col < COLS && by + CELL < canvasH - FOOTER_H) {
+      ctx.fillStyle = 'rgba(255,255,255,0.13)';
+      ctx.beginPath(); ctx.roundRect(bx, by, CELL, CELL, 18); ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,0.7)';
+      ctx.font = `700 ${Math.floor(CELL * 0.22)}px system-ui, sans-serif`;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(`+${overflow}`, bx + CELL / 2, by + CELL / 2);
+    }
+  }
+
   // ── Footer ───────────────────────────────────────────────────────────────────
-  const footerY = canvas.height - FOOTER_H + 20;
-  const goal = getGoal();
+  const footerY = canvasH - FOOTER_H + 20;
   ctx.strokeStyle = 'rgba(255,255,255,0.1)';
   ctx.lineWidth = 1.5;
   ctx.beginPath(); ctx.moveTo(PAD, footerY); ctx.lineTo(W - PAD, footerY); ctx.stroke();
@@ -1958,17 +1980,25 @@ async function navigateModal(dir) {
   updateModalNavButtons();
 }
 
-function openCardModal(canvas, date, dates, type = 'day') {
+function openCardModal(canvas, date, dates, type = 'day', allFoods = null) {
   _modalCanvas = canvas;
   _modalDate   = date;
   _modalDates  = dates ?? [];
   _modalIndex  = _modalDates.indexOf(date);
   _modalType   = type;
   const modal = document.getElementById('cardModal');
-  document.getElementById('cardModalImg').src = canvas.toDataURL('image/png');
+  const img   = document.getElementById('cardModalImg');
+  img.src = canvas.toDataURL('image/png');
   modal.hidden = false;
   document.body.style.overflow = 'hidden';
   updateModalNavButtons();
+  // Thumbnail was shown instantly — upgrade to full card in background
+  if (type === 'week' && allFoods) {
+    drawWeekCard(date, allFoods).then(full => {
+      _modalCanvas = full;
+      img.src = full.toDataURL('image/png');
+    });
+  }
 }
 
 function closeCardModal() {
@@ -2128,9 +2158,9 @@ async function renderWeeklyCards() {
     wrapper.dataset.seed  = String(seed);
     container.appendChild(wrapper);
 
-    drawWeekCard(ws, foods).then(canvas => {
+    drawWeekCard(ws, foods, undefined, true).then(canvas => {
       canvas.style.cssText = 'width:100%;height:100%;display:block;cursor:pointer;';
-      wrapper.addEventListener('click', () => openCardModal(canvas, ws, weeks, 'week'));
+      wrapper.addEventListener('click', () => openCardModal(canvas, ws, weeks, 'week', foods));
       wrapper.append(canvas);
     });
   }
