@@ -2276,11 +2276,11 @@ function renderPortionSettings() {
   const filterEl = document.getElementById('portionFilter');
   const filter = filterEl ? filterEl.value.trim().toLowerCase() : '';
   const portions = getPortions();
-  const allFoods = Object.keys(NUTRITION_DATA)
+  const allFoods = FOODS.map(f => f.toLowerCase())
     .sort((a, b) => tFood(toTitleCase(a)).localeCompare(tFood(toTitleCase(b)), getLang()));
 
   const foods = filter
-    ? allFoods.filter(f => f.includes(filter))
+    ? allFoods.filter(f => tFood(toTitleCase(f)).toLowerCase().includes(filter) || f.includes(filter))
     : allFoods.filter(f => portions[f] != null);
 
   const list = document.getElementById('portionSettingsList');
