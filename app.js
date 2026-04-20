@@ -855,14 +855,11 @@ async function renderNutritionTab(quiet = false) {
       _suggExpanded = true;
       renderNutritionTab(true);
     }
+    row.scrollIntoView({ behavior: 'smooth', block: 'start' });
     const section = document.getElementById('sugg-section-' + key);
     if (section) {
-      section.scrollIntoView({ behavior: 'smooth', block: 'start' });
       section.classList.add('sugg-section--highlight');
       setTimeout(() => section.classList.remove('sugg-section--highlight'), 1800);
-    } else {
-      const suggEl = document.getElementById('nutritionSuggestions');
-      if (suggEl) suggEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   };
 
