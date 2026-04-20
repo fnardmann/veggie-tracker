@@ -20,10 +20,10 @@ function getSeasonalCountry()  { return getSettings().seasonalCountry  ?? 'de'; 
 
 const FOODS = [
   // Vegetables
-  'Artichoke', 'Arugula', 'Asparagus', 'Aubergine', 'Avocado',
+  'Artichoke', 'Asparagus', 'Aubergine', 'Avocado',
   'Bamboo Shoots', 'Bean Sprouts', 'Beetroot', 'Bell Pepper', 'Bitter Melon',
-  'Bok Choy', 'Broccoli', 'Brussels Sprouts', 'Butternut Squash', 'Cabbage',
-  'Carrot', 'Cauliflower', 'Celeriac', 'Celery', 'Chard',
+  'Broccoli', 'Brussels Sprouts', 'Butternut Squash', 'Cabbage',
+  'Carrot', 'Cauliflower', 'Celeriac', 'Celery',
   'Chicory', 'Chilli', 'Chives', 'Courgette', 'Cucumber',
   'Edamame', 'Endive', 'Fennel', 'Garlic', 'Ginger',
   'Green Beans', 'Jalapeño', 'Kale', 'Kohlrabi', 'Leek',
@@ -34,7 +34,7 @@ const FOODS = [
   'Shallot', 'Shiitake', 'Spinach', 'Spring Onion', 'Squash',
   'Swede', 'Sweet Corn', 'Sweet Potato', 'Swiss Chard', 'Taro',
   'Tenderstem Broccoli', 'Tomato', 'Turnip', 'Watercress',
-  'White Cabbage', 'Yam', 'Zucchini',
+  'White Cabbage', 'Yam',
   // Fruits
   'Apple', 'Apricot', 'Banana', 'Blackberry', 'Blackcurrant',
   'Blueberry', 'Cherry', 'Clementine', 'Cranberry', 'Date',
@@ -45,7 +45,7 @@ const FOODS = [
   'Pineapple', 'Plum', 'Pomegranate', 'Raspberry', 'Redcurrant',
   'Satsuma', 'Strawberry', 'Tangerine', 'Watermelon',
   // Seeds
-  'Chia Seeds', 'Flaxseeds', 'Linseeds', 'Hemp Seeds', 'Pumpkin Seeds',
+  'Chia Seeds', 'Flaxseeds', 'Hemp Seeds', 'Pumpkin Seeds',
   'Sesame Seeds', 'Sunflower Seeds', 'Poppy Seeds',
   // Nuts
   'Almonds', 'Brazil Nuts', 'Cashews', 'Hazelnuts', 'Macadamia Nuts',
@@ -67,7 +67,7 @@ const FOODS = [
   'Nori', 'Wakame', 'Kelp', 'Spirulina',
   // Other veg
   'Cavolo Nero', 'Purple Sprouting Broccoli', 'Green Asparagus',
-  'Broad Beans', 'Olives',
+  'Olives',
   // Grains
   'Oats', 'Quinoa', 'Brown Rice', 'Barley', 'Rye', 'Buckwheat',
   'Millet', 'Spelt', 'Amaranth', 'Teff', 'Sorghum', 'Farro',
