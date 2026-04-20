@@ -855,24 +855,21 @@ async function renderNutritionTab(quiet = false) {
     if (!row) return;
     const key = row.dataset.nutrientKey;
 
-    // Scroll now — row is live in the DOM, no need to wait
+    // Expand suggestions without touching nutritionTotals DOM (avoids scroll jump)
+    if (!_suggExpanded && _lastSuggTotals) {
+      _suggExpanded = true;
+      renderNutrientSuggestions(_lastSuggTotals, _lastSuggFoods);
+    }
+
+    // Scroll now — row is still live in the DOM
     const headerH = document.querySelector('header')?.offsetHeight ?? 0;
     row.style.scrollMarginTop = (headerH + 8) + 'px';
     row.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
-    // Expand suggestions in background if needed, then highlight
-    const highlight = () => {
-      const section = document.getElementById('sugg-section-' + key);
-      if (section) {
-        section.classList.add('sugg-section--highlight');
-        setTimeout(() => section.classList.remove('sugg-section--highlight'), 1800);
-      }
-    };
-    if (_suggExpanded === false) {
-      _suggExpanded = true;
-      renderNutritionTab(true).then(highlight);
-    } else {
-      highlight();
+    const section = document.getElementById('sugg-section-' + key);
+    if (section) {
+      section.classList.add('sugg-section--highlight');
+      setTimeout(() => section.classList.remove('sugg-section--highlight'), 1800);
     }
   };
 
@@ -915,6 +912,8 @@ async function renderNutritionTab(quiet = false) {
 
   document.getElementById('nutritionDGE').innerHTML = `<div class="src-list">${sourceRows}</div>`;
 
+  _lastSuggTotals = totals;
+  _lastSuggFoods = uniqueFoods;
   renderNutrientSuggestions(totals, uniqueFoods);
 
   await renderNutrientTrend();
@@ -1051,6 +1050,8 @@ const _plantGroupMap = new Map(
 );
 
 let _suggExpanded = false;
+let _lastSuggTotals = null;
+let _lastSuggFoods = null;
 window._expandSugg = function () {
   _suggExpanded = true;
   renderNutritionTab(true);
