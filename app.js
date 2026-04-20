@@ -1049,14 +1049,17 @@ window._expandSugg = function () {
 function renderNutrientSuggestions(totals, loggedFoodsThisWeek) {
   const el = document.getElementById('nutritionSuggestions');
 
-  // Identify nutrients where the user is below their weekly reference
+  const dow = new Date().getDay();
+  const pace = (dow === 0 ? 7 : dow) / 7;
+
+  // Identify nutrients where the user is behind today's pace
   const gapNutrients = NUTRIENT_DEFS
     .filter(({ key }) => NUTRIENT_WEEKLY_REF[key] && totals[key] != null)
     .map(({ key, unit }) => ({
       key, unit,
       coverage: totals[key] / NUTRIENT_WEEKLY_REF[key],
     }))
-    .filter(n => n.coverage < 1)
+    .filter(n => n.coverage < pace)
     .sort((a, b) => a.coverage - b.coverage);
 
   let plantHtml = '';
