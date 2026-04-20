@@ -1539,6 +1539,16 @@ const FOOD_EMOJI = {
   'Thyme': '1F33F', 'Rosemary': '1F33F',
   // Sea veg
   'Nori': '1F30A', 'Wakame': '1F30A', 'Kelp': '1F30A', 'Spirulina': '1F30A',
+  // Missing veg
+  'Artichoke': '1F966', 'Arugula': '1F96C', 'Rocket': '1F96C',
+  'Asparagus': '1F33F', 'Beetroot': '1F955', 'Bitter Melon': '1F952',
+  'Celeriac': '1F955', 'Ginger': '1F9C2', 'Kohlrabi': '1F966',
+  'Lotus Root': '1F33F', 'Okra': '1F33F',
+  // Missing fruits
+  'Dragon Fruit': '1F348', 'Fig': '1F351', 'Lychee': '1F351',
+  'Passion Fruit': '1F96D', 'Pomegranate': '1F352',
+  // Missing legumes
+  'Tempeh': '1FAD8',
   // Spices
   'Turmeric': '1F9C2', 'Cumin': '1F9C2', 'Cardamom': '1F9C2',
   'Cinnamon': '1F9C2', 'Cloves': '1F9C2', 'Black Pepper': '1F9C2',
@@ -1777,7 +1787,7 @@ async function drawWeekCard(weekStart, foods, style) {
   const PAD      = 72;
   const weekNum  = getISOWeekNumber(weekStart);
   const n        = foods.length;
-  const COLS     = n <= 2 ? n : n <= 4 ? 2 : n <= 9 ? 3 : n <= 25 ? 4 : 5;
+  const COLS     = n <= 2 ? n : n <= 4 ? 2 : n <= 9 ? 3 : 4;
   const ROWS     = Math.ceil(n / COLS);
   const GAP      = 16;
   const GRID_Y   = 412;
