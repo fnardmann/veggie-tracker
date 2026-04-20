@@ -858,11 +858,13 @@ async function renderNutritionTab(quiet = false) {
       _suggExpanded = true;
       await renderNutritionTab(true);
     }
+    // Wait two animation frames so the browser has finished layout after re-render
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
     const freshRow = document.querySelector(`[data-nutrient-key="${CSS.escape(key)}"]`);
     if (freshRow) {
       const headerH = document.querySelector('header')?.offsetHeight ?? 0;
-      const top = freshRow.getBoundingClientRect().top + window.scrollY - headerH - 8;
-      window.scrollTo({ top, behavior: 'smooth' });
+      freshRow.style.scrollMarginTop = (headerH + 8) + 'px';
+      freshRow.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
     const section = document.getElementById('sugg-section-' + key);
     if (section) {
