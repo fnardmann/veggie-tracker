@@ -212,7 +212,7 @@ const TRANSLATIONS = {
   },
 
   de: {
-    title:                      'Pflanzen-Tracker',
+    title:                      'Veggie-Tracker',
     subtitle:                   '30 verschiedene Pflanzen pro Woche essen',
     tab_overview:               'Übersicht',
     tab_gallery:                'Galerie',
