@@ -2,7 +2,7 @@
 
 **Eat 30 different plants every week.** A free, offline-capable PWA to track your plant diversity, monitor nutrition gaps, and build healthy streaks.
 
-🌐 **[Try it live →](https://fnardmann.github.io/veggie-tracker/)**
+🌐 **[Try it live →](https://veggie-tracker-30.vercel.app/)**
 
 ---
 
@@ -20,7 +20,7 @@
 
 ## Install
 
-Open [fnardmann.github.io/veggie-tracker](https://fnardmann.github.io/veggie-tracker/) in your browser and tap **"Add to Home Screen"** (iOS Safari / Android Chrome) to install it as an app.
+Open [fnardmann.github.io/veggie-tracker](https://veggie-tracker-30.vercel.app/) in your browser and tap **"Add to Home Screen"** (iOS Safari / Android Chrome) to install it as an app.
 
 ## The science behind 30 plants
 
