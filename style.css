@@ -1168,6 +1168,48 @@ main {
 .portion-static--custom { color: var(--c-main); }
 .settings-portions-empty { font-size: .82rem; color: var(--c-text3); margin-top: 12px; padding: 0; }
 
+/* ── Food database lookup ─────────────────────────────────────────────────── */
+.food-db-search { margin-bottom: 12px; }
+#foodDbList { display: flex; flex-direction: column; gap: 4px; }
+.food-db-row {
+  border: 1px solid var(--c-pale);
+  border-radius: var(--radius-s);
+  background: var(--c-bg);
+  transition: border-color .15s;
+}
+.food-db-row--open { border-color: var(--c-main); }
+.food-db-row-main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  cursor: pointer;
+  user-select: none;
+}
+.food-db-row-main:hover { background: var(--c-pale); }
+.food-db-name { flex: 1; font-size: .92rem; color: var(--c-text); font-weight: 500; }
+.food-db-portion { font-size: .78rem; color: var(--c-text3); }
+.food-db-chevron { font-size: .9rem; color: var(--c-text3); width: 14px; text-align: center; }
+.food-db-detail { padding: 4px 14px 14px; border-top: 1px solid var(--c-pale); }
+.food-db-portion-note { font-size: .78rem; color: var(--c-text3); margin: 8px 0 10px; }
+.food-db-nut-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 6px 18px;
+}
+.food-db-nut-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 4px 0;
+  font-size: .82rem;
+  border-bottom: 1px dashed var(--c-pale);
+}
+.food-db-nut-label { flex: 1; color: var(--c-text2); }
+.food-db-nut-val { color: var(--c-text); font-weight: 600; }
+.food-db-pct { font-size: .72rem; color: var(--c-text3); min-width: 64px; text-align: right; }
+.food-db-more-hint { font-size: .78rem; color: var(--c-text3); text-align: center; margin: 10px 0 0; }
+
 /* ── Confetti celebration ──────────────────────────────────────────────────── */
 .confetti-toast {
   position: fixed;

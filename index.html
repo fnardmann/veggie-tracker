@@ -369,6 +369,18 @@
         <div id="nutritionTable"><p class="empty" data-i18n="empty_log_nutrition">Log foods to see nutrition data.</p></div>
       </section>
 
+      <!-- Food database: look up any food's nutrients -->
+      <section class="card">
+        <div class="nutrition-header">
+          <h2 data-i18n="food_db_heading">Food Database</h2>
+          <span class="nutrition-note" data-i18n="food_db_note">search any food · shows all nutrients per typical portion</span>
+        </div>
+        <div class="food-db-search">
+          <input type="search" id="foodDbFilter" class="portion-filter-input" data-i18n-placeholder="food_db_search_placeholder" placeholder="Search foods…">
+        </div>
+        <div id="foodDbList"></div>
+      </section>
+
     </div>
   </main>
 

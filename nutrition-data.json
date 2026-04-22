@@ -3595,5 +3595,113 @@
   "white tea": {
     "g": 200, "fibre": 0, "b2": 0.02, "b3": 0.04, "b9": 14, "vitk": 22,
     "iron": 0.1, "calcium": 3, "magnesium": 4, "potassium": 40, "zinc": 0.0
+  },
+  "oats": {
+    "g": 40, "fibre": 10.6, "vita": 0, "b1": 0.76, "b2": 0.14, "b3": 0.96,
+    "b5": 1.35, "b6": 0.12, "b9": 56, "vitc": 0, "vitd": 0, "vite": 0.42,
+    "vitk": 2, "iron": 4.7, "calcium": 54, "magnesium": 177,
+    "potassium": 429, "zinc": 4.0, "selenium": 34
+  },
+  "quinoa": {
+    "g": 60, "fibre": 7.0, "vita": 1, "b1": 0.36, "b2": 0.32, "b3": 1.52,
+    "b5": 0.77, "b6": 0.49, "b9": 184, "vitc": 0, "vitd": 0, "vite": 2.44,
+    "vitk": 0, "iron": 4.57, "calcium": 47, "magnesium": 197,
+    "potassium": 563, "zinc": 3.1, "selenium": 8.5
+  },
+  "brown rice": {
+    "g": 75, "fibre": 3.5, "vita": 0, "b1": 0.40, "b2": 0.09, "b3": 5.1,
+    "b5": 1.49, "b6": 0.51, "b9": 20, "vitc": 0, "vitd": 0, "vite": 1.2,
+    "vitk": 1.9, "iron": 1.5, "calcium": 23, "magnesium": 143,
+    "potassium": 223, "zinc": 2.0, "selenium": 23
+  },
+  "barley": {
+    "g": 75, "fibre": 15.6, "vita": 1, "b1": 0.19, "b2": 0.11, "b3": 4.6,
+    "b5": 0.28, "b6": 0.26, "b9": 23, "vitc": 0, "vitd": 0, "vite": 0.02,
+    "vitk": 2.2, "iron": 2.5, "calcium": 29, "magnesium": 79,
+    "potassium": 280, "zinc": 2.1, "selenium": 37
+  },
+  "rye": {
+    "g": 50, "fibre": 15.1, "vita": 0, "b1": 0.32, "b2": 0.25, "b3": 4.3,
+    "b5": 1.45, "b6": 0.29, "b9": 60, "vitc": 0, "vitd": 0, "vite": 0.85,
+    "vitk": 5.9, "iron": 2.6, "calcium": 24, "magnesium": 110,
+    "potassium": 510, "zinc": 2.6, "selenium": 13.9
+  },
+  "buckwheat": {
+    "g": 60, "fibre": 10.0, "vita": 0, "b1": 0.10, "b2": 0.43, "b3": 7.0,
+    "b5": 1.23, "b6": 0.21, "b9": 30, "vitc": 0, "vitd": 0, "vite": 0.32,
+    "vitk": 7, "iron": 2.2, "calcium": 18, "magnesium": 231,
+    "potassium": 460, "zinc": 2.4, "selenium": 8.3
+  },
+  "millet": {
+    "g": 60, "fibre": 8.5, "vita": 0, "b1": 0.42, "b2": 0.29, "b3": 4.7,
+    "b5": 0.85, "b6": 0.38, "b9": 85, "vitc": 0, "vitd": 0, "vite": 0.05,
+    "vitk": 0.9, "iron": 3.0, "calcium": 8, "magnesium": 114,
+    "potassium": 195, "zinc": 1.7, "selenium": 2.7
+  },
+  "spelt": {
+    "g": 75, "fibre": 10.7, "vita": 0, "b1": 0.36, "b2": 0.11, "b3": 6.8,
+    "b5": 1.07, "b6": 0.23, "b9": 45, "vitc": 0, "vitd": 0, "vite": 0.79,
+    "vitk": 3.6, "iron": 4.4, "calcium": 27, "magnesium": 136,
+    "potassium": 388, "zinc": 3.3, "selenium": 11.7
+  },
+  "amaranth": {
+    "g": 50, "fibre": 6.7, "vita": 0, "b1": 0.12, "b2": 0.20, "b3": 0.92,
+    "b5": 1.46, "b6": 0.59, "b9": 82, "vitc": 4.2, "vitd": 0, "vite": 1.19,
+    "vitk": 0, "iron": 7.6, "calcium": 159, "magnesium": 248,
+    "potassium": 508, "zinc": 2.87, "selenium": 18.7
+  },
+  "teff": {
+    "g": 50, "fibre": 8.0, "vita": 0, "b1": 0.39, "b2": 0.27, "b3": 3.4,
+    "b5": 0.94, "b6": 0.48, "b9": 12, "vitc": 0, "vitd": 0, "vite": 0.08,
+    "vitk": 1.9, "iron": 7.6, "calcium": 180, "magnesium": 184,
+    "potassium": 427, "zinc": 3.6, "selenium": 4.1
+  },
+  "sorghum": {
+    "g": 60, "fibre": 6.7, "vita": 0, "b1": 0.33, "b2": 0.10, "b3": 3.7,
+    "b5": 0.37, "b6": 0.44, "b9": 20, "vitc": 0, "vitd": 0, "vite": 0.5,
+    "vitk": 0, "iron": 3.4, "calcium": 13, "magnesium": 165,
+    "potassium": 363, "zinc": 1.7, "selenium": 12
+  },
+  "farro": {
+    "g": 75, "fibre": 11.0, "vita": 0, "b1": 0.40, "b2": 0.20, "b3": 5.6,
+    "b5": 0.90, "b6": 0.23, "b9": 40, "vitc": 0, "vitd": 0, "vite": 0.80,
+    "vitk": 3.5, "iron": 3.3, "calcium": 30, "magnesium": 140,
+    "potassium": 380, "zinc": 3.0, "selenium": 10
+  },
+  "wild rice": {
+    "g": 75, "fibre": 6.2, "vita": 1, "b1": 0.12, "b2": 0.26, "b3": 6.7,
+    "b5": 1.07, "b6": 0.39, "b9": 95, "vitc": 0, "vitd": 0, "vite": 0.85,
+    "vitk": 1.9, "iron": 1.9, "calcium": 21, "magnesium": 177,
+    "potassium": 427, "zinc": 5.96, "selenium": 2.8
+  },
+  "bulgur": {
+    "g": 60, "fibre": 18.3, "vita": 0, "b1": 0.23, "b2": 0.12, "b3": 5.1,
+    "b5": 1.04, "b6": 0.34, "b9": 27, "vitc": 0, "vitd": 0, "vite": 0.06,
+    "vitk": 1.9, "iron": 2.5, "calcium": 35, "magnesium": 164,
+    "potassium": 410, "zinc": 1.9, "selenium": 2.3
+  },
+  "freekeh": {
+    "g": 60, "fibre": 13.3, "vita": 0, "b1": 0.35, "b2": 0.12, "b3": 5.5,
+    "b5": 0.90, "b6": 0.28, "b9": 38, "vitc": 0, "vitd": 0, "vite": 0.50,
+    "vitk": 2, "iron": 3.9, "calcium": 38, "magnesium": 126,
+    "potassium": 370, "zinc": 3.5, "selenium": 9.0
+  },
+  "kamut": {
+    "g": 75, "fibre": 11.1, "vita": 0, "b1": 0.48, "b2": 0.12, "b3": 6.38,
+    "b5": 0.64, "b6": 0.26, "b9": 52, "vitc": 0, "vitd": 0, "vite": 0.61,
+    "vitk": 1.9, "iron": 3.77, "calcium": 22, "magnesium": 130,
+    "potassium": 403, "zinc": 3.68, "selenium": 81.5
+  },
+  "einkorn": {
+    "g": 60, "fibre": 11.0, "vita": 0, "b1": 0.50, "b2": 0.30, "b3": 5.5,
+    "b5": 0.70, "b6": 0.21, "b9": 45, "vitc": 0, "vitd": 0, "vite": 0.90,
+    "vitk": 1.9, "iron": 3.8, "calcium": 36, "magnesium": 120,
+    "potassium": 395, "zinc": 3.8, "selenium": 11.0
+  },
+  "cumin": {
+    "g": 2, "fibre": 10.5, "vita": 64, "b1": 0.63, "b2": 0.33, "b3": 4.58,
+    "b5": 0.50, "b6": 0.44, "b9": 10, "vitc": 7.7, "vitd": 0, "vite": 3.33,
+    "vitk": 5.4, "iron": 66.4, "calcium": 931, "magnesium": 366,
+    "potassium": 1788, "zinc": 4.8, "selenium": 5.2
   }
 }

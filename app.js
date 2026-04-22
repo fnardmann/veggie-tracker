@@ -696,6 +696,7 @@ async function renderNutritionTab(quiet = false) {
     document.getElementById('nutritionTotals').innerHTML = empty;
     document.getElementById('nutritionDGE').innerHTML = `<p class="empty">${t('empty_log_sources')}</p>`;
     document.getElementById('nutritionSuggestions').innerHTML = `<p class="empty">${t('empty_log_suggestions')}</p>`;
+    renderFoodDatabase();
     return;
   }
 
@@ -916,6 +917,8 @@ async function renderNutritionTab(quiet = false) {
   _lastSuggTotals = totals;
   _lastSuggFoods = uniqueFoods;
   renderNutrientSuggestions(totals, uniqueFoods);
+
+  renderFoodDatabase();
 
   await renderNutrientTrend();
 }
@@ -2398,6 +2401,86 @@ function renderPortionSettings() {
   });
 }
 
+// ── Food database lookup ─────────────────────────────────────────────────────
+
+let _foodDbOpen = new Set();
+
+function renderFoodDatabase() {
+  const list = document.getElementById('foodDbList');
+  if (!list) return;
+  const filterEl = document.getElementById('foodDbFilter');
+  const filter = filterEl ? filterEl.value.trim().toLowerCase() : '';
+
+  const portions = getPortions();
+  const allFoods = FOODS.map(f => f.toLowerCase())
+    .sort((a, b) => tFood(toTitleCase(a)).localeCompare(tFood(toTitleCase(b)), getLang()));
+
+  const foods = filter
+    ? allFoods.filter(f => tFood(toTitleCase(f)).toLowerCase().includes(filter) || f.includes(filter))
+    : allFoods;
+
+  if (!foods.length) {
+    list.innerHTML = `<p class="empty">${t('food_db_no_match')}</p>`;
+    return;
+  }
+
+  const MAX_VISIBLE = filter ? 30 : 15;
+  const visible = foods.slice(0, MAX_VISIBLE);
+  const hidden = foods.length - visible.length;
+
+  list.innerHTML = visible.map(food => {
+    const data = NUTRITION_DATA[food];
+    const defaultG = data?.g ?? 100;
+    const portionG = portions[food] ?? defaultG;
+    const isOpen = _foodDbOpen.has(food);
+    const displayName = tFood(toTitleCase(food));
+
+    let detailHtml = '';
+    if (isOpen) {
+      if (!data) {
+        detailHtml = `<div class="food-db-detail"><p class="empty">${t('food_db_no_data')}</p></div>`;
+      } else {
+        const factor = portionG / 100;
+        const rows = NUTRIENT_DEFS.map(({ key, unit }) => {
+          const per100 = data[key];
+          if (per100 == null) return '';
+          const amount = +(per100 * factor).toFixed(1);
+          const dailyRef = NUTRIENT_WEEKLY_REF[key] ? NUTRIENT_WEEKLY_REF[key] / 7 : null;
+          const pct = dailyRef ? Math.round(amount / dailyRef * 100) : null;
+          const pctStr = pct != null ? `<span class="food-db-pct">${pct}% / Tag</span>` : '';
+          return `<div class="food-db-nut-row">
+            <span class="food-db-nut-label">${esc(t('nutrient_' + key))}</span>
+            <span class="food-db-nut-val">${fmtVal(amount)} ${esc(unit)}</span>
+            ${pctStr}
+          </div>`;
+        }).join('');
+        detailHtml = `<div class="food-db-detail">
+          <p class="food-db-portion-note">${t('food_db_portion_label')}: <strong>${portionG} g</strong></p>
+          <div class="food-db-nut-list">${rows}</div>
+        </div>`;
+      }
+    }
+
+    return `<div class="food-db-row${isOpen ? ' food-db-row--open' : ''}" data-food="${esc(food)}">
+      <div class="food-db-row-main">
+        <span class="food-db-name">${esc(displayName)}</span>
+        <span class="food-db-portion">${portionG} g</span>
+        <span class="food-db-chevron">${isOpen ? '▾' : '▸'}</span>
+      </div>
+      ${detailHtml}
+    </div>`;
+  }).join('') + (hidden > 0 ? `<p class="food-db-more-hint">${t('food_db_more_results', { n: hidden })}</p>` : '');
+
+  list.querySelectorAll('.food-db-row-main').forEach(row => {
+    row.addEventListener('click', () => {
+      const food = row.parentElement.dataset.food;
+      if (_foodDbOpen.has(food)) _foodDbOpen.delete(food);
+      else _foodDbOpen.add(food);
+      renderFoodDatabase();
+    });
+  });
+}
+
 // ── Celebrations ─────────────────────────────────────────────────────────────
 
 function launchConfetti(type) {
@@ -2667,6 +2750,9 @@ async function init() {
   // Settings: portion filter
   document.getElementById('portionFilter').addEventListener('input', renderPortionSettings);
   renderPortionSettings();
+
+  // Nutrition tab: food database
+  document.getElementById('foodDbFilter').addEventListener('input', renderFoodDatabase);
 
   // Settings: emoji style
   const emojiStyleSelect = document.getElementById('emojiStyleSelect');
