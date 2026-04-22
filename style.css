@@ -409,6 +409,8 @@ main {
 }
 .vs-row--warm .vs-streak { color: var(--c-main); }
 .vs-row--hot .vs-streak { color: #bf5a20; font-size: .82rem; }
+.vs-streak--inactive { color: var(--c-text3); filter: grayscale(1) opacity(0.55); }
+.vs-row--inactive .vs-streak { color: var(--c-text3); }
 .vs-chevron {
   font-size: 1rem;
   color: var(--c-text3);

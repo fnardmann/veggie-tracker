@@ -167,11 +167,6 @@ function fmtWeekRange(weekStart) {
   return `${fmtDate(weekStart)}–${fmtDate(addDays(weekStart, 6))}`;
 }
 
-function fmtMonthKey(mk) {
-  const [y, m] = mk.split('-').map(Number);
-  return new Date(y, m - 1, 1).toLocaleDateString(dateLocale(), { month: 'short', year: '2-digit' });
-}
-
 // ── Analytics ─────────────────────────────────────────────────────────────────
 
 function uniqueVeggies(entries) {
@@ -208,17 +203,6 @@ function weeklyChartData(weeks = 12) {
     const we = addDays(ws, 6);
     const count = uniqueVeggies(entriesInRange(entries, ws, we)).length;
     return { label: fmtWeekRange(ws), count, metGoal: count >= getGoal() };
-  });
-}
-
-function monthlyChartData(months = 12) {
-  const { entries } = getData();
-  const now = new Date();
-  return Array.from({ length: months }, (_, i) => {
-    const d = new Date(now.getFullYear(), now.getMonth() - (months - 1 - i), 1);
-    const mk = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-    const count = uniqueVeggies(entries.filter(e => e.date.startsWith(mk))).length;
-    return { label: fmtMonthKey(mk), count };
   });
 }
 
@@ -273,12 +257,14 @@ function veggieStreaks() {
   return [...map.values()].map(({ name, dates }) => {
     const last = [...dates].sort().reverse()[0];
     let streak = 0;
-    // Streak is active only if the vegetable was eaten today or yesterday
+    // Streak is counted if the vegetable was eaten today or yesterday;
+    // flame is "active" only when eaten today (otherwise it's at risk)
     if (last === today || last === yesterday) {
       let d = last;
       while (dates.has(d)) { streak++; d = addDays(d, -1); }
     }
-    return { name, streak, last, total: dates.size };
+    const active = last === today;
+    return { name, streak, last, total: dates.size, active };
   }).sort((a, b) => b.streak - a.streak || b.total - a.total || a.name.localeCompare(b.name));
 }
 
@@ -372,33 +358,6 @@ function renderWeeklyChart() {
           grid: { color: '#f0f5f2' },
         },
         x: { grid: { display: false }, ticks: { font: { size: 9 }, maxRotation: 45 } },
-      },
-    },
-  });
-}
-
-function renderMonthlyChart() {
-  const data = monthlyChartData(12);
-  mkChart('monthlyChart', {
-    type: 'bar',
-    data: {
-      labels: data.map(d => d.label),
-      datasets: [{
-        data: data.map(d => d.count),
-        backgroundColor: data.map(d => d.count >= getGoal() ? C.main : C.light),
-        borderColor: data.map(d => d.count >= getGoal() ? C.dark : C.main),
-        borderWidth: 1,
-        borderRadius: 4,
-        label: t('chart_unique'),
-      }],
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
-      scales: {
-        y: { beginAtZero: true, grid: { color: '#f0f5f2' } },
-        x: { grid: { display: false } },
       },
     },
   });
@@ -541,15 +500,16 @@ function renderStreaks() {
   const tier = n => n >= 7 ? 'hot' : n >= 3 ? 'warm' : '';
 
   container.innerHTML = streaks.map(s => {
-    const t_ = tier(s.streak);
+    const t_ = s.active ? tier(s.streak) : '';
     const streakLabel = `🔥 ${t(s.streak === 1 ? 'streak_day' : 'streak_days', { n: s.streak })}`;
+    const streakCls = s.active ? 'vs-streak' : 'vs-streak vs-streak--inactive';
     return `
-      <div class="vs-row${t_ ? ' vs-row--' + t_ : ''}" data-food="${esc(s.name)}">
+      <div class="vs-row${t_ ? ' vs-row--' + t_ : ''}${s.active ? '' : ' vs-row--inactive'}" data-food="${esc(s.name)}">
         <div class="vs-row-main">
           <span class="vs-name">${esc(tFood(s.name))}</span>
           <span class="vs-meta">
             <span class="vs-total">${s.total} ${t('col_total').toLowerCase()}</span>
-            <span class="vs-streak">${streakLabel}</span>
+            <span class="${streakCls}">${streakLabel}</span>
           </span>
           <span class="vs-chevron">›</span>
         </div>
@@ -687,6 +647,10 @@ function fmtVal(val) {
   return String(+val.toFixed(1));
 }
 
+function portionUnit(food) {
+  return NUTRITION_DATA[food.toLowerCase()]?.unit ?? 'g';
+}
+
 async function renderNutritionTab(quiet = false) {
   const entries = thisWeekEntries();
   const empty = `<p class="empty">${t('empty_log_nutrition')}</p>`;
@@ -756,13 +720,14 @@ async function renderNutritionTab(quiet = false) {
       if (!n || n[key] == null) return '<td class="n-na">—</td>';
       return `<td>${fmtVal(n[key])}</td>`;
     }).join('');
+    const unit = portionUnit(vegetable);
     const portionHtml = advancedPortions
       ? `<label class="portion-wrap${isCustom ? ' portion-wrap--custom' : ''}">
           <input type="number" class="portion-input" data-food="${esc(vegetable)}" data-default="${defaultG}" value="${portionG}" min="1" max="9999">
-          <span class="portion-unit">g</span>
+          <span class="portion-unit">${unit}</span>
           ${isCustom ? `<button class="portion-reset" data-food="${esc(vegetable)}" title="Reset to default">↺</button>` : ''}
         </label>`
-      : `<span class="portion-static${isCustom ? ' portion-static--custom' : ''}">${portionG}g</span>`;
+      : `<span class="portion-static${isCustom ? ' portion-static--custom' : ''}">${portionG}${unit}</span>`;
     return `<tr>
       <td class="n-veggie">
         ${esc(tFood(vegetable))}${timesLabel}
@@ -2284,7 +2249,6 @@ function renderAll() {
   renderQuickAdd();
   renderDailyChart();
   renderWeeklyChart();
-  renderMonthlyChart();
   renderHeatmap();
   renderStreaks();
   renderHistory();
@@ -2366,7 +2330,7 @@ function renderPortionSettings() {
       <span class="portion-setting-name${isCustom ? ' portion-setting-name--custom' : ''}">${esc(tFood(displayName))}</span>
       <label class="portion-wrap${isCustom ? ' portion-wrap--custom' : ''}">
         <input type="number" class="settings-portion-input" data-food="${esc(food)}" data-default="${defaultG}" value="${currentG}" min="1" max="9999">
-        <span class="portion-unit">g</span>
+        <span class="portion-unit">${portionUnit(food)}</span>
         ${isCustom ? `<button class="settings-portion-reset" data-food="${esc(food)}" title="${t('btn_reset')}">↺</button>` : ''}
       </label>
     </div>`;
@@ -2455,7 +2419,7 @@ function renderFoodDatabase() {
           </div>`;
         }).join('');
         detailHtml = `<div class="food-db-detail">
-          <p class="food-db-portion-note">${t('food_db_portion_label')}: <strong>${portionG} g</strong></p>
+          <p class="food-db-portion-note">${t('food_db_portion_label')}: <strong>${portionG} ${portionUnit(food)}</strong></p>
           <div class="food-db-nut-list">${rows}</div>
         </div>`;
       }
@@ -2464,7 +2428,7 @@ function renderFoodDatabase() {
     return `<div class="food-db-row${isOpen ? ' food-db-row--open' : ''}" data-food="${esc(food)}">
       <div class="food-db-row-main">
         <span class="food-db-name">${esc(displayName)}</span>
-        <span class="food-db-portion">${portionG} g</span>
+        <span class="food-db-portion">${portionG} ${portionUnit(food)}</span>
         <span class="food-db-chevron">${isOpen ? '▾' : '▸'}</span>
       </div>
       ${detailHtml}

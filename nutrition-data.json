@@ -3456,8 +3456,8 @@
     "calcium": 9, "magnesium": 3, "potassium": 27, "zinc": 0.02
   },
   "black tea": {
-    "g": 200, "fibre": 0, "b2": 0.02, "b3": 0.8, "b9": 0, "vitk": 0,
-    "iron": 0.2, "calcium": 4, "magnesium": 6, "potassium": 88, "zinc": 0.0
+    "g": 200, "unit": "ml", "fibre": 0, "b2": 0.014, "b3": 0, "b9": 5, "vitk": 0,
+    "iron": 0.02, "calcium": 0, "magnesium": 3, "potassium": 37, "zinc": 0.02
   },
   "cacao nibs": {
     "g": 20, "fibre": 6.6, "b1": 0.05, "b2": 0.04, "b3": 1.0, "b5": 0.49,
@@ -3480,8 +3480,8 @@
     "calcium": 3, "magnesium": 3, "potassium": 40, "zinc": 0.05
   },
   "chamomile": {
-    "g": 200, "fibre": 0, "b1": 0.0, "b2": 0.0, "b3": 0.0,
-    "vitc": 0, "iron": 0.2, "calcium": 4, "magnesium": 3, "potassium": 25
+    "g": 200, "unit": "ml", "fibre": 0, "b1": 0, "b2": 0, "b3": 0,
+    "vitc": 0, "iron": 0.08, "calcium": 2, "magnesium": 1, "potassium": 9
   },
   "chili powder": {
     "g": 3, "fibre": 0.8, "b1": 0.30, "b2": 0.55, "b3": 9.12, "b5": 1.44,
@@ -3499,9 +3499,9 @@
     "calcium": 13, "magnesium": 5, "potassium": 20, "zinc": 0.05
   },
   "coffee": {
-    "g": 200, "fibre": 0, "b2": 0.36, "b3": 0.52, "b5": 0.28,
-    "vitc": 0, "iron": 0.1, "calcium": 4, "magnesium": 6,
-    "potassium": 232, "zinc": 0.0
+    "g": 200, "unit": "ml", "fibre": 0, "b2": 0.076, "b3": 0.191, "b5": 0.254,
+    "vitc": 0, "iron": 0.01, "calcium": 2, "magnesium": 3,
+    "potassium": 49, "zinc": 0.04
   },
   "coriander seeds": {
     "g": 3, "fibre": 1.3, "b1": 0.24, "b2": 0.29, "b3": 2.13, "b5": 0.57,
@@ -3524,12 +3524,12 @@
     "potassium": 23, "zinc": 0.07
   },
   "ginger tea": {
-    "g": 200, "fibre": 0, "b6": 0.02, "vitc": 0.4, "iron": 0.1,
-    "calcium": 2, "magnesium": 4, "potassium": 20
+    "g": 200, "unit": "ml", "fibre": 0, "b6": 0.01, "vitc": 0.2, "iron": 0.05,
+    "calcium": 1, "magnesium": 2, "potassium": 10
   },
   "green tea": {
-    "g": 200, "fibre": 0, "b2": 0.02, "b3": 0.06, "b9": 20, "vitk": 36,
-    "iron": 0.2, "calcium": 4, "magnesium": 6, "potassium": 54, "zinc": 0.0
+    "g": 200, "unit": "ml", "fibre": 0, "vitc": 0.3, "b2": 0.058, "b3": 0.03, "b9": 5, "vitk": 0,
+    "iron": 0.02, "calcium": 0, "magnesium": 1, "potassium": 8, "zinc": 0.01
   },
   "kimchi": {
     "g": 80, "fibre": 1.3, "b1": 0.03, "b2": 0.06, "b3": 0.5, "b6": 0.15,
@@ -3537,8 +3537,8 @@
     "magnesium": 11, "potassium": 178, "zinc": 0.24
   },
   "kombucha": {
-    "g": 250, "fibre": 0, "b1": 0.0, "b2": 0.10, "b3": 0.25,
-    "vitc": 0, "iron": 0.1, "calcium": 8, "magnesium": 5, "potassium": 40
+    "g": 250, "unit": "ml", "fibre": 0, "b1": 0.01, "b2": 0.05, "b3": 0.13,
+    "vitc": 0, "iron": 0.04, "calcium": 3, "magnesium": 2, "potassium": 16
   },
   "matcha": {
     "g": 2, "fibre": 0.7, "b1": 0.68, "b2": 2.59, "b3": 4.63, "b5": 0.22,
@@ -3567,16 +3567,16 @@
     "calcium": 7, "magnesium": 5, "potassium": 70, "zinc": 0.13
   },
   "peppermint tea": {
-    "g": 200, "fibre": 0, "b2": 0.0, "b3": 0.08, "vitc": 0.6,
-    "iron": 0.4, "calcium": 4, "magnesium": 5, "potassium": 30
+    "g": 200, "unit": "ml", "fibre": 0, "b2": 0, "b3": 0, "vitc": 0.3,
+    "iron": 0.13, "calcium": 2, "magnesium": 2, "potassium": 16
   },
   "psyllium husk": {
     "g": 7, "fibre": 4.8, "b1": 0.0, "iron": 0.04, "calcium": 2,
     "magnesium": 10, "potassium": 13, "zinc": 0.02
   },
   "rooibos": {
-    "g": 200, "fibre": 0, "vitc": 0, "iron": 0.2, "calcium": 2,
-    "magnesium": 2, "potassium": 20, "zinc": 0.04
+    "g": 200, "unit": "ml", "fibre": 0, "vitc": 0, "iron": 0.04, "calcium": 1,
+    "magnesium": 1, "potassium": 10, "zinc": 0.01
   },
   "sauerkraut": {
     "g": 80, "fibre": 2.3, "b1": 0.02, "b2": 0.02, "b3": 0.14, "b6": 0.13,
@@ -3593,8 +3593,8 @@
     "calcium": 5, "magnesium": 6, "potassium": 76, "zinc": 0.13
   },
   "white tea": {
-    "g": 200, "fibre": 0, "b2": 0.02, "b3": 0.04, "b9": 14, "vitk": 22,
-    "iron": 0.1, "calcium": 3, "magnesium": 4, "potassium": 40, "zinc": 0.0
+    "g": 200, "unit": "ml", "fibre": 0, "b2": 0.04, "b3": 0.02, "b9": 5, "vitk": 0,
+    "iron": 0.02, "calcium": 0, "magnesium": 1, "potassium": 8, "zinc": 0.01
   },
   "oats": {
     "g": 40, "fibre": 10.6, "vita": 0, "b1": 0.76, "b2": 0.14, "b3": 0.96,

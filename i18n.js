@@ -23,7 +23,6 @@ const TRANSLATIONS = {
     // Chart headings
     daily_heading:              'Daily — last 14 days',
     weekly_heading:             'Weekly — last 12 weeks',
-    monthly_heading:            'Monthly — last 12 months',
     activity_heading:           'Activity — last 12 months',
     daily_cards_heading:        'Daily Cards',
     daily_cards_note:           'tap ↓ to save as image · last 5 days',
@@ -236,7 +235,6 @@ const TRANSLATIONS = {
     today:                      'Heute',
     daily_heading:              'Täglich — letzte 14 Tage',
     weekly_heading:             'Wöchentlich — letzte 12 Wochen',
-    monthly_heading:            'Monatlich — letzte 12 Monate',
     activity_heading:           'Aktivität — letzte 12 Monate',
     daily_cards_heading:        'Tageskarten',
     daily_cards_note:           '↓ zum Speichern · letzte 5 Tage',
