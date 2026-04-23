@@ -1,0 +1,912 @@
+'use strict';
+
+// Nutrition tab: per-food table, weekly totals progress bars, top sources,
+// gap-based plant & animal suggestions, nutrient trend chart, plus the
+// portion-settings and food-database panels that share the same nutrient
+// lookups.
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+function fmtVal(val) {
+  if (val == null) return '—';
+  return String(+val.toFixed(1));
+}
+
+function portionUnit(food) {
+  return NUTRITION_DATA[food.toLowerCase()]?.unit ?? 'g';
+}
+
+// ── Animal foods ──────────────────────────────────────────────────────────────
+// Nutrient amounts are per listed portion (not per 100g).
+
+const ANIMAL_FOODS = [
+  { name: 'Eggs',           portion: '1 medium (60 g)',  nutrients: { b2: 0.27, vitd: 1.7, selenium: 15, zinc: 0.65, b12: 1.2, b5: 0.95, vita: 80, b6: 0.09 } },
+  { name: 'Salmon',         portion: '150 g fillet',     nutrients: { vitd: 11,  b12: 4.2, b3: 12,  selenium: 43, b2: 0.5,  b6: 1.2, b5: 2.0 } },
+  { name: 'Sardines',       portion: '90 g (tin)',        nutrients: { vitd: 4.8, b12: 3.5, calcium: 350, selenium: 30, b3: 5.4, b2: 0.22 } },
+  { name: 'Mackerel',       portion: '150 g fillet',     nutrients: { vitd: 6.3, b12: 5.4, selenium: 53, b2: 0.5, b3: 9.0, b6: 0.7 } },
+  { name: 'Chicken Liver',  portion: '75 g',             nutrients: { vita: 6400, b12: 18, b9: 600, b2: 1.3, iron: 7.5, zinc: 3.0, selenium: 35 } },
+  { name: 'Oysters',        portion: '6 medium (85 g)',  nutrients: { zinc: 39, b12: 16, selenium: 55, iron: 4.6, vitd: 3.2 } },
+  { name: 'Full-fat Yogurt',portion: '150 g',            nutrients: { calcium: 240, b12: 0.9, b2: 0.27, zinc: 0.9 } },
+  { name: 'Cheddar',        portion: '30 g',             nutrients: { calcium: 218, b12: 0.5, b2: 0.15, zinc: 0.9 } },
+  { name: 'Milk',           portion: '200 ml',           nutrients: { calcium: 240, b12: 0.9, vitd: 1.6, b2: 0.22 } },
+];
+
+// ── Seasonal calendar ────────────────────────────────────────────────────────
+// Seasonal availability by food (lowercase) → months in season (1=Jan…12=Dec)
+// Reference: Germany (de). AT/CH reuse DE; UK has minor overrides.
+const SEASONAL_CALENDAR = {
+  de: {
+    'asparagus':                 [4,5,6],
+    'green asparagus':           [4,5,6],
+    'purple sprouting broccoli': [2,3,4],
+    'broccoli':                  [5,6,7,8,9,10,11],
+    'tenderstem broccoli':       [6,7,8,9,10,11],
+    'cauliflower':               [6,7,8,9,10,11],
+    'cabbage':                   [9,10,11,12,1,2,3],
+    'red cabbage':               [10,11,12,1,2,3],
+    'savoy cabbage':             [10,11,12,1,2,3],
+    'white cabbage':             [10,11,12,1,2,3],
+    'kale':                      [11,12,1,2,3],
+    'brussels sprouts':          [10,11,12,1,2],
+    'spinach':                   [4,5,9,10,11],
+    'chard':                     [6,7,8,9,10],
+    'swiss chard':               [6,7,8,9,10],
+    'rocket':                    [4,5,6,7,8,9,10],
+    'arugula':                   [4,5,6,7,8,9,10],
+    'lettuce':                   [4,5,6,7,8,9,10],
+    'radish':                    [4,5,6,7,8,9,10],
+    'spring onion':              [4,5,6,7,8,9,10],
+    'leek':                      [9,10,11,12,1,2,3,4],
+    'peas':                      [5,6,7,8],
+    'broad beans':               [5,6,7,8],
+    'courgette':                 [6,7,8,9],
+    'zucchini':                  [6,7,8,9],
+    'cucumber':                  [6,7,8,9],
+    'tomato':                    [7,8,9],
+    'aubergine':                 [7,8,9],
+    'pepper':                    [7,8,9],
+    'fennel':                    [7,8,9,10],
+    'kohlrabi':                  [5,6,7,8,9,10],
+    'corn':                      [7,8,9,10],
+    'beetroot':                  [7,8,9,10,11],
+    'celery':                    [8,9,10],
+    'celeriac':                  [9,10,11,12,1,2,3],
+    'carrot':                    [8,9,10,11,12,1,2,3],
+    'parsnip':                   [10,11,12,1,2,3],
+    'turnip':                    [9,10,11],
+    'pumpkin':                   [9,10,11],
+    'squash':                    [9,10,11],
+    'butternut squash':          [9,10,11],
+    'rhubarb':                   [4,5,6],
+    'strawberry':                [5,6,7],
+    'gooseberry':                [6,7,8],
+    'cherry':                    [6,7,8],
+    'raspberry':                 [6,7,8,9],
+    'redcurrant':                [7,8],
+    'blueberry':                 [7,8,9],
+    'blackberry':                [8,9,10],
+    'apple':                     [8,9,10,11],
+    'pear':                      [8,9,10],
+    'plum':                      [7,8,9],
+  },
+};
+SEASONAL_CALENDAR.at = SEASONAL_CALENDAR.de;
+SEASONAL_CALENDAR.ch = SEASONAL_CALENDAR.de;
+SEASONAL_CALENDAR.uk = {
+  ...SEASONAL_CALENDAR.de,
+  'strawberry': [5,6,7,8],
+  'broad beans': [5,6,7],
+  'asparagus': [4,5,6],
+};
+
+// ── Plant groups ──────────────────────────────────────────────────────────────
+// Near-duplicate foods that get merged into one suggestion row (saves space and
+// avoids "you should eat 4 kinds of cabbage" situations).
+
+const PLANT_GROUPS = [
+  { label: 'Lentils',       members: ['lentils', 'green lentils', 'red lentils'] },
+  { label: 'Broccoli',      members: ['broccoli', 'tenderstem broccoli', 'purple sprouting broccoli'] },
+  { label: 'Cabbage',       members: ['cabbage', 'red cabbage', 'savoy cabbage', 'white cabbage'] },
+  { label: 'Mushrooms',     members: ['mushroom', 'oyster mushroom', 'portobello', 'shiitake'] },
+  { label: 'Beans',         members: ['black beans', 'butter beans', 'cannellini beans', 'kidney beans', 'pinto beans', 'mung beans', 'broad beans'] },
+  { label: 'Onion family',  members: ['onion', 'red onion', 'shallot', 'spring onion'] },
+  { label: 'Asparagus',     members: ['asparagus', 'green asparagus'] },
+  { label: 'Pak Choi',      members: ['pak choi', 'bok choy'] },
+  { label: 'Squash',        members: ['pumpkin', 'squash', 'butternut squash'] },
+  { label: 'Chard',         members: ['chard', 'swiss chard'] },
+  { label: 'Rocket',        members: ['rocket', 'arugula'] },
+  { label: 'Courgette',     members: ['courgette', 'zucchini'] },
+  { label: 'Flaxseeds',     members: ['flaxseeds', 'linseeds'] },
+  { label: 'Tea',           members: ['green tea', 'black tea', 'white tea', 'matcha'] },
+  { label: 'Coriander',     members: ['coriander', 'coriander seeds'] },
+];
+
+const _plantGroupMap = new Map(
+  PLANT_GROUPS.flatMap(g => g.members.map(m => [m, g]))
+);
+
+// ── Nutrition tab rendering ───────────────────────────────────────────────────
+
+let _suggExpanded = false;
+let _lastSuggTotals = null;
+let _lastSuggFoods = null;
+window._expandSugg = function () {
+  _suggExpanded = true;
+  renderNutritionTab(true);
+};
+
+async function renderNutritionTab(quiet = false) {
+  const entries = thisWeekEntries();
+  const animalWeekTotals = weeklyAnimalTotals();
+  const hasAnimal = Object.keys(animalWeekTotals).length > 0;
+  const empty = `<p class="empty">${t('empty_log_nutrition')}</p>`;
+
+  if (entries.length === 0 && !hasAnimal) {
+    document.getElementById('nutritionTable').innerHTML = empty;
+    document.getElementById('nutritionTotals').innerHTML = empty;
+    document.getElementById('nutritionDGE').innerHTML = `<p class="empty">${t('empty_log_sources')}</p>`;
+    document.getElementById('nutritionSuggestions').innerHTML = `<p class="empty">${t('empty_log_suggestions')}</p>`;
+    renderFoodDatabase();
+    return;
+  }
+
+  // Count occurrences per food (same food on multiple days counts multiple times)
+  const foodCounts = new Map();
+  for (const e of entries) {
+    const key = e.vegetable.toLowerCase();
+    if (!foodCounts.has(key)) foodCounts.set(key, { name: e.vegetable, count: 0 });
+    foodCounts.get(key).count++;
+  }
+
+  const uniqueFoods = [...foodCounts.values()].map(f => f.name)
+    .sort((a, b) => tFood(a).localeCompare(tFood(b), getLang()));
+
+  if (!quiet) {
+    _suggExpanded = false;
+    document.getElementById('nutritionTable').innerHTML = `<p class="empty">${t('fetching')}</p>`;
+    document.getElementById('nutritionTotals').innerHTML = `<p class="empty">${t('fetching')}</p>`;
+    document.getElementById('nutritionDGE').innerHTML = `<p class="empty">${t('fetching')}</p>`;
+    document.getElementById('nutritionSuggestions').innerHTML = `<p class="empty">${t('fetching')}</p>`;
+  }
+
+  const rawResults = uniqueFoods.length ? await fetchNutritionForAll(uniqueFoods) : [];
+
+  if (!rawResults.some(r => r.nutrition) && !hasAnimal) {
+    const noData = `<p class="empty">${t('no_nutrition_data')}</p>`;
+    document.getElementById('nutritionTable').innerHTML = noData;
+    document.getElementById('nutritionTotals').innerHTML = noData;
+    document.getElementById('nutritionDGE').innerHTML = noData;
+    document.getElementById('nutritionSuggestions').innerHTML = noData;
+    return;
+  }
+
+  // Apply custom portion sizes
+  const portions = getPortions();
+  const results = rawResults.map(({ vegetable, nutrition: n }) => {
+    if (!n) return { vegetable, nutrition: n };
+    const customG = portions[vegetable.toLowerCase()];
+    const nutrition = (customG && customG !== n.g) ? rescaleNutrition(n, customG) : n;
+    return { vegetable, nutrition };
+  });
+
+  // ── Per-food table ──
+  const headerCells = NUTRIENT_DEFS
+    .map(d => `<th>${esc(t('nutrient_' + d.key))}<br><small>${esc(d.unit)}</small></th>`)
+    .join('');
+
+  const advancedPortions = getAdvancedPortions();
+
+  const tableRows = results.map(({ vegetable, nutrition: n }) => {
+    const count = foodCounts.get(vegetable.toLowerCase())?.count ?? 1;
+    const timesLabel = count > 1 ? `<span class="n-portion">×${count}</span>` : '';
+    const portionG = n ? n.g : (rawResults.find(r => r.vegetable === vegetable)?.nutrition?.g ?? 100);
+    const defaultG = rawResults.find(r => r.vegetable === vegetable)?.nutrition?.g ?? 100;
+    const isCustom = portionG !== defaultG;
+    const cells = NUTRIENT_DEFS.map(({ key }) => {
+      if (!n || n[key] == null) return '<td class="n-na">—</td>';
+      return `<td>${fmtVal(n[key])}</td>`;
+    }).join('');
+    const unit = portionUnit(vegetable);
+    const portionHtml = advancedPortions
+      ? `<label class="portion-wrap${isCustom ? ' portion-wrap--custom' : ''}">
+          <input type="number" class="portion-input" data-food="${esc(vegetable)}" data-default="${defaultG}" value="${portionG}" min="1" max="9999">
+          <span class="portion-unit">${unit}</span>
+          ${isCustom ? `<button class="portion-reset" data-food="${esc(vegetable)}" title="Reset to default">↺</button>` : ''}
+        </label>`
+      : `<span class="portion-static${isCustom ? ' portion-static--custom' : ''}">${portionG}${unit}</span>`;
+    return `<tr>
+      <td class="n-veggie">
+        ${esc(tFood(vegetable))}${timesLabel}
+        ${portionHtml}
+      </td>${cells}</tr>`;
+  }).join('');
+
+  const tableEl = document.getElementById('nutritionTable');
+  tableEl.innerHTML = results.length
+    ? `
+    <div class="nutrition-scroll">
+      <table class="nutrition-table">
+        <thead><tr><th>${t('col_food')} <span class="n-portion">${t('col_portion')}</span></th>${headerCells}</tr></thead>
+        <tbody>${tableRows}</tbody>
+      </table>
+    </div>`
+    : `<p class="empty">${t('empty_log_nutrition')}</p>`;
+
+  if (advancedPortions) {
+    tableEl.querySelectorAll('.portion-input').forEach(input => {
+      input.addEventListener('change', () => {
+        const g = Math.max(1, Math.round(+input.value));
+        if (!isNaN(g)) {
+          setPortion(input.dataset.food, g);
+          renderNutritionTab(true);
+        }
+      });
+    });
+    tableEl.querySelectorAll('.portion-reset').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const p = getPortions();
+        delete p[btn.dataset.food.toLowerCase()];
+        localStorage.setItem(PORTION_KEY, JSON.stringify(p));
+        renderNutritionTab(true);
+      });
+    });
+  }
+
+  // ── Weekly totals (using custom-scaled results) ──
+  const totals = {};
+  for (const { key } of NUTRIENT_DEFS) totals[key] = null;
+
+  for (const { vegetable, nutrition: n } of results) {
+    if (!n) continue;
+    const count = foodCounts.get(vegetable.toLowerCase())?.count ?? 1;
+    for (const { key } of NUTRIENT_DEFS) {
+      if (n[key] != null) totals[key] = (totals[key] ?? 0) + n[key] * count;
+    }
+  }
+  // Animal contributions (weekly counts × per-portion nutrients)
+  for (const [foodName, count] of Object.entries(animalWeekTotals)) {
+    const food = ANIMAL_FOODS.find(f => f.name === foodName);
+    if (!food) continue;
+    for (const [key, amount] of Object.entries(food.nutrients)) {
+      totals[key] = (totals[key] ?? 0) + amount * count;
+    }
+  }
+  for (const key of Object.keys(totals)) {
+    if (totals[key] != null) totals[key] = +(totals[key].toFixed(1));
+  }
+
+  const dow = new Date().getDay(); // 0=Sun
+  const dayOfWeek = dow === 0 ? 7 : dow; // Mon=1 … Sun=7
+  const pacePct = (dayOfWeek / 7) * 100;
+
+  const progressRef = hasAnimal ? ANIMAL_WEEKLY_REF : NUTRIENT_WEEKLY_REF;
+  const progressRows = NUTRIENT_DEFS
+    .filter(({ key }) => progressRef[key])
+    .map(({ key, unit }) => {
+      const val = totals[key];
+      const ref = progressRef[key];
+      if (val == null) return '';
+      const pct = Math.min(1, val / ref);
+      const pctDisplay = Math.round(pct * 100);
+      const pace = pacePct / 100;
+      const ratio = pace > 0 ? Math.min(pct / pace, 1.4) : 1;
+      const h = ratio >= 1
+        ? 130 + (ratio - 1) * 15
+        : 5 + ratio * 125;
+      const s = ratio >= 1 ? 52 + (ratio - 1) * 10 : 78;
+      const l = ratio >= 1 ? 44 - (ratio - 1) * 8 : 52 - Math.abs(ratio - 0.55) * 6;
+      const barColor = `hsl(${h.toFixed(0)},${s.toFixed(0)}%,${l.toFixed(0)}%)`;
+      const hint = key === 'vitD' ? `<p class="nutr-progress-hint">Raus an die Sonne! ☀️ Pflanzen haben kaum was</p>` : '';
+      return `
+        <div class="nutr-progress-row nutr-progress-row--clickable" data-nutrient-key="${key}">
+          <div class="nutr-progress-header">
+            <span class="nutr-progress-label">${esc(t('nutrient_' + key))}</span>
+            <span class="nutr-progress-value">${fmtVal(val)} / ${fmtVal(ref)} ${esc(unit)} · <strong>${pctDisplay}%</strong></span>
+          </div>
+          <div class="nutr-bar-track">
+            <div class="nutr-bar-fill" style="width:${pct * 100}%;background:${barColor}"></div>
+            <div class="nutr-bar-pace" style="left:${pacePct}%"></div>
+          </div>
+          ${hint}
+        </div>`;
+    }).join('');
+
+  const nutritionTotalsEl = document.getElementById('nutritionTotals');
+  nutritionTotalsEl.innerHTML = `<div class="nutr-progress-list">${progressRows}</div>`;
+  nutritionTotalsEl.onclick = e => {
+    const row = e.target.closest('[data-nutrient-key]');
+    if (!row) return;
+    const key = row.dataset.nutrientKey;
+
+    // Expand suggestions without rebuilding nutritionTotals (avoids scroll jump)
+    if (!_suggExpanded && _lastSuggTotals) {
+      _suggExpanded = true;
+      renderNutrientSuggestions(_lastSuggTotals, _lastSuggFoods);
+    }
+
+    const headerH = document.querySelector('header')?.offsetHeight ?? 0;
+    const section = document.getElementById('sugg-section-' + key);
+    const target = section || document.getElementById('nutritionSuggestions');
+    if (target) {
+      const targetY = target.getBoundingClientRect().top + window.scrollY - headerH - 8;
+      window.scrollTo({ top: targetY, behavior: 'smooth' });
+      if (section) {
+        section.classList.add('sugg-section--highlight');
+        setTimeout(() => section.classList.remove('sugg-section--highlight'), 1800);
+      }
+    }
+  };
+
+  // ── Top sources per nutrient ──
+  const sourceRows = NUTRIENT_DEFS.map(({ key, unit }) => {
+    // For each food, compute its total contribution this week (portion × count)
+    const plantRanked = results
+      .map(({ vegetable, nutrition: n }) => {
+        if (!n || n[key] == null) return null;
+        const count = foodCounts.get(vegetable.toLowerCase())?.count ?? 1;
+        return { name: vegetable, amount: +(n[key] * count).toFixed(1), animal: false };
+      })
+      .filter(Boolean);
+    const animalRanked = Object.entries(animalWeekTotals)
+      .map(([foodName, count]) => {
+        const food = ANIMAL_FOODS.find(f => f.name === foodName);
+        const amt = food?.nutrients?.[key];
+        if (!amt) return null;
+        return { name: foodName, amount: +(amt * count).toFixed(1), animal: true };
+      })
+      .filter(Boolean);
+    const ranked = [...plantRanked, ...animalRanked]
+      .filter(r => r.amount > 0)
+      .sort((a, b) => b.amount - a.amount)
+      .slice(0, 5);
+
+    if (!ranked.length) {
+      const noDataMsg = key === 'vitd' ? t('no_data_vitd')
+                      : key === 'b12'  ? t('no_data_b12')
+                      : t('no_data_week');
+      return `
+        <div class="src-row">
+          <span class="src-label">${esc(t('nutrient_' + key))}</span>
+          <span class="n-na">${noDataMsg}</span>
+        </div>`;
+    }
+
+    const chips = ranked.map((r, i) => {
+      const cls = `src-chip${i === 0 ? ' src-chip--top' : ''}${r.animal ? ' src-chip--animal' : ''}`;
+      return `<span class="${cls}">${esc(tFood(r.name))} <em>${fmtVal(r.amount)} ${esc(unit)}</em></span>`;
+    }).join('');
+
+    return `
+      <div class="src-row">
+        <span class="src-label">${esc(t('nutrient_' + key))}</span>
+        <div class="src-chips">${chips}</div>
+      </div>`;
+  }).join('');
+
+  document.getElementById('nutritionDGE').innerHTML = `<div class="src-list">${sourceRows}</div>`;
+
+  _lastSuggTotals = totals;
+  _lastSuggFoods = uniqueFoods;
+  renderNutrientSuggestions(totals, uniqueFoods);
+
+  renderFoodDatabase();
+
+  await renderNutrientTrend();
+}
+
+// ── Missing nutrient suggestions ─────────────────────────────────────────────
+// Weekly reference maps (NUTRIENT_WEEKLY_REF, ANIMAL_WEEKLY_REF) are derived
+// from NUTRIENT_DEFS in nutrition.js.
+
+function renderNutrientSuggestions(totals, loggedFoodsThisWeek) {
+  const el = document.getElementById('nutritionSuggestions');
+
+  const dow = new Date().getDay();
+  const pace = (dow === 0 ? 7 : dow) / 7;
+
+  // Identify nutrients where the user is behind today's pace
+  const gapNutrients = NUTRIENT_DEFS
+    .filter(({ key }) => NUTRIENT_WEEKLY_REF[key] && totals[key] != null)
+    .map(({ key, unit }) => ({
+      key, unit,
+      coverage: totals[key] / NUTRIENT_WEEKLY_REF[key],
+    }))
+    .filter(n => n.coverage < pace)
+    .sort((a, b) => a.coverage - b.coverage);
+
+  let plantHtml = '';
+
+  if (!gapNutrients.length) {
+    plantHtml = `<p class="empty">${t('sugg_all_covered')}</p>`;
+  } else {
+    const loggedSet = new Set(loggedFoodsThisWeek.map(f => f.toLowerCase()));
+
+    const MIN_COVERAGE = 0.05;
+    const seasonCountry = getSeasonalCountry();
+    const seasonMap = seasonCountry !== 'off' ? (SEASONAL_CALENDAR[seasonCountry] ?? {}) : {};
+    const currentMonth = new Date().getMonth() + 1;
+
+    const rawScores = Object.entries(NUTRITION_DATA)
+      .filter(([name]) => !loggedSet.has(name))
+      .map(([name, d]) => {
+        const covered = gapNutrients
+          .map(({ key, unit }) => {
+            const amount = d[key] != null ? +(d[key] * d.g / 100).toFixed(1) : 0;
+            const pct = amount / NUTRIENT_WEEKLY_REF[key];
+            return pct >= MIN_COVERAGE ? { key, unit, amount, pct } : null;
+          })
+          .filter(Boolean);
+        const inSeason = seasonMap[name]?.includes(currentMonth) ?? false;
+        const baseScore = covered.reduce((s, n) => s + n.pct, 0);
+        return { name, covered, totalScore: inSeason ? baseScore * 1.3 : baseScore, inSeason };
+      })
+      .filter(f => f.covered.length > 0)
+      .sort((a, b) => b.covered.length - a.covered.length || b.totalScore - a.totalScore);
+
+    // Merge foods that belong to the same plant group into one entry
+    const seenGroups = new Map();
+    const foodScores = [];
+    for (const food of rawScores) {
+      const group = _plantGroupMap.get(food.name);
+      if (group) {
+        if (seenGroups.has(group.label)) {
+          const entry = seenGroups.get(group.label);
+          entry.members.push(food.name);
+          if (food.inSeason) entry.inSeason = true;
+          for (const c of food.covered) {
+            const existing = entry.covered.find(x => x.key === c.key);
+            if (!existing) entry.covered.push({ ...c });
+            else if (c.pct > existing.pct) Object.assign(existing, c);
+          }
+          entry.totalScore = entry.covered.reduce((s, n) => s + n.pct, 0);
+        } else {
+          const entry = { name: group.label, members: [food.name], covered: [...food.covered], totalScore: food.totalScore, isGroup: true, inSeason: food.inSeason };
+          seenGroups.set(group.label, entry);
+          foodScores.push(entry);
+        }
+      } else {
+        foodScores.push({ ...food, members: null, isGroup: false });
+      }
+    }
+
+    const INITIAL_SHOW = 8;
+    const visibleScores = _suggExpanded ? foodScores : foodScores.slice(0, INITIAL_SHOW);
+    const hiddenCount = foodScores.length - visibleScores.length;
+
+    if (!visibleScores.length) {
+      plantHtml = `<p class="empty">${t('no_suggestions')}</p>`;
+    } else {
+      // Group foods by their top gap nutrient to render superpower sections
+      const sections = [];
+      const assignedFoods = new Set();
+      for (const gap of gapNutrients) {
+        const foods = visibleScores.filter(f => !assignedFoods.has(f.name) && f.covered.some(c => c.key === gap.key));
+        if (!foods.length) continue;
+        foods.forEach(f => assignedFoods.add(f.name));
+        sections.push({ gapKey: gap.key, foods });
+      }
+
+      // For gap nutrients with no scored plant food, add a "poor plant source" fallback section
+      const coveredGapKeys = new Set(sections.map(s => s.gapKey));
+      for (const gap of gapNutrients) {
+        if (coveredGapKeys.has(gap.key)) continue;
+        const ppKey = 'poorplant_' + gap.key;
+        if (t(ppKey) === ppKey) continue; // skip if no translation exists (t() returns raw key as fallback)
+        // Top 3 plant foods by absolute amount of this nutrient per portion, ignoring MIN_COVERAGE
+        const top3 = Object.entries(NUTRITION_DATA)
+          .filter(([name]) => !loggedSet.has(name) && NUTRITION_DATA[name][gap.key] != null)
+          .map(([name, d]) => {
+            const amount = +(d[gap.key] * d.g / 100).toFixed(2);
+            const pct = Math.round(amount / NUTRIENT_WEEKLY_REF[gap.key] * 100);
+            return { name, amount, pct, unit: gap.unit };
+          })
+          .filter(f => f.amount > 0)
+          .sort((a, b) => b.amount - a.amount)
+          .slice(0, 3);
+        sections.push({ gapKey: gap.key, foods: [], poorPlantSource: true, top3 });
+      }
+
+      const renderFoodRow = ({ name, members, isGroup, covered, inSeason }) => {
+        const displayName = isGroup ? name : name.replace(/\b\w/g, c => c.toUpperCase());
+        const countKey = covered.length === 1 ? 'covers_1_gap' : 'covers_n_gaps';
+        const chips = covered.map(({ key, unit, amount }) =>
+          `<span class="sugg-nut-chip">${esc(t('nutrient_' + key))} <em>${amount} ${esc(unit)}</em></span>`
+        ).join('');
+        const groupSub = isGroup
+          ? `<span class="sugg-food-variety">${esc(t('sugg_variety_label'))}: ${members.map(m => esc(tFood(m.replace(/\b\w/g, c => c.toUpperCase())))).join(', ')}</span>`
+          : '';
+        const seasonBadge = inSeason
+          ? `<span class="sugg-season-badge">${esc(t('season_badge'))}</span>`
+          : '';
+        return `
+          <div class="sugg-food-row">
+            <div class="sugg-food-header">
+              <span class="sugg-food-name">${esc(tFood(displayName))}</span>
+              ${seasonBadge}
+              <span class="sugg-food-badge">${t(countKey, { n: covered.length })}</span>
+            </div>
+            ${groupSub}
+            <div class="sugg-nut-chips">${chips}</div>
+          </div>`;
+      };
+
+      plantHtml = sections.map(({ gapKey, foods, poorPlantSource, top3 }) => {
+        const nutrientLabel = esc(t('nutrient_' + gapKey));
+        const factText = esc(t('fact_' + gapKey));
+        const poorPlantMsg = poorPlantSource ? t('poorplant_' + gapKey) : '';
+        const disclaimer = poorPlantMsg
+          ? `<p class="sugg-poor-plant-note">⚠️ ${esc(poorPlantMsg)}</p>`
+          : '';
+        const rows = foods.map(renderFoodRow).join('');
+        const weakRows = (top3 ?? []).map(({ name, amount, pct, unit }) => `
+          <div class="sugg-food-row sugg-food-row--weak">
+            <div class="sugg-food-header">
+              <span class="sugg-food-name">${esc(tFood(name.replace(/\b\w/g, c => c.toUpperCase())))}</span>
+              <span class="sugg-food-badge sugg-food-badge--weak">${pct}% / Woche</span>
+            </div>
+            <div class="sugg-nut-chips">
+              <span class="sugg-nut-chip sugg-nut-chip--weak">${esc(t('nutrient_' + gapKey))} <em>${fmtVal(amount)} ${esc(unit)}</em></span>
+            </div>
+          </div>`).join('');
+        return `
+          <div class="sugg-section" id="sugg-section-${gapKey}">
+            <div class="sugg-section-header">
+              <span class="sugg-section-nutrient">${nutrientLabel}</span>
+              <p class="sugg-section-fact">${factText}</p>
+            </div>
+            ${disclaimer}
+            ${rows ? `<div class="sugg-food-list">${rows}</div>` : ''}
+            ${weakRows ? `<div class="sugg-food-list">${weakRows}</div>` : ''}
+          </div>`;
+      }).join('');
+
+      if (hiddenCount > 0) {
+        plantHtml += `<button class="btn-secondary sugg-show-more" onclick="_expandSugg()">${esc(t('sugg_show_more', { n: hiddenCount }))}</button>`;
+      }
+    }
+  }
+
+  // Animal food suggestions. All ANIMAL_FOODS are always shown with a stepper
+  // so users can track them even when no gap applies (e.g. eggs for breakfast).
+  // Foods that cover a gap get chips + badge and are sorted to the top.
+  let animalHtml = '';
+  if (getAnimalSuggestions()) {
+    const MIN_COVERAGE = 0.05;
+    const animalGaps = NUTRIENT_DEFS
+      .filter(({ key }) => ANIMAL_WEEKLY_REF[key] && totals[key] != null)
+      .map(({ key, unit }) => ({ key, unit, coverage: (totals[key] ?? 0) / ANIMAL_WEEKLY_REF[key] }))
+      .filter(n => n.coverage < 1);
+    const b12Covered = (totals.b12 ?? 0) >= ANIMAL_WEEKLY_REF.b12;
+    if (!animalGaps.find(n => n.key === 'b12') && !b12Covered) {
+      animalGaps.push({ key: 'b12', unit: 'µg', coverage: (totals.b12 ?? 0) / ANIMAL_WEEKLY_REF.b12 });
+    }
+    const animalScores = ANIMAL_FOODS
+      .map(food => {
+        const covered = animalGaps.map(({ key, unit }) => {
+          const amount = food.nutrients[key] ?? 0;
+          const ref = ANIMAL_WEEKLY_REF[key];
+          if (!ref || !amount) return null;
+          const pct = amount / ref;
+          return pct >= MIN_COVERAGE ? { key, unit, amount, pct } : null;
+        }).filter(Boolean);
+        return { ...food, covered, totalScore: covered.reduce((s, n) => s + n.pct, 0) };
+      })
+      .sort((a, b) => b.covered.length - a.covered.length || b.totalScore - a.totalScore);
+
+    if (animalScores.length) {
+      const today = todayStr();
+      const todayCounts = getAnimalCounts()[today] ?? {};
+      const weekTotals = weeklyAnimalTotals();
+      const rows = animalScores.map(({ name, portion, covered }) => {
+        const hasCovered = covered.length > 0;
+        const countKey = covered.length === 1 ? 'covers_1_gap' : 'covers_n_gaps';
+        const chips = covered.map(({ key, unit, amount }) =>
+          `<span class="sugg-nut-chip">${esc(t('nutrient_' + key))} <em>${+amount.toFixed(1)} ${esc(unit)}</em></span>`
+        ).join('');
+        const todayN = todayCounts[name] ?? 0;
+        const weekN = weekTotals[name] ?? 0;
+        const weekBadge = weekN > 0
+          ? `<span class="sugg-animal-week">${esc(t('animal_week_count', { n: weekN }))}</span>`
+          : '';
+        const gapBadge = hasCovered
+          ? `<span class="sugg-food-badge">${t(countKey, { n: covered.length })}</span>`
+          : '';
+        const stepper = `
+          <div class="sugg-animal-stepper" data-food="${esc(name)}">
+            <button class="sugg-animal-btn" data-action="dec" aria-label="−" ${todayN === 0 ? 'disabled' : ''}>−</button>
+            <span class="sugg-animal-count">${todayN}</span>
+            <button class="sugg-animal-btn sugg-animal-btn--plus" data-action="inc" aria-label="+">+</button>
+          </div>`;
+        return `
+          <div class="sugg-food-row sugg-food-row--animal">
+            <div class="sugg-food-header">
+              <span class="sugg-food-name">${esc(tFood(name))}</span>
+              <span class="sugg-food-portion">${esc(portion)}</span>
+              ${weekBadge}
+              ${gapBadge}
+            </div>
+            <div class="sugg-animal-row">
+              ${hasCovered ? `<div class="sugg-nut-chips">${chips}</div>` : '<div class="sugg-nut-chips"></div>'}
+              ${stepper}
+            </div>
+          </div>`;
+      }).join('');
+      animalHtml = `
+        <div class="sugg-section sugg-section--animal">
+          <div class="sugg-section-header">
+            <span class="sugg-section-nutrient">${esc(t('sugg_animal_label'))}</span>
+          </div>
+          <div class="sugg-food-list">${rows}</div>
+        </div>`;
+    }
+  }
+
+  el.innerHTML = plantHtml + animalHtml;
+
+  el.querySelectorAll('.sugg-animal-stepper').forEach(stepper => {
+    const food = stepper.dataset.food;
+    stepper.addEventListener('click', e => {
+      const btn = e.target.closest('[data-action]');
+      if (!btn || btn.disabled) return;
+      if (btn.dataset.action === 'inc') incAnimal(todayStr(), food);
+      else decAnimal(todayStr(), food);
+      renderNutritionTab(true);
+    });
+  });
+}
+
+// ── Nutrient trend chart ──────────────────────────────────────────────────────
+
+async function renderNutrientTrend() {
+  const { entries } = getData();
+  const today = todayStr();
+  const ws0 = getWeekStart(today);
+  const WEEKS = 12;
+
+  // Build week windows oldest → newest
+  const weeks = Array.from({ length: WEEKS }, (_, i) => {
+    const ws = addDays(ws0, -(WEEKS - 1 - i) * 7);
+    return { ws, we: addDays(ws, 6), label: fmtWeekRange(ws) };
+  });
+
+  // Group entries per week
+  const weekEntries = weeks.map(({ ws, we }) => entriesInRange(entries, ws, we));
+
+  // Collect all unique foods across all weeks
+  const allFoods = [...new Set(weekEntries.flat().map(e => e.vegetable))];
+
+  const wrap = document.getElementById('trendChartWrap');
+
+  if (allFoods.length === 0) {
+    wrap.innerHTML = `<p class="empty">${t('empty_log_trend')}</p>`;
+    return;
+  }
+
+  // Fetch nutrition for every food once (static + cache, no redundant API calls)
+  const nutritionResults = await fetchNutritionForAll(allFoods);
+  const portions = getPortions();
+
+  const foodNutrition = new Map();
+  for (const { vegetable, nutrition: n } of nutritionResults) {
+    if (!n) continue;
+    const customG = portions[vegetable.toLowerCase()];
+    foodNutrition.set(
+      vegetable.toLowerCase(),
+      (customG && customG !== n.g) ? rescaleNutrition(n, customG) : n
+    );
+  }
+
+  const select = document.getElementById('trendNutrient');
+  const key = select.value || 'vitc';
+  const def = NUTRIENT_DEFS.find(d => d.key === key);
+
+  // Compute weekly totals for selected nutrient
+  const totals = weeks.map((_, i) => {
+    const we = weekEntries[i];
+    if (!we.length) return null;
+    const counts = new Map();
+    for (const e of we) counts.set(e.vegetable.toLowerCase(), (counts.get(e.vegetable.toLowerCase()) ?? 0) + 1);
+    let sum = null;
+    for (const [food, count] of counts) {
+      const n = foodNutrition.get(food);
+      if (n?.[key] != null) sum = (sum ?? 0) + n[key] * count;
+    }
+    return sum != null ? +(sum.toFixed(1)) : null;
+  });
+
+  // Restore canvas if we replaced it with a message previously
+  if (!wrap.querySelector('canvas')) {
+    wrap.innerHTML = '<canvas id="trendChart"></canvas>';
+  }
+
+  mkChart('trendChart', {
+    type: 'line',
+    data: {
+      labels: weeks.map(w => w.label),
+      datasets: [{
+        data: totals,
+        borderColor: C.main,
+        backgroundColor: 'rgba(64,145,108,0.10)',
+        borderWidth: 2.5,
+        pointRadius: 4,
+        pointBackgroundColor: C.main,
+        pointBorderColor: '#fff',
+        pointBorderWidth: 1.5,
+        fill: true,
+        tension: 0.35,
+        spanGaps: true,
+        label: `${t('nutrient_' + def.key)} (${def.unit})`,
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => ctx.raw != null ? `${ctx.raw} ${def.unit}` : t('tooltip_no_data'),
+          },
+        },
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          grid: { color: '#f0f5f2' },
+          ticks: { callback: v => `${v} ${def.unit}` },
+        },
+        x: { grid: { display: false }, ticks: { font: { size: 9 }, maxRotation: 45 } },
+      },
+    },
+  });
+}
+
+// ── Portion settings ─────────────────────────────────────────────────────────
+
+function renderPortionSettings() {
+  const filterEl = document.getElementById('portionFilter');
+  const filter = filterEl ? filterEl.value.trim().toLowerCase() : '';
+  const portions = getPortions();
+  const allFoods = FOODS.map(f => f.toLowerCase())
+    .sort((a, b) => tFood(toTitleCase(a)).localeCompare(tFood(toTitleCase(b)), getLang()));
+
+  const foods = filter
+    ? allFoods.filter(f => tFood(toTitleCase(f)).toLowerCase().includes(filter) || f.includes(filter))
+    : allFoods.filter(f => portions[f] != null);
+
+  const list = document.getElementById('portionSettingsList');
+  if (!list) return;
+
+  if (foods.length === 0 && !filter) {
+    list.innerHTML = `<p class="empty settings-portions-empty">${t('portions_none_custom')}</p>`;
+    return;
+  }
+  if (foods.length === 0) {
+    list.innerHTML = `<p class="empty settings-portions-empty">${t('portions_no_match')}</p>`;
+    return;
+  }
+
+  list.innerHTML = foods.map(food => {
+    const defaultG = NUTRITION_DATA[food]?.g ?? 100;
+    const customG = portions[food];
+    const currentG = customG ?? defaultG;
+    const isCustom = customG != null && customG !== defaultG;
+    const displayName = toTitleCase(food);
+    return `<div class="portion-setting-row">
+      <span class="portion-setting-name${isCustom ? ' portion-setting-name--custom' : ''}">${esc(tFood(displayName))}</span>
+      <label class="portion-wrap${isCustom ? ' portion-wrap--custom' : ''}">
+        <input type="number" class="settings-portion-input" data-food="${esc(food)}" data-default="${defaultG}" value="${currentG}" min="1" max="9999">
+        <span class="portion-unit">${portionUnit(food)}</span>
+        ${isCustom ? `<button class="settings-portion-reset" data-food="${esc(food)}" title="${t('btn_reset')}">↺</button>` : ''}
+      </label>
+    </div>`;
+  }).join('');
+
+  list.querySelectorAll('.settings-portion-input').forEach(input => {
+    input.addEventListener('change', () => {
+      const g = Math.max(1, Math.round(+input.value));
+      if (!isNaN(g)) {
+        const defaultG = +input.dataset.default;
+        if (g === defaultG) {
+          const p = getPortions();
+          delete p[input.dataset.food];
+          localStorage.setItem(PORTION_KEY, JSON.stringify(p));
+        } else {
+          setPortion(input.dataset.food, g);
+        }
+        renderPortionSettings();
+        if (!document.getElementById('tab-nutrition').hidden) renderNutritionTab(true);
+      }
+    });
+  });
+
+  list.querySelectorAll('.settings-portion-reset').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const p = getPortions();
+      delete p[btn.dataset.food];
+      localStorage.setItem(PORTION_KEY, JSON.stringify(p));
+      renderPortionSettings();
+      if (!document.getElementById('tab-nutrition').hidden) renderNutritionTab(true);
+    });
+  });
+}
+
+// ── Food database lookup ─────────────────────────────────────────────────────
+
+let _foodDbOpen = new Set();
+
+function renderFoodDatabase() {
+  const list = document.getElementById('foodDbList');
+  if (!list) return;
+  const filterEl = document.getElementById('foodDbFilter');
+  const filter = filterEl ? filterEl.value.trim().toLowerCase() : '';
+
+  const portions = getPortions();
+  const allFoods = FOODS.map(f => f.toLowerCase())
+    .sort((a, b) => tFood(toTitleCase(a)).localeCompare(tFood(toTitleCase(b)), getLang()));
+
+  const foods = filter
+    ? allFoods.filter(f => tFood(toTitleCase(f)).toLowerCase().includes(filter) || f.includes(filter))
+    : allFoods;
+
+  if (!foods.length) {
+    list.innerHTML = `<p class="empty">${t('food_db_no_match')}</p>`;
+    return;
+  }
+
+  const MAX_VISIBLE = filter ? 30 : 15;
+  const visible = foods.slice(0, MAX_VISIBLE);
+  const hidden = foods.length - visible.length;
+
+  list.innerHTML = visible.map(food => {
+    const data = NUTRITION_DATA[food];
+    const defaultG = data?.g ?? 100;
+    const portionG = portions[food] ?? defaultG;
+    const isOpen = _foodDbOpen.has(food);
+    const displayName = tFood(toTitleCase(food));
+
+    let detailHtml = '';
+    if (isOpen) {
+      if (!data) {
+        detailHtml = `<div class="food-db-detail"><p class="empty">${t('food_db_no_data')}</p></div>`;
+      } else {
+        const factor = portionG / 100;
+        const rows = NUTRIENT_DEFS.map(({ key, unit }) => {
+          const per100 = data[key];
+          if (per100 == null) return '';
+          const amount = +(per100 * factor).toFixed(1);
+          const dailyRef = NUTRIENT_WEEKLY_REF[key] ? NUTRIENT_WEEKLY_REF[key] / 7 : null;
+          const pct = dailyRef ? Math.round(amount / dailyRef * 100) : null;
+          const pctStr = pct != null ? `<span class="food-db-pct">${pct}% / Tag</span>` : '';
+          return `<div class="food-db-nut-row">
+            <span class="food-db-nut-label">${esc(t('nutrient_' + key))}</span>
+            <span class="food-db-nut-val">${fmtVal(amount)} ${esc(unit)}</span>
+            ${pctStr}
+          </div>`;
+        }).join('');
+        detailHtml = `<div class="food-db-detail">
+          <p class="food-db-portion-note">${t('food_db_portion_label')}: <strong>${portionG} ${portionUnit(food)}</strong></p>
+          <div class="food-db-nut-list">${rows}</div>
+        </div>`;
+      }
+    }
+
+    return `<div class="food-db-row${isOpen ? ' food-db-row--open' : ''}" data-food="${esc(food)}">
+      <div class="food-db-row-main">
+        <span class="food-db-name">${esc(displayName)}</span>
+        <span class="food-db-portion">${portionG} ${portionUnit(food)}</span>
+        <span class="food-db-chevron">${isOpen ? '▾' : '▸'}</span>
+      </div>
+      ${detailHtml}
+    </div>`;
+  }).join('') + (hidden > 0 ? `<p class="food-db-more-hint">${t('food_db_more_results', { n: hidden })}</p>` : '');
+
+  list.querySelectorAll('.food-db-row-main').forEach(row => {
+    row.addEventListener('click', () => {
+      const food = row.parentElement.dataset.food;
+      if (_foodDbOpen.has(food)) _foodDbOpen.delete(food);
+      else _foodDbOpen.add(food);
+      renderFoodDatabase();
+    });
+  });
+}

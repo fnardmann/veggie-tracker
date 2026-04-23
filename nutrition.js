@@ -14,27 +14,43 @@ async function loadNutritionData() {
 const NUTRITION_CACHE_KEY = 'veggie-nutrition-v1';
 const NUTRITION_CACHE_TTL = 30 * 24 * 60 * 60 * 1000; // 30 days
 
+// Single source of truth for every tracked nutrient.
+// - dailyRef: DV used in "% of daily goal" facts (µg/mg per day)
+// - weeklyRef: target for the weekly progress bar (defaults to dailyRef × 7)
+// - requiresAnimal: excluded from plant-only suggestions; plant total always 0
 const NUTRIENT_DEFS = [
-  { key: 'fibre',   label: 'Fibre',      unit: 'g'  },
-  { key: 'vita',    label: 'Vitamin A',  unit: 'µg' },
-  { key: 'b1',      label: 'B1',         unit: 'mg' },
-  { key: 'b2',      label: 'B2',         unit: 'mg' },
-  { key: 'b3',      label: 'B3',         unit: 'mg' },
-  { key: 'b5',      label: 'B5',         unit: 'mg' },
-  { key: 'b6',      label: 'B6',         unit: 'mg' },
-  { key: 'b9',      label: 'Folate',     unit: 'µg' },
-  { key: 'vitc',    label: 'Vitamin C',  unit: 'mg' },
-  { key: 'vitd',    label: 'Vitamin D',  unit: 'µg' },
-  { key: 'vite',    label: 'Vitamin E',  unit: 'mg' },
-  { key: 'vitk',    label: 'Vitamin K',  unit: 'µg' },
-  { key: 'iron',    label: 'Iron',       unit: 'mg' },
-  { key: 'calcium', label: 'Calcium',    unit: 'mg' },
-  { key: 'magnesium', label: 'Magnesium', unit: 'mg' },
-  { key: 'potassium', label: 'Potassium', unit: 'mg' },
-  { key: 'zinc',    label: 'Zinc',       unit: 'mg' },
-  { key: 'selenium', label: 'Selenium',  unit: 'µg' },
-  { key: 'b12',     label: 'B12',        unit: 'µg' },
+  { key: 'fibre',     label: 'Fibre',     unit: 'g',  dailyRef: 30 },
+  { key: 'vita',      label: 'Vitamin A', unit: 'µg', dailyRef: 800 },
+  { key: 'b1',        label: 'B1',        unit: 'mg', dailyRef: 1.2 },
+  { key: 'b2',        label: 'B2',        unit: 'mg', dailyRef: 1.4 },
+  { key: 'b3',        label: 'B3',        unit: 'mg', dailyRef: 16 },
+  { key: 'b5',        label: 'B5',        unit: 'mg', dailyRef: 5 },
+  { key: 'b6',        label: 'B6',        unit: 'mg', dailyRef: 1.4 },
+  { key: 'b9',        label: 'Folate',    unit: 'µg', dailyRef: 400 },
+  { key: 'vitc',      label: 'Vitamin C', unit: 'mg', dailyRef: 75 },
+  { key: 'vitd',      label: 'Vitamin D', unit: 'µg', dailyRef: 20 },
+  { key: 'vite',      label: 'Vitamin E', unit: 'mg', dailyRef: 13 },
+  { key: 'vitk',      label: 'Vitamin K', unit: 'µg', dailyRef: 80 },
+  { key: 'iron',      label: 'Iron',      unit: 'mg', dailyRef: 9 },
+  { key: 'calcium',   label: 'Calcium',   unit: 'mg', dailyRef: 1000 },
+  { key: 'magnesium', label: 'Magnesium', unit: 'mg', dailyRef: 350 },
+  { key: 'potassium', label: 'Potassium', unit: 'mg', dailyRef: 3500 },
+  { key: 'zinc',      label: 'Zinc',      unit: 'mg', dailyRef: 10 },
+  { key: 'selenium',  label: 'Selenium',  unit: 'µg', dailyRef: 55 },
+  // Plant-only suggestions skip b12; animal tracking uses the explicit weeklyRef (14 µg/day).
+  { key: 'b12',       label: 'B12',       unit: 'µg', dailyRef: 2.5, weeklyRef: 98, requiresAnimal: true },
 ];
+
+// Derived lookups. Kept as objects for fast `ref[key]` access at render time.
+const NUTRIENT_DAILY_REF = Object.fromEntries(
+  NUTRIENT_DEFS.map(d => [d.key, { val: d.dailyRef, unit: d.unit }])
+);
+const NUTRIENT_WEEKLY_REF = Object.fromEntries(
+  NUTRIENT_DEFS.filter(d => !d.requiresAnimal).map(d => [d.key, d.weeklyRef ?? d.dailyRef * 7])
+);
+const ANIMAL_WEEKLY_REF = Object.fromEntries(
+  NUTRIENT_DEFS.map(d => [d.key, d.weeklyRef ?? d.dailyRef * 7])
+);
 
 // Open Food Facts nutriment keys → our internal keys (fallback for unknown foods)
 const OFF_KEY_MAP = {
