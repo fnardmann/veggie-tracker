@@ -135,6 +135,44 @@ function removeEntry(id) {
   saveData(data);
 }
 
+// ── Animal entries (count per food per day; tracked from suggestions only) ────
+
+function getAnimalCounts() {
+  return getData().animalCounts ?? {};
+}
+
+function incAnimal(date, food) {
+  const data = getData();
+  data.animalCounts ??= {};
+  data.animalCounts[date] ??= {};
+  data.animalCounts[date][food] = (data.animalCounts[date][food] ?? 0) + 1;
+  saveData(data);
+}
+
+function decAnimal(date, food) {
+  const data = getData();
+  const day = data.animalCounts?.[date];
+  if (!day?.[food]) return;
+  day[food] -= 1;
+  if (day[food] <= 0) delete day[food];
+  if (Object.keys(day).length === 0) delete data.animalCounts[date];
+  saveData(data);
+}
+
+function weeklyAnimalTotals() {
+  const ac = getAnimalCounts();
+  const ws = getWeekStart(todayStr());
+  const we = addDays(ws, 6);
+  const totals = {};
+  for (const [date, counts] of Object.entries(ac)) {
+    if (date < ws || date > we) continue;
+    for (const [food, n] of Object.entries(counts)) {
+      totals[food] = (totals[food] ?? 0) + n;
+    }
+  }
+  return totals;
+}
+
 // ── Date utils ────────────────────────────────────────────────────────────────
 
 function todayStr() {
@@ -653,9 +691,11 @@ function portionUnit(food) {
 
 async function renderNutritionTab(quiet = false) {
   const entries = thisWeekEntries();
+  const animalWeekTotals = weeklyAnimalTotals();
+  const hasAnimal = Object.keys(animalWeekTotals).length > 0;
   const empty = `<p class="empty">${t('empty_log_nutrition')}</p>`;
 
-  if (entries.length === 0) {
+  if (entries.length === 0 && !hasAnimal) {
     document.getElementById('nutritionTable').innerHTML = empty;
     document.getElementById('nutritionTotals').innerHTML = empty;
     document.getElementById('nutritionDGE').innerHTML = `<p class="empty">${t('empty_log_sources')}</p>`;
@@ -683,9 +723,9 @@ async function renderNutritionTab(quiet = false) {
     document.getElementById('nutritionSuggestions').innerHTML = `<p class="empty">${t('fetching')}</p>`;
   }
 
-  const rawResults = await fetchNutritionForAll(uniqueFoods);
+  const rawResults = uniqueFoods.length ? await fetchNutritionForAll(uniqueFoods) : [];
 
-  if (!rawResults.some(r => r.nutrition)) {
+  if (!rawResults.some(r => r.nutrition) && !hasAnimal) {
     const noData = `<p class="empty">${t('no_nutrition_data')}</p>`;
     document.getElementById('nutritionTable').innerHTML = noData;
     document.getElementById('nutritionTotals').innerHTML = noData;
@@ -736,13 +776,15 @@ async function renderNutritionTab(quiet = false) {
   }).join('');
 
   const tableEl = document.getElementById('nutritionTable');
-  tableEl.innerHTML = `
+  tableEl.innerHTML = results.length
+    ? `
     <div class="nutrition-scroll">
       <table class="nutrition-table">
         <thead><tr><th>${t('col_food')} <span class="n-portion">${t('col_portion')}</span></th>${headerCells}</tr></thead>
         <tbody>${tableRows}</tbody>
       </table>
-    </div>`;
+    </div>`
+    : `<p class="empty">${t('empty_log_nutrition')}</p>`;
 
   if (advancedPortions) {
     tableEl.querySelectorAll('.portion-input').forEach(input => {
@@ -775,6 +817,14 @@ async function renderNutritionTab(quiet = false) {
       if (n[key] != null) totals[key] = (totals[key] ?? 0) + n[key] * count;
     }
   }
+  // Animal contributions (weekly counts × per-portion nutrients)
+  for (const [foodName, count] of Object.entries(animalWeekTotals)) {
+    const food = ANIMAL_FOODS.find(f => f.name === foodName);
+    if (!food) continue;
+    for (const [key, amount] of Object.entries(food.nutrients)) {
+      totals[key] = (totals[key] ?? 0) + amount * count;
+    }
+  }
   for (const key of Object.keys(totals)) {
     if (totals[key] != null) totals[key] = +(totals[key].toFixed(1));
   }
@@ -783,11 +833,12 @@ async function renderNutritionTab(quiet = false) {
   const dayOfWeek = dow === 0 ? 7 : dow; // Mon=1 … Sun=7
   const pacePct = (dayOfWeek / 7) * 100;
 
+  const progressRef = hasAnimal ? ANIMAL_WEEKLY_REF : NUTRIENT_WEEKLY_REF;
   const progressRows = NUTRIENT_DEFS
-    .filter(({ key }) => NUTRIENT_WEEKLY_REF[key])
+    .filter(({ key }) => progressRef[key])
     .map(({ key, unit }) => {
       const val = totals[key];
-      const ref = NUTRIENT_WEEKLY_REF[key];
+      const ref = progressRef[key];
       if (val == null) return '';
       const pct = Math.min(1, val / ref);
       const pctDisplay = Math.round(pct * 100);
@@ -843,13 +894,22 @@ async function renderNutritionTab(quiet = false) {
   // ── Top sources per nutrient ──
   const sourceRows = NUTRIENT_DEFS.map(({ key, unit }) => {
     // For each food, compute its total contribution this week (portion × count)
-    const ranked = results
+    const plantRanked = results
       .map(({ vegetable, nutrition: n }) => {
         if (!n || n[key] == null) return null;
         const count = foodCounts.get(vegetable.toLowerCase())?.count ?? 1;
-        return { vegetable, amount: +(n[key] * count).toFixed(1) };
+        return { name: vegetable, amount: +(n[key] * count).toFixed(1), animal: false };
       })
-      .filter(Boolean)
+      .filter(Boolean);
+    const animalRanked = Object.entries(animalWeekTotals)
+      .map(([foodName, count]) => {
+        const food = ANIMAL_FOODS.find(f => f.name === foodName);
+        const amt = food?.nutrients?.[key];
+        if (!amt) return null;
+        return { name: foodName, amount: +(amt * count).toFixed(1), animal: true };
+      })
+      .filter(Boolean);
+    const ranked = [...plantRanked, ...animalRanked]
       .filter(r => r.amount > 0)
       .sort((a, b) => b.amount - a.amount)
       .slice(0, 5);
@@ -866,8 +926,8 @@ async function renderNutritionTab(quiet = false) {
     }
 
     const chips = ranked.map((r, i) => {
-      const cls = i === 0 ? 'src-chip src-chip--top' : 'src-chip';
-      return `<span class="${cls}">${esc(tFood(r.vegetable))} <em>${fmtVal(r.amount)} ${esc(unit)}</em></span>`;
+      const cls = `src-chip${i === 0 ? ' src-chip--top' : ''}${r.animal ? ' src-chip--animal' : ''}`;
+      return `<span class="${cls}">${esc(tFood(r.name))} <em>${fmtVal(r.amount)} ${esc(unit)}</em></span>`;
     }).join('');
 
     return `
@@ -918,7 +978,7 @@ const NUTRIENT_WEEKLY_REF = {
 const ANIMAL_WEEKLY_REF = { ...NUTRIENT_WEEKLY_REF, b12: 98 }; // 14 µg/day × 7
 
 const ANIMAL_FOODS = [
-  { name: 'Eggs',           portion: '2 medium (120 g)', nutrients: { b2: 0.54, vitd: 3.4, selenium: 30, zinc: 1.3, b12: 2.4, b5: 1.9, vita: 160, b6: 0.18 } },
+  { name: 'Eggs',           portion: '1 medium (60 g)',  nutrients: { b2: 0.27, vitd: 1.7, selenium: 15, zinc: 0.65, b12: 1.2, b5: 0.95, vita: 80, b6: 0.09 } },
   { name: 'Salmon',         portion: '150 g fillet',     nutrients: { vitd: 11,  b12: 4.2, b3: 12,  selenium: 43, b2: 0.5,  b6: 1.2, b5: 2.0 } },
   { name: 'Sardines',       portion: '90 g (tin)',        nutrients: { vitd: 4.8, b12: 3.5, calcium: 350, selenium: 30, b3: 5.4, b2: 0.22 } },
   { name: 'Mackerel',       portion: '150 g fillet',     nutrients: { vitd: 6.3, b12: 5.4, selenium: 53, b2: 0.5, b3: 9.0, b6: 0.7 } },
@@ -1194,7 +1254,7 @@ function renderNutrientSuggestions(totals, loggedFoodsThisWeek) {
     }
   }
 
-  // Animal food suggestions (b12 always a gap since plants contain none)
+  // Animal food suggestions (b12 seeded as a gap since plants contain none)
   let animalHtml = '';
   if (getAnimalSuggestions()) {
     const MIN_COVERAGE = 0.05;
@@ -1202,8 +1262,9 @@ function renderNutrientSuggestions(totals, loggedFoodsThisWeek) {
       .filter(({ key }) => ANIMAL_WEEKLY_REF[key] && totals[key] != null)
       .map(({ key, unit }) => ({ key, unit, coverage: (totals[key] ?? 0) / ANIMAL_WEEKLY_REF[key] }))
       .filter(n => n.coverage < 1);
-    if (!animalGaps.find(n => n.key === 'b12')) {
-      animalGaps.push({ key: 'b12', unit: 'µg', coverage: 0 });
+    const b12Covered = (totals.b12 ?? 0) >= ANIMAL_WEEKLY_REF.b12;
+    if (!animalGaps.find(n => n.key === 'b12') && !b12Covered) {
+      animalGaps.push({ key: 'b12', unit: 'µg', coverage: (totals.b12 ?? 0) / ANIMAL_WEEKLY_REF.b12 });
     }
     const animalScores = ANIMAL_FOODS
       .map(food => {
@@ -1221,19 +1282,37 @@ function renderNutrientSuggestions(totals, loggedFoodsThisWeek) {
       .slice(0, 5);
 
     if (animalScores.length) {
+      const today = todayStr();
+      const todayCounts = getAnimalCounts()[today] ?? {};
+      const weekTotals = weeklyAnimalTotals();
       const rows = animalScores.map(({ name, portion, covered }) => {
         const countKey = covered.length === 1 ? 'covers_1_gap' : 'covers_n_gaps';
         const chips = covered.map(({ key, unit, amount }) =>
           `<span class="sugg-nut-chip">${esc(t('nutrient_' + key))} <em>${+amount.toFixed(1)} ${esc(unit)}</em></span>`
         ).join('');
+        const todayN = todayCounts[name] ?? 0;
+        const weekN = weekTotals[name] ?? 0;
+        const weekBadge = weekN > 0
+          ? `<span class="sugg-animal-week">${esc(t('animal_week_count', { n: weekN }))}</span>`
+          : '';
+        const stepper = `
+          <div class="sugg-animal-stepper" data-food="${esc(name)}">
+            <button class="sugg-animal-btn" data-action="dec" aria-label="−" ${todayN === 0 ? 'disabled' : ''}>−</button>
+            <span class="sugg-animal-count">${todayN}</span>
+            <button class="sugg-animal-btn sugg-animal-btn--plus" data-action="inc" aria-label="+">+</button>
+          </div>`;
         return `
-          <div class="sugg-food-row">
+          <div class="sugg-food-row sugg-food-row--animal">
             <div class="sugg-food-header">
               <span class="sugg-food-name">${esc(tFood(name))}</span>
               <span class="sugg-food-portion">${esc(portion)}</span>
+              ${weekBadge}
               <span class="sugg-food-badge">${t(countKey, { n: covered.length })}</span>
             </div>
-            <div class="sugg-nut-chips">${chips}</div>
+            <div class="sugg-animal-row">
+              <div class="sugg-nut-chips">${chips}</div>
+              ${stepper}
+            </div>
           </div>`;
       }).join('');
       animalHtml = `
@@ -1247,6 +1326,17 @@ function renderNutrientSuggestions(totals, loggedFoodsThisWeek) {
   }
 
   el.innerHTML = plantHtml + animalHtml;
+
+  el.querySelectorAll('.sugg-animal-stepper').forEach(stepper => {
+    const food = stepper.dataset.food;
+    stepper.addEventListener('click', e => {
+      const btn = e.target.closest('[data-action]');
+      if (!btn || btn.disabled) return;
+      if (btn.dataset.action === 'inc') incAnimal(todayStr(), food);
+      else decAnimal(todayStr(), food);
+      renderNutritionTab(true);
+    });
+  });
 }
 
 // ── Nutrient trend chart ──────────────────────────────────────────────────────
@@ -2282,6 +2372,15 @@ function importData(file) {
         if (!existingIds.has(entry.id)) current.entries.push(entry);
       }
       current.entries.sort((a, b) => b.date.localeCompare(a.date));
+      if (imported.animalCounts && typeof imported.animalCounts === 'object') {
+        current.animalCounts ??= {};
+        for (const [date, counts] of Object.entries(imported.animalCounts)) {
+          current.animalCounts[date] ??= {};
+          for (const [food, n] of Object.entries(counts)) {
+            current.animalCounts[date][food] = Math.max(current.animalCounts[date][food] ?? 0, n);
+          }
+        }
+      }
       saveData(current);
       if (imported.portions && typeof imported.portions === 'object') {
         const merged = { ...getPortions(), ...imported.portions };

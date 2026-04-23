@@ -183,6 +183,7 @@ const TRANSLATIONS = {
     sugg_all_covered:           'All tracked nutrient goals met this week!',
     covers_1_gap:               'covers 1 gap',
     covers_n_gaps:              'covers {n} gaps',
+    animal_week_count:          '{n}× this week',
     this_week_suffix:           '{amount} {unit} this week',
     tooltip_no_data:            'No data',
     // Heatmap
@@ -389,6 +390,7 @@ const TRANSLATIONS = {
     sugg_all_covered:           'Alle Nährstoffziele diese Woche erreicht!',
     covers_1_gap:               'deckt 1 Lücke',
     covers_n_gaps:              'deckt {n} Lücken',
+    animal_week_count:          '{n}× diese Woche',
     this_week_suffix:           '{amount} {unit} diese Woche',
     tooltip_no_data:            'Keine Daten',
     heatmap_mon:                'Mo',

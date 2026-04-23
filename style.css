@@ -759,6 +759,60 @@ main {
 .sugg-nut-chip em { font-style: normal; color: var(--c-text3); margin-left: 3px; }
 .sugg-section--animal .sugg-section-header { background: rgba(244,162,97,.12); }
 .sugg-section--animal .sugg-section-nutrient { color: #b85c00; }
+.sugg-food-row--animal .sugg-food-name { color: #b85c00; }
+.sugg-animal-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: space-between;
+}
+.sugg-animal-row .sugg-nut-chips { flex: 1; }
+.sugg-animal-stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #fff;
+  border: 1px solid rgba(244,162,97,.4);
+  border-radius: 99px;
+  padding: 2px;
+  flex-shrink: 0;
+}
+.sugg-animal-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #b85c00;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.sugg-animal-btn:hover:not(:disabled) { background: rgba(244,162,97,.18); }
+.sugg-animal-btn:disabled { opacity: .3; cursor: default; }
+.sugg-animal-btn--plus { background: rgba(244,162,97,.18); }
+.sugg-animal-btn--plus:hover:not(:disabled) { background: rgba(244,162,97,.32); }
+.sugg-animal-count {
+  min-width: 20px;
+  text-align: center;
+  font-weight: 700;
+  font-size: .85rem;
+  color: var(--c-dark);
+}
+.sugg-animal-week {
+  font-size: .7rem;
+  font-weight: 600;
+  color: #b85c00;
+  background: rgba(244,162,97,.18);
+  border-radius: 99px;
+  padding: 2px 8px;
+}
+.src-chip--animal { border-color: rgba(244,162,97,.5); color: #b85c00; }
 .sugg-food-portion {
   font-size: .7rem;
   color: var(--c-text3);
