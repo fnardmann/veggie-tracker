@@ -597,18 +597,22 @@ function renderNutrientSuggestions(totals, loggedFoodsThisWeek) {
       const today = todayStr();
       const todayCounts = getAnimalCounts()[today] ?? {};
       const weekTotals = weeklyAnimalTotals();
-      const rows = animalScores.map(({ name, portion, covered }) => {
-        const hasCovered = covered.length > 0;
+      const rows = animalScores.map(({ name, portion, covered, nutrients }) => {
+        const coveredKeys = new Set(covered.map(c => c.key));
         const countKey = covered.length === 1 ? 'covers_1_gap' : 'covers_n_gaps';
-        const chips = covered.map(({ key, unit, amount }) =>
-          `<span class="sugg-nut-chip">${esc(t('nutrient_' + key))} <em>${+amount.toFixed(1)} ${esc(unit)}</em></span>`
-        ).join('');
+        // Show all of the food's nutrients; highlight gap-covering ones, dim the rest
+        const chips = Object.entries(nutrients).map(([key, amount]) => {
+          const def = NUTRIENT_DEFS.find(d => d.key === key);
+          if (!def) return '';
+          const cls = coveredKeys.has(key) ? 'sugg-nut-chip' : 'sugg-nut-chip sugg-nut-chip--weak';
+          return `<span class="${cls}">${esc(t('nutrient_' + key))} <em>${+amount.toFixed(1)} ${esc(def.unit)}</em></span>`;
+        }).join('');
         const todayN = todayCounts[name] ?? 0;
         const weekN = weekTotals[name] ?? 0;
         const weekBadge = weekN > 0
           ? `<span class="sugg-animal-week">${esc(t('animal_week_count', { n: weekN }))}</span>`
           : '';
-        const gapBadge = hasCovered
+        const gapBadge = covered.length > 0
           ? `<span class="sugg-food-badge">${t(countKey, { n: covered.length })}</span>`
           : '';
         const stepper = `
@@ -626,7 +630,7 @@ function renderNutrientSuggestions(totals, loggedFoodsThisWeek) {
               ${gapBadge}
             </div>
             <div class="sugg-animal-row">
-              ${hasCovered ? `<div class="sugg-nut-chips">${chips}</div>` : '<div class="sugg-nut-chips"></div>'}
+              <div class="sugg-nut-chips">${chips}</div>
               ${stepper}
             </div>
           </div>`;
