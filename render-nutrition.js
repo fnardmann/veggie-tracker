@@ -21,7 +21,10 @@ function portionUnit(food) {
 
 const ANIMAL_FOODS = [
   { name: 'Eggs',           portion: '1 medium (60 g)',  nutrients: { b2: 0.27, vitd: 1.7, selenium: 15, zinc: 0.65, b12: 1.2, b5: 0.95, vita: 80, b6: 0.09 } },
+  { name: 'Chicken',        portion: '150 g breast',     nutrients: { b3: 17, b6: 1.3, b12: 0.4, selenium: 38, zinc: 1.5, b5: 1.5 } },
+  { name: 'Beef',           portion: '150 g',            nutrients: { b12: 2.0, zinc: 6.0, iron: 3.0, b3: 9.0, b6: 0.5, selenium: 30 } },
   { name: 'Salmon',         portion: '150 g fillet',     nutrients: { vitd: 11,  b12: 4.2, b3: 12,  selenium: 43, b2: 0.5,  b6: 1.2, b5: 2.0 } },
+  { name: 'Tuna',           portion: '120 g (tin)',      nutrients: { b3: 13, b12: 2.7, selenium: 50, b6: 0.5, vitd: 3.8 } },
   { name: 'Sardines',       portion: '90 g (tin)',        nutrients: { vitd: 4.8, b12: 3.5, calcium: 350, selenium: 30, b3: 5.4, b2: 0.22 } },
   { name: 'Mackerel',       portion: '150 g fillet',     nutrients: { vitd: 6.3, b12: 5.4, selenium: 53, b2: 0.5, b3: 9.0, b6: 0.7 } },
   { name: 'Chicken Liver',  portion: '75 g',             nutrients: { vita: 6400, b12: 18, b9: 600, b2: 1.3, iron: 7.5, zinc: 3.0, selenium: 35 } },
