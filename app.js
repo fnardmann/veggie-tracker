@@ -1074,11 +1074,13 @@ async function init() {
   const excludedInput = document.getElementById('excludedFoodInput');
   const excludedDatalist = document.getElementById('excluded-food-list');
   const allExcludableNames = [...FOODS, ...ANIMAL_FOODS.map(f => f.name)];
-  excludedDatalist.innerHTML = allExcludableNames.map(f => `<option value="${esc(f)}">`).join('');
+  excludedDatalist.innerHTML = allExcludableNames.map(f => `<option value="${esc(tFood(f))}">`).join('');
   document.getElementById('excludedFoodAdd').addEventListener('click', () => {
     const val = excludedInput.value.trim();
     if (!val) return;
-    const canonical = allExcludableNames.find(f => f.toLowerCase() === val.toLowerCase()) ?? val;
+    const canonical = allExcludableNames.find(f =>
+      f.toLowerCase() === val.toLowerCase() || tFood(f).toLowerCase() === val.toLowerCase()
+    ) ?? val;
     const current = getExcludedFoods();
     if (!current.some(f => f.toLowerCase() === canonical.toLowerCase())) {
       setExcludedFoods([...current, canonical]);

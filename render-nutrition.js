@@ -443,7 +443,7 @@ function renderNutrientSuggestions(totals, loggedFoodsThisWeek) {
         const covered = gapNutrients
           .map(({ key, unit }) => {
             const amount = d[key] != null ? +(d[key] * d.g / 100).toFixed(1) : 0;
-            const pct = amount / NUTRIENT_WEEKLY_REF[key];
+            const pct = amount / (NUTRIENT_WEEKLY_REF[key] ?? ANIMAL_WEEKLY_REF[key]);
             return pct >= MIN_COVERAGE ? { key, unit, amount, pct } : null;
           })
           .filter(Boolean);
