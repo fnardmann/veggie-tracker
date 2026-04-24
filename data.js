@@ -24,6 +24,8 @@ function getFoodFacts()    { return getSettings().foodFacts    ?? true; }
 function getNutrientFacts(){ return getSettings().nutrientFacts ?? true; }
 function getAnimalSuggestions() { return getSettings().animalSuggestions ?? true; }
 function getSeasonalCountry()  { return getSettings().seasonalCountry  ?? 'de'; }
+function getExcludedFoods()    { return getSettings().excludedFoods    ?? []; }
+function setExcludedFoods(arr) { const s = getSettings(); s.excludedFoods = arr; saveSettings(s); }
 
 // ── Plant entries ────────────────────────────────────────────────────────────
 

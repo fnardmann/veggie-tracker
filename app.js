@@ -749,7 +749,7 @@ function renderAll() {
 // ── Export / Import ───────────────────────────────────────────────────────────
 
 function exportData() {
-  const payload = { ...getData(), portions: getPortions() };
+  const payload = { ...getData(), portions: getPortions(), settings: getSettings() };
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -784,6 +784,10 @@ function importData(file) {
       if (imported.portions && typeof imported.portions === 'object') {
         const merged = { ...getPortions(), ...imported.portions };
         localStorage.setItem(PORTION_KEY, JSON.stringify(merged));
+      }
+      if (imported.settings && typeof imported.settings === 'object') {
+        const merged = { ...getSettings(), ...imported.settings };
+        saveSettings(merged);
       }
       renderAll();
     } catch {
@@ -1065,6 +1069,28 @@ async function init() {
 
   // Nutrition tab: food database
   document.getElementById('foodDbFilter').addEventListener('input', renderFoodDatabase);
+
+  // Settings: excluded foods
+  const excludedInput = document.getElementById('excludedFoodInput');
+  const excludedDatalist = document.getElementById('excluded-food-list');
+  const allExcludableNames = [...FOODS, ...ANIMAL_FOODS.map(f => f.name)];
+  excludedDatalist.innerHTML = allExcludableNames.map(f => `<option value="${esc(f)}">`).join('');
+  document.getElementById('excludedFoodAdd').addEventListener('click', () => {
+    const val = excludedInput.value.trim();
+    if (!val) return;
+    const canonical = allExcludableNames.find(f => f.toLowerCase() === val.toLowerCase()) ?? val;
+    const current = getExcludedFoods();
+    if (!current.some(f => f.toLowerCase() === canonical.toLowerCase())) {
+      setExcludedFoods([...current, canonical]);
+      renderExcludedFoods();
+      if (!document.getElementById('tab-nutrition').hidden) renderNutritionTab(true);
+    }
+    excludedInput.value = '';
+  });
+  excludedInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('excludedFoodAdd').click();
+  });
+  renderExcludedFoods();
 
   // Settings: emoji style
   const emojiStyleSelect = document.getElementById('emojiStyleSelect');

@@ -429,6 +429,7 @@ function renderNutrientSuggestions(totals, loggedFoodsThisWeek) {
     plantHtml = `<p class="empty">${t('sugg_all_covered')}</p>`;
   } else {
     const loggedSet = new Set(loggedFoodsThisWeek.map(f => f.toLowerCase()));
+    const excludedSet = new Set(getExcludedFoods().map(f => f.toLowerCase()));
 
     const MIN_COVERAGE = 0.05;
     const seasonCountry = getSeasonalCountry();
@@ -436,7 +437,7 @@ function renderNutrientSuggestions(totals, loggedFoodsThisWeek) {
     const currentMonth = new Date().getMonth() + 1;
 
     const rawScores = Object.entries(NUTRITION_DATA)
-      .filter(([name]) => !loggedSet.has(name))
+      .filter(([name]) => !loggedSet.has(name) && !excludedSet.has(name))
       .map(([name, d]) => {
         const covered = gapNutrients
           .map(({ key, unit }) => {
@@ -603,6 +604,7 @@ function renderNutrientSuggestions(totals, loggedFoodsThisWeek) {
       animalGaps.push({ key: 'b12', unit: 'µg', coverage: (totals.b12 ?? 0) / ANIMAL_WEEKLY_REF.b12 });
     }
     const animalScores = ANIMAL_FOODS
+      .filter(food => !excludedSet.has(food.name.toLowerCase()))
       .map(food => {
         const covered = animalGaps.map(({ key, unit }) => {
           const amount = food.nutrients[key] ?? 0;
@@ -933,6 +935,33 @@ function renderFoodDatabase() {
       if (_foodDbOpen.has(food)) _foodDbOpen.delete(food);
       else _foodDbOpen.add(food);
       renderFoodDatabase();
+    });
+  });
+}
+
+// ── Excluded foods settings ───────────────────────────────────────────────────
+
+function renderExcludedFoods() {
+  const list = document.getElementById('excludedFoodsList');
+  if (!list) return;
+  const excluded = getExcludedFoods();
+
+  if (!excluded.length) {
+    list.innerHTML = `<p class="empty settings-portions-empty">${t('excluded_none')}</p>`;
+    return;
+  }
+
+  list.innerHTML = excluded.map(name => `
+    <div class="excluded-food-row">
+      <span class="excluded-food-name">${esc(tFood(name))}</span>
+      <button class="excluded-food-remove" data-food="${esc(name)}" aria-label="${t('excluded_remove')}">✕</button>
+    </div>`).join('');
+
+  list.querySelectorAll('.excluded-food-remove').forEach(btn => {
+    btn.addEventListener('click', () => {
+      setExcludedFoods(getExcludedFoods().filter(f => f !== btn.dataset.food));
+      renderExcludedFoods();
+      if (!document.getElementById('tab-nutrition').hidden) renderNutritionTab(true);
     });
   });
 }
