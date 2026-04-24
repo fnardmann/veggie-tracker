@@ -404,13 +404,19 @@ function renderNutrientSuggestions(totals, loggedFoodsThisWeek) {
   const dow = new Date().getDay();
   const pace = (dow === 0 ? 7 : dow) / 7;
 
-  // Identify nutrients where the user is behind today's pace
+  // Identify nutrients where the user is behind today's pace.
+  // Use ANIMAL_WEEKLY_REF so b12 (requiresAnimal) is included.
+  // For requiresAnimal nutrients treat null totals as 0 — plants provide none so
+  // 0 is accurate and it means b12 always shows as a gap until it's actually covered.
   const gapNutrients = NUTRIENT_DEFS
-    .filter(({ key }) => NUTRIENT_WEEKLY_REF[key] && totals[key] != null)
-    .map(({ key, unit }) => ({
-      key, unit,
-      coverage: totals[key] / NUTRIENT_WEEKLY_REF[key],
-    }))
+    .filter(({ key }) => ANIMAL_WEEKLY_REF[key])
+    .map(({ key, unit, requiresAnimal }) => {
+      const raw = totals[key];
+      const val = raw ?? (requiresAnimal ? 0 : null);
+      if (val == null) return null;
+      return { key, unit, coverage: val / ANIMAL_WEEKLY_REF[key] };
+    })
+    .filter(Boolean)
     .filter(n => n.coverage < pace)
     .sort((a, b) => a.coverage - b.coverage);
 
@@ -492,17 +498,30 @@ function renderNutrientSuggestions(totals, loggedFoodsThisWeek) {
         if (coveredGapKeys.has(gap.key)) continue;
         const ppKey = 'poorplant_' + gap.key;
         if (t(ppKey) === ppKey) continue; // skip if no translation exists (t() returns raw key as fallback)
-        // Top 3 plant foods by absolute amount of this nutrient per portion, ignoring MIN_COVERAGE
-        const top3 = Object.entries(NUTRITION_DATA)
-          .filter(([name]) => !loggedSet.has(name) && NUTRITION_DATA[name][gap.key] != null)
-          .map(([name, d]) => {
-            const amount = +(d[gap.key] * d.g / 100).toFixed(2);
-            const pct = Math.round(amount / NUTRIENT_WEEKLY_REF[gap.key] * 100);
-            return { name, amount, pct, unit: gap.unit };
-          })
-          .filter(f => f.amount > 0)
-          .sort((a, b) => b.amount - a.amount)
-          .slice(0, 3);
+        const def = NUTRIENT_DEFS.find(d => d.key === gap.key);
+        const ref = ANIMAL_WEEKLY_REF[gap.key];
+        // For requiresAnimal nutrients (b12): top 3 from ANIMAL_FOODS, not NUTRITION_DATA
+        const top3 = def?.requiresAnimal
+          ? ANIMAL_FOODS
+              .filter(f => f.nutrients[gap.key])
+              .map(f => ({
+                name: f.name,
+                amount: +f.nutrients[gap.key].toFixed(2),
+                pct: Math.round(f.nutrients[gap.key] / ref * 100),
+                unit: gap.unit,
+              }))
+              .sort((a, b) => b.amount - a.amount)
+              .slice(0, 3)
+          : Object.entries(NUTRITION_DATA)
+              .filter(([name]) => !loggedSet.has(name) && NUTRITION_DATA[name][gap.key] != null)
+              .map(([name, d]) => {
+                const amount = +(d[gap.key] * d.g / 100).toFixed(2);
+                const pct = Math.round(amount / ref * 100);
+                return { name, amount, pct, unit: gap.unit };
+              })
+              .filter(f => f.amount > 0)
+              .sort((a, b) => b.amount - a.amount)
+              .slice(0, 3);
         sections.push({ gapKey: gap.key, foods: [], poorPlantSource: true, top3 });
       }
 
