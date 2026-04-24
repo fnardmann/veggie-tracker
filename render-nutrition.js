@@ -299,7 +299,7 @@ async function renderNutritionTab(quiet = false) {
       const s = ratio >= 1 ? 52 + (ratio - 1) * 10 : 78;
       const l = ratio >= 1 ? 44 - (ratio - 1) * 8 : 52 - Math.abs(ratio - 0.55) * 6;
       const barColor = `hsl(${h.toFixed(0)},${s.toFixed(0)}%,${l.toFixed(0)}%)`;
-      const hint = key === 'vitD' ? `<p class="nutr-progress-hint">Raus an die Sonne! ☀️ Pflanzen haben kaum was</p>` : '';
+      const hint = key === 'vitd' ? `<p class="nutr-progress-hint">${esc(t('hint_vitd'))}</p>` : '';
       return `
         <div class="nutr-progress-row nutr-progress-row--clickable" data-nutrient-key="${key}">
           <div class="nutr-progress-header">
@@ -508,7 +508,7 @@ function renderNutrientSuggestions(totals, loggedFoodsThisWeek) {
         // For requiresAnimal nutrients (b12): top 3 from ANIMAL_FOODS, not NUTRITION_DATA
         const top3 = def?.requiresAnimal
           ? ANIMAL_FOODS
-              .filter(f => f.nutrients[gap.key])
+              .filter(f => f.nutrients[gap.key] && !excludedSet.has(f.name.toLowerCase()))
               .map(f => ({
                 name: f.name,
                 amount: +f.nutrients[gap.key].toFixed(2),
@@ -566,7 +566,7 @@ function renderNutrientSuggestions(totals, loggedFoodsThisWeek) {
           <div class="sugg-food-row sugg-food-row--weak">
             <div class="sugg-food-header">
               <span class="sugg-food-name">${esc(tFood(name.replace(/\b\w/g, c => c.toUpperCase())))}</span>
-              <span class="sugg-food-badge sugg-food-badge--weak">${pct}% / Woche</span>
+              <span class="sugg-food-badge sugg-food-badge--weak">${pct}${t('pct_per_week')}</span>
             </div>
             <div class="sugg-nut-chips">
               <span class="sugg-nut-chip sugg-nut-chip--weak">${esc(t('nutrient_' + gapKey))} <em>${fmtVal(amount)} ${esc(unit)}</em></span>
