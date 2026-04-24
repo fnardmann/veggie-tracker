@@ -423,13 +423,14 @@ function renderNutrientSuggestions(totals, loggedFoodsThisWeek) {
     .filter(n => n.coverage < pace)
     .sort((a, b) => a.coverage - b.coverage);
 
+  const loggedSet = new Set(loggedFoodsThisWeek.map(f => f.toLowerCase()));
+  const excludedSet = new Set(getExcludedFoods().map(f => f.toLowerCase()));
+
   let plantHtml = '';
 
   if (!gapNutrients.length) {
     plantHtml = `<p class="empty">${t('sugg_all_covered')}</p>`;
   } else {
-    const loggedSet = new Set(loggedFoodsThisWeek.map(f => f.toLowerCase()));
-    const excludedSet = new Set(getExcludedFoods().map(f => f.toLowerCase()));
 
     const MIN_COVERAGE = 0.05;
     const seasonCountry = getSeasonalCountry();
