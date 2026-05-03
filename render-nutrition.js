@@ -326,55 +326,11 @@ async function renderNutritionTab(quiet = false) {
     const key = row.dataset.nutrientKey;
     _expandedNutrientKey = _expandedNutrientKey === key ? null : key;
     renderAll();
-  };
-
-  // ── Top sources per nutrient ──
-  const sourceRows = NUTRIENT_DEFS.map(({ key, unit }) => {
-    // For each food, compute its total contribution this week (portion × count)
-    const plantRanked = results
-      .map(({ vegetable, nutrition: n }) => {
-        if (!n || n[key] == null) return null;
-        const count = foodCounts.get(vegetable.toLowerCase())?.count ?? 1;
-        return { name: vegetable, amount: +(n[key] * count).toFixed(1), animal: false };
-      })
-      .filter(Boolean);
-    const animalRanked = Object.entries(animalWeekTotals)
-      .map(([foodName, count]) => {
-        const food = ANIMAL_FOODS.find(f => f.name === foodName);
-        const amt = food?.nutrients?.[key];
-        if (!amt) return null;
-        return { name: foodName, amount: +(amt * count).toFixed(1), animal: true };
-      })
-      .filter(Boolean);
-    const ranked = [...plantRanked, ...animalRanked]
-      .filter(r => r.amount > 0)
-      .sort((a, b) => b.amount - a.amount)
-      .slice(0, 5);
-
-    if (!ranked.length) {
-      const noDataMsg = key === 'vitd' ? t('no_data_vitd')
-                      : key === 'b12'  ? t('no_data_b12')
-                      : t('no_data_week');
-      return `
-        <div class="src-row">
-          <span class="src-label">${esc(t('nutrient_' + key))}</span>
-          <span class="n-na">${noDataMsg}</span>
-        </div>`;
+    if (_expandedNutrientKey) {
+      const detailEl = document.getElementById('nutrientDetail');
+      if (detailEl) detailEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
-
-    const chips = ranked.map((r, i) => {
-      const cls = `src-chip${i === 0 ? ' src-chip--top' : ''}${r.animal ? ' src-chip--animal' : ''}`;
-      return `<span class="${cls}">${esc(tFood(r.name))} <em>${fmtVal(r.amount)} ${esc(unit)}</em></span>`;
-    }).join('');
-
-    return `
-      <div class="src-row">
-        <span class="src-label">${esc(t('nutrient_' + key))}</span>
-        <div class="src-chips">${chips}</div>
-      </div>`;
-  }).join('');
-
-  document.getElementById('nutritionDGE').innerHTML = `<div class="src-list">${sourceRows}</div>`;
+  };
 
   // ── Expanded nutrient detail (click on progress bar) ──
   const expandedDetailEl = document.getElementById('nutrientDetail');
@@ -399,8 +355,9 @@ async function renderNutritionTab(quiet = false) {
         };
       })
       .filter(Boolean)
-      .sort((a, b) => b.amount - a.amount)
-      .filter(r => r.pct >= 5);
+      .sort((a, b) => b.amount - a.amount);
+    const top5 = plantRanked.filter(r => r.pct >= 5);
+    const displayPlantRanked = top5.length >= 3 ? top5.slice(0, 3) : [...top5, ...plantRanked.filter(r => r.pct < 5).slice(0, 3 - top5.length)];
 
     // Top recommendations for this specific nutrient
     const excludedSet = new Set(getExcludedFoods().map(f => f.toLowerCase()));
@@ -422,8 +379,8 @@ async function renderNutritionTab(quiet = false) {
       .sort((a, b) => b.pct - a.pct || b.amount - a.amount)
       .slice(0, 8);
 
-    const loggedChips = plantRanked.length
-      ? plantRanked.map(r => `
+    const loggedChips = displayPlantRanked.length
+      ? displayPlantRanked.map(r => `
           <div class="nutr-detail-chip">
             <span class="nutr-detail-chip-name">${esc(tFood(r.name))}</span>
             <span class="nutr-detail-chip-amt">${fmtVal(r.amount)} ${esc(def.unit)} <em>${r.pct}%</em></span>
