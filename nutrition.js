@@ -4,9 +4,11 @@ let NUTRITION_DATA = {};
 
 async function loadNutritionData() {
   try {
-    const r = await fetch('./nutrition-data.json');
+    const r = await fetch('./nutrition-data.json?' + Date.now(), { cache: 'no-store' });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
     NUTRITION_DATA = await r.json();
-  } catch {
+  } catch (e) {
+    console.warn('loadNutritionData failed:', e);
     NUTRITION_DATA = {};
   }
 }
