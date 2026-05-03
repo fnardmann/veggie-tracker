@@ -329,7 +329,7 @@ async function renderNutritionTab(quiet = false) {
       const detailEl = document.getElementById('nutrientDetail');
       if (detailEl) {
         detailEl.hidden = false;
-        requestAnimationFrame(() => detailEl.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+        requestAnimationFrame(() => detailEl.scrollIntoView({ behavior: 'smooth', block: 'center' }));
       }
     }
   };
