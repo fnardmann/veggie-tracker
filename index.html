@@ -38,6 +38,7 @@
       <button class="tab-btn active" data-tab="overview" data-i18n="tab_overview">Overview</button>
       <button class="tab-btn" data-tab="gallery" data-i18n="tab_gallery">Gallery</button>
       <button class="tab-btn" data-tab="nutrition" data-i18n="tab_nutrition">Nutrition</button>
+      <button class="tab-btn" data-tab="trophies" data-i18n="tab_trophies">Trophies</button>
       <button class="tab-btn" data-tab="settings" data-i18n="tab_settings">Settings</button>
     </nav>
   </header>
@@ -157,6 +158,24 @@
           <span class="nutrition-note" data-i18n="daily_cards_note">tap ↓ to save as image · last 5 days</span>
         </div>
         <div id="dailyCards" class="daily-cards-wrap"></div>
+      </section>
+    </div>
+
+    <!-- ── Trophies tab ──────────────────────────────────────────────────────────── -->
+    <div id="tab-trophies" class="tab-pane" hidden>
+      <section class="card">
+        <div class="nutrition-header">
+          <h2 data-i18n="trophies_heading">Trophies</h2>
+          <span class="nutrition-note" data-i18n="trophies_note">achievements unlocked by logging plants</span>
+        </div>
+        <div id="trophiesGrid" class="trophies-grid"></div>
+      </section>
+
+      <section class="card">
+        <div class="nutrition-header">
+          <h2 data-i18n="plant_stats_heading">Plant Statistics</h2>
+        </div>
+        <div id="plantStatsList" class="plant-stats-list"></div>
       </section>
     </div>
 

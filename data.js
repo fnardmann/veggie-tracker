@@ -6,6 +6,7 @@
 const STORAGE_KEY = 'veggie-tracker-v1';
 const SETTINGS_KEY = 'veggie-settings-v1';
 const PORTION_KEY = 'veggie-portions-v1';
+const TROPHY_KEY = 'veggie-trophies-v1';
 
 const DEFAULT_GOAL = 30;
 const DEFAULT_DAILY_GOAL = 5;
@@ -113,4 +114,14 @@ function setPortion(food, grams) {
 
 function toTitleCase(str) {
   return str.replace(/\b\w/g, c => c.toUpperCase());
+}
+
+// ── Trophies ─────────────────────────────────────────────────────────────────
+
+function getEarnedTrophies() {
+  try { return JSON.parse(localStorage.getItem(TROPHY_KEY) || '[]'); } catch { return []; }
+}
+
+function saveEarnedTrophies(earned) {
+  localStorage.setItem(TROPHY_KEY, JSON.stringify(earned));
 }

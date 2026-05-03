@@ -153,6 +153,192 @@ function weeklyChartData(weeks = 12) {
   });
 }
 
+// ── Trophy definitions ─────────────────────────────────────────────────────────
+
+const TROPHY_DEFS = [
+  // Daily streak trophies
+  { id: 'streak_3',    icon: '🔥', type: 'daily_streak', threshold: 3,  category: 'streak' },
+  { id: 'streak_7',    icon: '🔥', type: 'daily_streak', threshold: 7,  category: 'streak' },
+  { id: 'streak_14',   icon: '🔥', type: 'daily_streak', threshold: 14, category: 'streak' },
+  { id: 'streak_30',   icon: '🔥', type: 'daily_streak', threshold: 30, category: 'streak' },
+  { id: 'streak_60',   icon: '🔥', type: 'daily_streak', threshold: 60, category: 'streak' },
+  { id: 'streak_100',  icon: '🔥', type: 'daily_streak', threshold: 100, category: 'streak' },
+  // Weekly streak trophies
+  { id: 'wstreak_2',   icon: '📅', type: 'weekly_streak', threshold: 2,  category: 'streak' },
+  { id: 'wstreak_4',   icon: '📅', type: 'weekly_streak', threshold: 4,  category: 'streak' },
+  { id: 'wstreak_8',   icon: '📅', type: 'weekly_streak', threshold: 8,  category: 'streak' },
+  { id: 'wstreak_12',  icon: '📅', type: 'weekly_streak', threshold: 12, category: 'streak' },
+  { id: 'wstreak_26',  icon: '📅', type: 'weekly_streak', threshold: 26, category: 'streak' },
+  { id: 'wstreak_52',  icon: '📅', type: 'weekly_streak', threshold: 52, category: 'streak' },
+  // Total plants logged
+  { id: 'total_10',   icon: '🌱', type: 'total_plants', threshold: 10,  category: 'total' },
+  { id: 'total_30',   icon: '🌱', type: 'total_plants', threshold: 30,  category: 'total' },
+  { id: 'total_50',   icon: '🌱', type: 'total_plants', threshold: 50,  category: 'total' },
+  { id: 'total_100',  icon: '🌱', type: 'total_plants', threshold: 100, category: 'total' },
+  { id: 'total_200',  icon: '🌱', type: 'total_plants', threshold: 200, category: 'total' },
+  { id: 'total_365',  icon: '🌱', type: 'total_plants', threshold: 365, category: 'total' },
+  // Unique plants tried
+  { id: 'unique_5',   icon: '✨', type: 'unique_plants', threshold: 5,   category: 'variety' },
+  { id: 'unique_10',  icon: '✨', type: 'unique_plants', threshold: 10,  category: 'variety' },
+  { id: 'unique_20',  icon: '✨', type: 'unique_plants', threshold: 20,  category: 'variety' },
+  { id: 'unique_30',  icon: '✨', type: 'unique_plants', threshold: 30,  category: 'variety' },
+  { id: 'unique_50',  icon: '✨', type: 'unique_plants', threshold: 50,  category: 'variety' },
+  // Weekly goal met
+  { id: 'weekly_goal_1',  icon: '🎯', type: 'weekly_goals_met', threshold: 1,  category: 'milestone' },
+  { id: 'weekly_goal_5',  icon: '🎯', type: 'weekly_goals_met', threshold: 5,  category: 'milestone' },
+  { id: 'weekly_goal_10', icon: '🎯', type: 'weekly_goals_met', threshold: 10, category: 'milestone' },
+  { id: 'weekly_goal_25', icon: '🎯', type: 'weekly_goals_met', threshold: 25, category: 'milestone' },
+  { id: 'weekly_goal_52', icon: '🎯', type: 'weekly_goals_met', threshold: 52, category: 'milestone' },
+  // Per-food best streak
+  { id: 'best_streak_7',  icon: '🏆', type: 'best_food_streak', threshold: 7,  category: 'streak' },
+  { id: 'best_streak_14', icon: '🏆', type: 'best_food_streak', threshold: 14, category: 'streak' },
+  { id: 'best_streak_30', icon: '🏆', type: 'best_food_streak', threshold: 30, category: 'streak' },
+];
+
+function checkTrophies() {
+  const { entries } = getData();
+  const earned = getEarnedTrophies();
+  const newlyEarned = [];
+
+  function unlock(id) {
+    if (!earned.includes(id)) {
+      earned.push(id);
+      newlyEarned.push(id);
+    }
+  }
+
+  // Daily streak
+  const ds = dailyStreak();
+  TROPHY_DEFS.filter(t => t.type === 'daily_streak').forEach(t => {
+    if (ds >= t.threshold) unlock(t.id);
+  });
+
+  // Weekly streak
+  const ws = weeklyGoalStreak();
+  TROPHY_DEFS.filter(t => t.type === 'weekly_streak').forEach(t => {
+    if (ws >= t.threshold) unlock(t.id);
+  });
+
+  // Total plants logged
+  const totalEntries = entries.length;
+  TROPHY_DEFS.filter(t => t.type === 'total_plants').forEach(t => {
+    if (totalEntries >= t.threshold) unlock(t.id);
+  });
+
+  // Unique plants
+  const uniqueCount = uniqueVeggies(entries).length;
+  TROPHY_DEFS.filter(t => t.type === 'unique_plants').forEach(t => {
+    if (uniqueCount >= t.threshold) unlock(t.id);
+  });
+
+  // Weekly goals met (count how many weeks the goal was met)
+  const weekCount = countWeeklyGoalMet();
+  TROPHY_DEFS.filter(t => t.type === 'weekly_goals_met').forEach(t => {
+    if (weekCount >= t.threshold) unlock(t.id);
+  });
+
+  // Best per-food streak
+  const bestStreak = Math.max(0, ...veggieStreaks().map(s => s.streak));
+  TROPHY_DEFS.filter(t => t.type === 'best_food_streak').forEach(t => {
+    if (bestStreak >= t.threshold) unlock(t.id);
+  });
+
+  if (newlyEarned.length > 0) {
+    saveEarnedTrophies(earned);
+  }
+
+  return newlyEarned;
+}
+
+function countWeeklyGoalMet() {
+  const { entries } = getData();
+  if (entries.length === 0) return 0;
+  const weeks = new Set(entries.map(e => getWeekStart(e.date)));
+  let count = 0;
+  for (const ws of weeks) {
+    const we = addDays(ws, 6);
+    if (uniqueVeggies(entriesInRange(entries, ws, we)).length >= getGoal()) count++;
+  }
+  return count;
+}
+
+function renderTrophies() {
+  const earned = getEarnedTrophies();
+  const grid = document.getElementById('trophiesGrid');
+  if (!grid) return;
+
+  grid.innerHTML = TROPHY_DEFS.map(t => {
+    const isEarned = earned.includes(t.id);
+    return `
+      <div class="trophy-item${isEarned ? ' trophy-item--earned' : ' trophy-item--locked'}" data-id="${esc(t.id)}">
+        <div class="trophy-icon">${isEarned ? t.icon : '🔒'}</div>
+        <div class="trophy-name">${esc(t('trophy_' + t.id))}</div>
+        <div class="trophy-desc">${esc(t('trophy_' + t.id + '_desc'))}</div>
+        ${isEarned ? `<div class="trophy-earned-label">${esc(t('trophy_earned'))}</div>` : `<div class="trophy-progress">${esc(t('trophy_progress', { current: getTrophyProgress(t), target: t.threshold }))}</div>`}
+      </div>`;
+  }).join('');
+}
+
+function getTrophyProgress(trophy) {
+  const { entries } = getData();
+  switch (trophy.type) {
+    case 'daily_streak':       return dailyStreak();
+    case 'weekly_streak':       return weeklyGoalStreak();
+    case 'total_plants':        return entries.length;
+    case 'unique_plants':        return uniqueVeggies(entries).length;
+    case 'weekly_goals_met':    return countWeeklyGoalMet();
+    case 'best_food_streak':    return Math.max(0, ...veggieStreaks().map(s => s.streak));
+    default: return 0;
+  }
+}
+
+// ── Plant statistics ───────────────────────────────────────────────────────────
+
+function renderPlantStats() {
+  const container = document.getElementById('plantStatsList');
+  if (!container) return;
+  const { entries } = getData();
+  if (entries.length === 0) {
+    container.innerHTML = `<p class="empty">${t('no_plants_yet')}</p>`;
+    return;
+  }
+
+  const stats = [...veggieStreaks()].sort((a, b) => b.total - a.total || b.streak - a.streak);
+  container.innerHTML = stats.map(s => {
+    const food = s.name;
+    const detail = computeVeggieDetail(food);
+    if (!detail) return '';
+    return `
+      <div class="plant-stat-row" data-food="${esc(food)}">
+        <div class="plant-stat-header">
+          <span class="plant-stat-name">${esc(tFood(food))}</span>
+          <span class="plant-stat-meta">
+            <span class="plant-stat-total">${detail.total}×</span>
+            <span class="plant-stat-streak">🔥 ${s.streak}</span>
+          </span>
+        </div>
+        <div class="plant-stat-detail">
+          <div class="plant-stat-cell">
+            <div class="plant-stat-val">${fmtDate(detail.first)}</div>
+            <div class="plant-stat-lbl">${t('streak_first')}</div>
+          </div>
+          <div class="plant-stat-cell">
+            <div class="plant-stat-val">${fmtDate(detail.last)}</div>
+            <div class="plant-stat-lbl">${t('col_last')}</div>
+          </div>
+          <div class="plant-stat-cell">
+            <div class="plant-stat-val">${t(detail.maxStreak === 1 ? 'streak_day' : 'streak_days', { n: detail.maxStreak })}</div>
+            <div class="plant-stat-lbl">${t('streak_best')}</div>
+          </div>
+          <div class="plant-stat-cell">
+            <div class="plant-stat-val">${detail.avgPerWeek}×</div>
+            <div class="plant-stat-lbl">${t('streak_avg_week')}</div>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
 // ── Streak calculations ────────────────────────────────────────────────────────
 
 function dailyStreak() {
@@ -744,6 +930,7 @@ function renderAll() {
   // Tab-specific renders: only run when that tab is visible
   if (!document.getElementById('tab-nutrition').hidden) renderNutritionTab();
   if (!document.getElementById('tab-gallery').hidden)   { renderWeeklyCards(); renderDailyCards(); }
+  if (!document.getElementById('tab-trophies').hidden)  { renderTrophies(); renderPlantStats(); }
 }
 
 // ── Export / Import ───────────────────────────────────────────────────────────
@@ -1118,6 +1305,7 @@ async function init() {
       pane.hidden = false;
       if (btn.dataset.tab === 'nutrition') { renderNutritionTab(); renderNutrientFacts(); }
       if (btn.dataset.tab === 'gallery')   { renderWeeklyCards(); renderDailyCards(); }
+      if (btn.dataset.tab === 'trophies')  { renderTrophies(); renderPlantStats(); checkTrophies(); }
       if (btn.dataset.tab === 'settings') {
         goalInput.value = getGoal();
         dailyGoalInput.value = getDailyGoal();
