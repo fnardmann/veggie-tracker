@@ -136,6 +136,8 @@ let _lastSuggFoods = null;
 let _lastRawResults = null;
 let _lastFoodCounts = null;
 let _expandedNutrientKey = null;
+let _showAllLoggedChips = false;
+let _showAllRecChips = false;
 
 window._expandSugg = function () {
   _suggExpanded = true;
@@ -151,7 +153,6 @@ async function renderNutritionTab(quiet = false) {
   if (entries.length === 0 && !hasAnimal) {
     document.getElementById('nutritionTable').innerHTML = empty;
     document.getElementById('nutritionTotals').innerHTML = empty;
-    document.getElementById('nutritionSuggestions').innerHTML = `<p class="empty">${t('empty_log_suggestions')}</p>`;
     renderFoodDatabase();
     return;
   }
@@ -361,6 +362,21 @@ async function renderNutritionTab(quiet = false) {
       .sort((a, b) => b.amount - a.amount);
     const top5 = plantRanked.filter(r => r.pct >= 5);
     const displayPlantRanked = top5.length >= 3 ? top5.slice(0, 3) : [...top5, ...plantRanked.filter(r => r.pct < 5).slice(0, 3 - top5.length)];
+    const allLoggedChips = plantRanked.length
+      ? plantRanked.map(r => `
+          <div class="nutr-detail-chip">
+            <span class="nutr-detail-chip-name">${esc(tFood(r.name))}</span>
+            <span class="nutr-detail-chip-amt">${fmtVal(r.amount)} ${esc(def.unit)} <em>${r.pct}%</em></span>
+          </div>`).join('')
+      : `<p class="empty" style="margin:0">${t('no_data_week')}</p>`;
+    const visibleLoggedChips = _showAllLoggedChips ? allLoggedChips : (displayPlantRanked.length ? displayPlantRanked.map(r => `
+          <div class="nutr-detail-chip">
+            <span class="nutr-detail-chip-name">${esc(tFood(r.name))}</span>
+            <span class="nutr-detail-chip-amt">${fmtVal(r.amount)} ${esc(def.unit)} <em>${r.pct}%</em></span>
+          </div>`).join('') : `<p class="empty" style="margin:0">${t('no_data_week')}</p>`);
+    const loggedShowMore = plantRanked.length > 3
+      ? `<button class="nutr-detail-show-more" data-show="logged">${_showAllLoggedChips ? t('show_less') : t('show_more')}</button>`
+      : '';
 
     // Top recommendations for this specific nutrient
     const excludedSet = new Set(getExcludedFoods().map(f => f.toLowerCase()));
@@ -382,14 +398,6 @@ async function renderNutritionTab(quiet = false) {
       .sort((a, b) => b.pct - a.pct || b.amount - a.amount)
       .slice(0, 8);
 
-    const loggedChips = displayPlantRanked.length
-      ? displayPlantRanked.map(r => `
-          <div class="nutr-detail-chip">
-            <span class="nutr-detail-chip-name">${esc(tFood(r.name))}</span>
-            <span class="nutr-detail-chip-amt">${fmtVal(r.amount)} ${esc(def.unit)} <em>${r.pct}%</em></span>
-          </div>`).join('')
-      : `<p class="empty" style="margin:0">${t('no_data_week')}</p>`;
-
     const recChips = recScores.length
       ? recScores.map(r => `
           <div class="nutr-detail-chip nutr-detail-chip--rec">
@@ -398,6 +406,15 @@ async function renderNutritionTab(quiet = false) {
             <span class="nutr-detail-chip-amt">${fmtVal(r.amount)} ${esc(def.unit)} <em>+${r.pct}%</em></span>
           </div>`).join('')
       : `<p class="empty" style="margin:0">${t('no_suggestions')}</p>`;
+    const visibleRecChips = _showAllRecChips ? recChips : (recScores.length ? recScores.slice(0, 3).map(r => `
+          <div class="nutr-detail-chip nutr-detail-chip--rec">
+            <span class="nutr-detail-chip-name">${esc(tFood(r.name))}</span>
+            ${r.inSeason ? '<span class="sugg-season-badge">🌱</span>' : ''}
+            <span class="nutr-detail-chip-amt">${fmtVal(r.amount)} ${esc(def.unit)} <em>+${r.pct}%</em></span>
+          </div>`).join('') : `<p class="empty" style="margin:0">${t('no_suggestions')}</p>`);
+    const recShowMore = recScores.length > 3
+      ? `<button class="nutr-detail-show-more" data-show="rec">${_showAllRecChips ? t('show_less') : t('show_more')}</button>`
+      : '';
 
     const loggedLabel = getLang() === 'de' ? t('logged_this_nutrient_de') : t('logged_this_nutrient');
     const improveLabel = getLang() === 'de' ? t('would_improve_de') : t('would_improve');
@@ -420,31 +437,38 @@ async function renderNutritionTab(quiet = false) {
         <div class="nutr-detail-body">
           <div class="nutr-detail-section">
             <p class="nutr-detail-section-label">${esc(loggedLabel)}</p>
-            <div class="nutr-detail-chip-list">${loggedChips}</div>
+            <div class="nutr-detail-chip-list">${visibleLoggedChips}</div>
+            ${loggedShowMore}
           </div>
           <div class="nutr-detail-divider"></div>
           <div class="nutr-detail-section">
             <p class="nutr-detail-section-label">${esc(improveLabel)}</p>
-            <div class="nutr-detail-chip-list">${recChips}</div>
+            <div class="nutr-detail-chip-list">${visibleRecChips}</div>
+            ${recShowMore}
           </div>
         </div>
       </div>`;
 
     expandedDetailEl.querySelector('.nutr-detail-close')?.addEventListener('click', () => {
       _expandedNutrientKey = null;
+      _showAllLoggedChips = false;
+      _showAllRecChips = false;
       renderAll();
+    });
+    expandedDetailEl.querySelectorAll('.nutr-detail-show-more').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (btn.dataset.show === 'logged') _showAllLoggedChips = !_showAllLoggedChips;
+        if (btn.dataset.show === 'rec') _showAllRecChips = !_showAllRecChips;
+        renderAll();
+      });
     });
     expandedDetailEl.hidden = false;
   } else {
     expandedDetailEl.hidden = true;
   }
 
-  _lastSuggTotals = totals;
-  _lastSuggFoods = uniqueFoods;
   _lastRawResults = results;
   _lastFoodCounts = foodCounts;
-
-  renderNutrientSuggestions(totals, uniqueFoods);
 
   renderFoodDatabase();
 
