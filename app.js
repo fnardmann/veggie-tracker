@@ -267,24 +267,35 @@ function renderTrophies() {
   const grid = document.getElementById('trophiesGrid');
   if (!grid) return;
 
-  grid.innerHTML = TROPHY_DEFS.map(t => {
-    const isEarned = earned.includes(t.id);
-    const progress = getTrophyProgress(t);
-    const percent = Math.min(100, Math.round((progress / t.threshold) * 100));
-    return `
-      <div class="trophy-item${isEarned ? ' trophy-item--earned' : ' trophy-item--locked'}" data-id="${esc(t.id)}">
-        <div class="trophy-icon">${isEarned ? t.icon : '🔒'}</div>
-        <div class="trophy-name">${esc(t('trophy_' + t.id))}</div>
-        <div class="trophy-desc">${esc(t('trophy_' + t.id + '_desc'))}</div>
-        ${isEarned
-          ? `<div class="trophy-earned-label">${esc(t('trophy_earned'))}</div>`
-          : `<div class="trophy-progress-wrapper">
-               <div class="trophy-progress-bar"><div class="trophy-progress-bar-fill" style="width:${percent}%"></div></div>
-               <div class="trophy-progress-text">${progress} / ${t.threshold}</div>
-             </div>`
-        }
-      </div>`;
-  }).join('');
+  try {
+    const items = TROPHY_DEFS.map(t => {
+      const isEarned = earned.includes(t.id);
+      const progress = getTrophyProgress(t);
+      const percent = Math.min(100, Math.round((progress / t.threshold) * 100));
+      const icon = isEarned ? t.icon : '🔒';
+      const name = t('trophy_' + t.id);
+      const desc = t('trophy_' + t.id + '_desc');
+      let status;
+      if (isEarned) {
+        status = '<div class="trophy-earned-label">' + esc(t('trophy_earned')) + '</div>';
+      } else {
+        status = '<div class="trophy-progress-wrapper">' +
+          '<div class="trophy-progress-bar"><div class="trophy-progress-bar-fill" style="width:' + percent + '%"></div></div>' +
+          '<div class="trophy-progress-text">' + progress + ' / ' + t.threshold + '</div>' +
+          '</div>';
+      }
+      return '<div class="trophy-item' + (isEarned ? ' trophy-item--earned' : ' trophy-item--locked') + '" data-id="' + esc(t.id) + '">' +
+        '<div class="trophy-icon">' + icon + '</div>' +
+        '<div class="trophy-name">' + esc(name) + '</div>' +
+        '<div class="trophy-desc">' + esc(desc) + '</div>' +
+        status +
+        '</div>';
+    });
+    grid.innerHTML = items.join('');
+  } catch (e) {
+    console.error('renderTrophies error:', e);
+    grid.innerHTML = '<p>Error loading trophies: ' + esc(String(e)) + '</p>';
+  }
 }
 
 function getTrophyProgress(trophy) {
@@ -1313,7 +1324,7 @@ async function init() {
       pane.hidden = false;
       if (btn.dataset.tab === 'nutrition') { renderNutritionTab(); renderNutrientFacts(); }
       if (btn.dataset.tab === 'gallery')   { renderWeeklyCards(); renderDailyCards(); }
-      if (btn.dataset.tab === 'trophies')  { renderTrophies(); renderPlantStats(); checkTrophies(); }
+      if (btn.dataset.tab === 'trophies')  { checkTrophies(); renderTrophies(); renderPlantStats(); }
       if (btn.dataset.tab === 'settings') {
         goalInput.value = getGoal();
         dailyGoalInput.value = getDailyGoal();

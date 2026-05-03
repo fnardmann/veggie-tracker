@@ -16,6 +16,14 @@
   --shadow:   0 2px 16px rgba(26,58,42,.10);
   --radius:   16px;
   --radius-s: 8px;
+  --bg-primary: var(--c-bg);
+  --bg-secondary: var(--c-bg2);
+  --bg-card: var(--c-white);
+  --text-primary: var(--c-text);
+  --text-secondary: var(--c-text2);
+  --text-muted: var(--c-text3);
+  --color-main: var(--c-main);
+  --color-pale: var(--c-pale);
 }
 
 body {
@@ -1229,10 +1237,6 @@ main {
   font-size: 2.5rem;
   margin-bottom: 8px;
   line-height: 1;
-}
-
-.trophy-item--locked .trophy-icon {
-  filter: grayscale(1);
 }
 
 .trophy-name {
