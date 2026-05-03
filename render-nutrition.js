@@ -171,7 +171,6 @@ async function renderNutritionTab(quiet = false) {
     _suggExpanded = false;
     document.getElementById('nutritionTable').innerHTML = `<p class="empty">${t('fetching')}</p>`;
     document.getElementById('nutritionTotals').innerHTML = `<p class="empty">${t('fetching')}</p>`;
-    document.getElementById('nutritionDGE').innerHTML = `<p class="empty">${t('fetching')}</p>`;
     document.getElementById('nutritionSuggestions').innerHTML = `<p class="empty">${t('fetching')}</p>`;
   }
 
