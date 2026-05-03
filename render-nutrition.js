@@ -358,6 +358,7 @@ async function renderNutritionTab(quiet = false) {
         };
       })
       .filter(Boolean)
+      .filter(r => r.pct >= 1)
       .sort((a, b) => b.amount - a.amount);
     const top5 = plantRanked.filter(r => r.pct >= 5);
     const displayPlantRanked = top5.length >= 3 ? top5.slice(0, 3) : [...top5, ...plantRanked.filter(r => r.pct < 5).slice(0, 3 - top5.length)];
