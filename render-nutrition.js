@@ -399,6 +399,9 @@ async function renderNutritionTab(quiet = false) {
           </div>`).join('')
       : `<p class="empty" style="margin:0">${t('no_suggestions')}</p>`;
 
+    const loggedLabel = getLang() === 'de' ? t('logged_this_nutrient_de') : t('logged_this_nutrient');
+    const improveLabel = getLang() === 'de' ? t('would_improve_de') : t('would_improve');
+
     const closeBtn = `<button class="nutr-detail-close" data-key="${key}" title="Close">✕</button>`;
     expandedDetailEl.innerHTML = `
       <div class="nutr-detail-panel">
@@ -416,12 +419,12 @@ async function renderNutritionTab(quiet = false) {
         </div>
         <div class="nutr-detail-body">
           <div class="nutr-detail-section">
-            <p class="nutr-detail-section-label">${esc(t('logged_this_nutrient'))}</p>
+            <p class="nutr-detail-section-label">${esc(loggedLabel)}</p>
             <div class="nutr-detail-chip-list">${loggedChips}</div>
           </div>
           <div class="nutr-detail-divider"></div>
           <div class="nutr-detail-section">
-            <p class="nutr-detail-section-label">${esc(t('would_improve'))}</p>
+            <p class="nutr-detail-section-label">${esc(improveLabel)}</p>
             <div class="nutr-detail-chip-list">${recChips}</div>
           </div>
         </div>

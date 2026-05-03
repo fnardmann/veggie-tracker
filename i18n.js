@@ -172,6 +172,8 @@ const TRANSLATIONS = {
     no_data_b12:                'Plants have none — time for a supplement! 💊',
     logged_this_nutrient:       'Your plants this week',
     would_improve:             'Would improve',
+    logged_this_nutrient_de:   'Ihre Pflanzen diese Woche',
+    would_improve_de:          'Würde verbessern',
     poorplant_b12:    'Plants contain no B12. Supplement and/or animal sources recommended. Best animal sources: liver, oysters, mackerel, eggs.',
     poorplant_vitd:   'Plants have almost no vitamin D. Main sources: sun ☀️, fatty fish, eggs. Best plant option: sun-dried mushrooms (gills up, 20 min).',
     poorplant_b1:     'Plants are a weak B1 source per portion. Main sources: pork, whole grains, fortified cereal. Best plants: sunflower seeds, lentils, oats.',
