@@ -852,6 +852,22 @@ main {
   margin-top: 12px;
   text-align: center;
 }
+
+.nutr-detail-warning {
+  margin: 8px 14px 0;
+  padding: 8px 12px;
+  background: hsl(30, 80%, 92%);
+  border: 1px solid hsl(30, 60%, 70%);
+  border-radius: 6px;
+  font-size: .78rem;
+  color: var(--c-dark);
+  line-height: 1.4;
+}
+
+.nutr-detail-chip--animal {
+  background: var(--c-pale) !important;
+}
+
 .settings-select {
   padding: 6px 10px;
   border-radius: 8px;

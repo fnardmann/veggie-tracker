@@ -416,6 +416,27 @@ async function renderNutritionTab(quiet = false) {
       ? `<button class="nutr-detail-show-more" data-show="rec">${_showAllRecChips ? t('show_less') : t('show_more')}</button>`
       : '';
 
+    const isPlantLimited = def?.requiresAnimal;
+    let animalChips = '';
+    if (isPlantLimited && getAnimalSuggestions()) {
+      const refKey = ANIMAL_WEEKLY_REF[key] ?? ref;
+      const topAnimal = ANIMAL_FOODS
+        .filter(f => f.nutrients[key] != null)
+        .map(f => {
+          const amount = +(f.nutrients[key] * 1).toFixed(1);
+          const apct = refKey > 0 ? Math.round(amount / refKey * 100) : 0;
+          return { name: f.name, amount, pct: apct, unit: def.unit };
+        })
+        .sort((a, b) => b.pct - a.pct || b.amount - a.amount)
+        .slice(0, 3);
+      animalChips = topAnimal.map(f => `
+          <div class="nutr-detail-chip nutr-detail-chip--animal">
+            <span class="nutr-detail-chip-name">${esc(tFood(f.name))}</span>
+            <span class="nutr-detail-chip-amt">${fmtVal(f.amount)} ${esc(def.unit)} <em>+${f.pct}%</em></span>
+          </div>`).join('');
+    }
+    const poorPlantWarning = isPlantLimited && !val ? `<div class="nutr-detail-warning">${esc(getLang() === 'de' ? t('poorplant_' + key + '_de') : t('poorplant_' + key))}</div>` : '';
+
     const loggedLabel = getLang() === 'de' ? t('logged_this_nutrient_de') : t('logged_this_nutrient');
     const improveLabel = getLang() === 'de' ? t('would_improve_de') : t('would_improve');
 
@@ -433,6 +454,7 @@ async function renderNutritionTab(quiet = false) {
             </div>
             <span class="nutr-detail-pct">${fmtVal(val)} / ${fmtVal(ref)} ${esc(def.unit)} · <strong>${pct}%</strong></span>
           </div>
+          ${poorPlantWarning}
         </div>
         <div class="nutr-detail-body">
           <div class="nutr-detail-section">
@@ -446,6 +468,11 @@ async function renderNutritionTab(quiet = false) {
             <div class="nutr-detail-chip-list">${visibleRecChips}</div>
             ${recShowMore}
           </div>
+          ${animalChips ? `<div class="nutr-detail-divider"></div>
+          <div class="nutr-detail-section">
+            <p class="nutr-detail-section-label">${esc(t('sugg_animal_label'))}</p>
+            <div class="nutr-detail-chip-list">${animalChips}</div>
+          </div>` : ''}
         </div>
       </div>`;
 
