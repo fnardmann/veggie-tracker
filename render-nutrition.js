@@ -797,18 +797,13 @@ async function renderNutrientTrend() {
   const ws0 = getWeekStart(today);
   const WEEKS = 12;
 
-  // Build week windows oldest → newest
   const weeks = Array.from({ length: WEEKS }, (_, i) => {
     const ws = addDays(ws0, -(WEEKS - 1 - i) * 7);
     return { ws, we: addDays(ws, 6), label: fmtWeekRange(ws) };
   });
 
-  // Group entries per week
   const weekEntries = weeks.map(({ ws, we }) => entriesInRange(entries, ws, we));
-
-  // Collect all unique foods across all weeks
   const allFoods = [...new Set(weekEntries.flat().map(e => e.vegetable))];
-
   const wrap = document.getElementById('trendChartWrap');
 
   if (allFoods.length === 0) {
@@ -816,10 +811,8 @@ async function renderNutrientTrend() {
     return;
   }
 
-  // Fetch nutrition for every food once (static + cache, no redundant API calls)
   const nutritionResults = await fetchNutritionForAll(allFoods);
   const portions = getPortions();
-
   const foodNutrition = new Map();
   for (const { vegetable, nutrition: n } of nutritionResults) {
     if (!n) continue;
@@ -830,65 +823,59 @@ async function renderNutrientTrend() {
     );
   }
 
-  const select = document.getElementById('trendNutrient');
-  const key = select.value || 'vitc';
-  const def = NUTRIENT_DEFS.find(d => d.key === key);
+  const selected = getTrendVitamins();
+  const defs = NUTRIENT_DEFS.filter(d => selected.includes(d.key));
 
-  // Compute weekly totals for selected nutrient
-  const totals = weeks.map((_, i) => {
-    const we = weekEntries[i];
-    if (!we.length) return null;
-    const counts = new Map();
-    for (const e of we) counts.set(e.vegetable.toLowerCase(), (counts.get(e.vegetable.toLowerCase()) ?? 0) + 1);
-    let sum = null;
-    for (const [food, count] of counts) {
-      const n = foodNutrition.get(food);
-      if (n?.[key] != null) sum = (sum ?? 0) + n[key] * count;
-    }
-    return sum != null ? +(sum.toFixed(1)) : null;
+  const datasets = defs.map((def, idx) => {
+    const color = CHART_COLORS[idx % CHART_COLORS.length];
+    const totals = weeks.map((_, i) => {
+      const we = weekEntries[i];
+      if (!we.length) return null;
+      const counts = new Map();
+      for (const e of we) counts.set(e.vegetable.toLowerCase(), (counts.get(e.vegetable.toLowerCase()) ?? 0) + 1);
+      let sum = null;
+      for (const [food, count] of counts) {
+        const n = foodNutrition.get(food);
+        if (n?.[def.key] != null) sum = (sum ?? 0) + n[def.key] * count;
+      }
+      return sum != null ? +(sum.toFixed(1)) : null;
+    });
+    return {
+      data: totals,
+      borderColor: color,
+      backgroundColor: color + '1a',
+      borderWidth: 2,
+      pointRadius: 3,
+      pointBackgroundColor: color,
+      pointBorderColor: '#fff',
+      pointBorderWidth: 1,
+      fill: false,
+      tension: 0.35,
+      spanGaps: true,
+      label: `${t('nutrient_' + def.key)} (${def.unit})`,
+    };
   });
 
-  // Restore canvas if we replaced it with a message previously
   if (!wrap.querySelector('canvas')) {
     wrap.innerHTML = '<canvas id="trendChart"></canvas>';
   }
 
   mkChart('trendChart', {
     type: 'line',
-    data: {
-      labels: weeks.map(w => w.label),
-      datasets: [{
-        data: totals,
-        borderColor: C.main,
-        backgroundColor: 'rgba(64,145,108,0.10)',
-        borderWidth: 2.5,
-        pointRadius: 4,
-        pointBackgroundColor: C.main,
-        pointBorderColor: '#fff',
-        pointBorderWidth: 1.5,
-        fill: true,
-        tension: 0.35,
-        spanGaps: true,
-        label: `${t('nutrient_' + def.key)} (${def.unit})`,
-      }],
-    },
+    data: { labels: weeks.map(w => w.label), datasets },
     options: {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
-        legend: { display: false },
+        legend: { display: true, position: 'top', labels: { font: { size: 11 }, boxWidth: 14, padding: 8 } },
         tooltip: {
           callbacks: {
-            label: ctx => ctx.raw != null ? `${ctx.raw} ${def.unit}` : t('tooltip_no_data'),
+            label: ctx => ctx.raw != null ? `${defs[ctx.datasetIndex]?.label}: ${ctx.raw} ${defs[ctx.datasetIndex]?.unit}` : t('tooltip_no_data'),
           },
         },
       },
       scales: {
-        y: {
-          beginAtZero: true,
-          grid: { color: '#f0f5f2' },
-          ticks: { callback: v => `${v} ${def.unit}` },
-        },
+        y: { beginAtZero: true, grid: { color: '#f0f5f2' } },
         x: { grid: { display: false }, ticks: { font: { size: 9 }, maxRotation: 45 } },
       },
     },

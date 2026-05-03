@@ -1110,20 +1110,40 @@ main {
 .card-modal-btn--dl     { background: rgba(255,255,255,0.15); color: #fff; }
 .card-modal-btn--close  { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.7); }
 
-/* ── Trend select ────────────────────────────────────────────────────────── */
-.trend-select {
-  padding: 5px 10px;
-  border: 1.5px solid var(--c-pale);
-  border-radius: var(--radius-s);
-  font-size: .82rem;
-  color: var(--c-text2);
-  background: var(--c-bg);
-  cursor: pointer;
-  font-family: inherit;
-  outline: none;
-  transition: border-color .15s;
+/* ── Trend vitamin pills ────────────────────────────────────────────────────── */
+.trend-vitamin-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
 }
-.trend-select:focus { border-color: var(--c-main); }
+.trend-vitamin-pill {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  border: 1.5px solid var(--c-pale);
+  background: var(--c-bg);
+  font-size: .78rem;
+  color: var(--c-text2);
+  cursor: pointer;
+  user-select: none;
+  transition: border-color .15s, color .15s, background .15s;
+}
+.trend-vitamin-pill input { display: none; }
+.trend-vitamin-pill:hover { border-color: var(--c-main); color: var(--c-main); }
+.trend-vitamin-pill.selected {
+  background: var(--c-main);
+  border-color: var(--c-main);
+  color: #fff;
+}
+.trend-vitamin-pill .pill-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
 
 /* ── Heatmap ─────────────────────────────────────────────────────────────── */
 .heat-wrap {

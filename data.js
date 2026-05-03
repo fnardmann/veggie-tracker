@@ -27,6 +27,8 @@ function getAnimalSuggestions() { return getSettings().animalSuggestions ?? true
 function getSeasonalCountry()  { return getSettings().seasonalCountry  ?? 'de'; }
 function getExcludedFoods()    { return getSettings().excludedFoods    ?? []; }
 function setExcludedFoods(arr) { const s = getSettings(); s.excludedFoods = arr; saveSettings(s); }
+function getTrendVitamins() { return getSettings().trendVitamins ?? ['vitc', 'b12', 'vitd']; }
+function setTrendVitamins(arr) { const s = getSettings(); s.trendVitamins = arr; saveSettings(s); }
 
 // ── Plant entries ────────────────────────────────────────────────────────────
 

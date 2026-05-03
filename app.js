@@ -451,6 +451,10 @@ const C = {
   pale:     '#b7e4c7',
   amber:    'rgba(231,111,81,0.85)',
 };
+const CHART_COLORS = [
+  '#40916c', '#e76f51', '#2a9d8f', '#f4a261', '#6a4c93',
+  '#1d3557', '#c77dff', '#06d6a0', '#ef476f', '#ffd166',
+];
 
 const chartInstances = {};
 
@@ -1168,21 +1172,36 @@ async function init() {
     e.target.value = '';
   });
 
-  // Nutrient trend select
-  const trendSelect = document.getElementById('trendNutrient');
-  function populateTrendSelect() {
-    const current = trendSelect.value || 'vitc';
-    trendSelect.innerHTML = '';
-    NUTRIENT_DEFS.forEach(({ key, unit }) => {
-      const opt = document.createElement('option');
-      opt.value = key;
-      opt.textContent = `${t('nutrient_' + key)} (${unit})`;
-      if (key === current) opt.selected = true;
-      trendSelect.appendChild(opt);
+  // Nutrient trend pills
+  function buildTrendPills() {
+    const container = document.getElementById('trendVitaminPills');
+    if (!container) return;
+    const selected = getTrendVitamins();
+    container.innerHTML = '';
+    NUTRIENT_DEFS.forEach(({ key }, i) => {
+      const isSelected = selected.includes(key);
+      const color = CHART_COLORS[i % CHART_COLORS.length];
+      const pill = document.createElement('label');
+      pill.className = 'trend-vitamin-pill' + (isSelected ? ' selected' : '');
+      pill.innerHTML = `<span class="pill-dot" style="background:${isSelected ? '#fff' : color}"></span>${t('nutrient_' + key)}`;
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.value = key;
+      cb.checked = isSelected;
+      cb.addEventListener('change', () => {
+        const cur = getTrendVitamins();
+        const updated = cb.checked
+          ? [...cur, key]
+          : cur.filter(k => k !== key);
+        setTrendVitamins(updated);
+        buildTrendPills();
+        renderNutrientTrend();
+      });
+      pill.insertBefore(cb, pill.firstChild);
+      container.appendChild(pill);
     });
   }
-  populateTrendSelect();
-  trendSelect.addEventListener('change', renderNutrientTrend);
+  buildTrendPills();
 
   // Language select
   const langSelect = document.getElementById('langSelect');
@@ -1191,7 +1210,7 @@ async function init() {
     setLang(langSelect.value);
     applyStaticTranslations();
     populateDatalist();
-    populateTrendSelect();
+    buildTrendPills();
     renderAll();
     if (!document.getElementById('tab-nutrition').hidden) renderNutritionTab();
   });
