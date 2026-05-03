@@ -157,42 +157,55 @@ function weeklyChartData(weeks = 12) {
 
 const TROPHY_DEFS = [
   // Daily streak trophies
-  { id: 'streak_3',    icon: '🔥', type: 'daily_streak', threshold: 3,  category: 'streak' },
-  { id: 'streak_7',    icon: '🔥', type: 'daily_streak', threshold: 7,  category: 'streak' },
-  { id: 'streak_14',   icon: '🔥', type: 'daily_streak', threshold: 14, category: 'streak' },
-  { id: 'streak_30',   icon: '🔥', type: 'daily_streak', threshold: 30, category: 'streak' },
-  { id: 'streak_60',   icon: '🔥', type: 'daily_streak', threshold: 60, category: 'streak' },
+  { id: 'streak_3',    icon: '🔥', type: 'daily_streak', threshold: 3,   category: 'streak' },
+  { id: 'streak_7',    icon: '🔥', type: 'daily_streak', threshold: 7,   category: 'streak' },
+  { id: 'streak_14',   icon: '🔥', type: 'daily_streak', threshold: 14,  category: 'streak' },
+  { id: 'streak_30',   icon: '🔥', type: 'daily_streak', threshold: 30,  category: 'streak' },
+  { id: 'streak_60',   icon: '🔥', type: 'daily_streak', threshold: 60,  category: 'streak' },
   { id: 'streak_100',  icon: '🔥', type: 'daily_streak', threshold: 100, category: 'streak' },
+  { id: 'streak_200',  icon: '🔥', type: 'daily_streak', threshold: 200, category: 'streak' },
+  { id: 'streak_365',  icon: '🔥', type: 'daily_streak', threshold: 365, category: 'streak' },
   // Weekly streak trophies
-  { id: 'wstreak_2',   icon: '📅', type: 'weekly_streak', threshold: 2,  category: 'streak' },
-  { id: 'wstreak_4',   icon: '📅', type: 'weekly_streak', threshold: 4,  category: 'streak' },
-  { id: 'wstreak_8',   icon: '📅', type: 'weekly_streak', threshold: 8,  category: 'streak' },
-  { id: 'wstreak_12',  icon: '📅', type: 'weekly_streak', threshold: 12, category: 'streak' },
-  { id: 'wstreak_26',  icon: '📅', type: 'weekly_streak', threshold: 26, category: 'streak' },
-  { id: 'wstreak_52',  icon: '📅', type: 'weekly_streak', threshold: 52, category: 'streak' },
+  { id: 'wstreak_2',   icon: '📅', type: 'weekly_streak', threshold: 2,   category: 'streak' },
+  { id: 'wstreak_4',   icon: '📅', type: 'weekly_streak', threshold: 4,   category: 'streak' },
+  { id: 'wstreak_8',   icon: '📅', type: 'weekly_streak', threshold: 8,   category: 'streak' },
+  { id: 'wstreak_12',  icon: '📅', type: 'weekly_streak', threshold: 12,  category: 'streak' },
+  { id: 'wstreak_26',  icon: '📅', type: 'weekly_streak', threshold: 26,  category: 'streak' },
+  { id: 'wstreak_52',  icon: '📅', type: 'weekly_streak', threshold: 52,  category: 'streak' },
+  { id: 'wstreak_104', icon: '📅', type: 'weekly_streak', threshold: 104, category: 'streak' },
+  { id: 'wstreak_156', icon: '📅', type: 'weekly_streak', threshold: 156, category: 'streak' },
   // Total plants logged
-  { id: 'total_10',   icon: '🌱', type: 'total_plants', threshold: 10,  category: 'total' },
-  { id: 'total_30',   icon: '🌱', type: 'total_plants', threshold: 30,  category: 'total' },
-  { id: 'total_50',   icon: '🌱', type: 'total_plants', threshold: 50,  category: 'total' },
-  { id: 'total_100',  icon: '🌱', type: 'total_plants', threshold: 100, category: 'total' },
-  { id: 'total_200',  icon: '🌱', type: 'total_plants', threshold: 200, category: 'total' },
-  { id: 'total_365',  icon: '🌱', type: 'total_plants', threshold: 365, category: 'total' },
+  { id: 'total_10',   icon: '🌱', type: 'total_plants', threshold: 10,   category: 'total' },
+  { id: 'total_30',   icon: '🌱', type: 'total_plants', threshold: 30,   category: 'total' },
+  { id: 'total_50',   icon: '🌱', type: 'total_plants', threshold: 50,   category: 'total' },
+  { id: 'total_100',  icon: '🌱', type: 'total_plants', threshold: 100,  category: 'total' },
+  { id: 'total_200',  icon: '🌱', type: 'total_plants', threshold: 200,  category: 'total' },
+  { id: 'total_365',  icon: '🌱', type: 'total_plants', threshold: 365,  category: 'total' },
+  { id: 'total_500',  icon: '🌱', type: 'total_plants', threshold: 500,  category: 'total' },
+  { id: 'total_750',  icon: '🌱', type: 'total_plants', threshold: 750,  category: 'total' },
+  { id: 'total_1000', icon: '🌱', type: 'total_plants', threshold: 1000, category: 'total' },
   // Unique plants tried
-  { id: 'unique_5',   icon: '✨', type: 'unique_plants', threshold: 5,   category: 'variety' },
-  { id: 'unique_10',  icon: '✨', type: 'unique_plants', threshold: 10,  category: 'variety' },
-  { id: 'unique_20',  icon: '✨', type: 'unique_plants', threshold: 20,  category: 'variety' },
-  { id: 'unique_30',  icon: '✨', type: 'unique_plants', threshold: 30,  category: 'variety' },
-  { id: 'unique_50',  icon: '✨', type: 'unique_plants', threshold: 50,  category: 'variety' },
+  { id: 'unique_5',   icon: '✨', type: 'unique_plants', threshold: 5,    category: 'variety' },
+  { id: 'unique_10',  icon: '✨', type: 'unique_plants', threshold: 10,   category: 'variety' },
+  { id: 'unique_20',  icon: '✨', type: 'unique_plants', threshold: 20,   category: 'variety' },
+  { id: 'unique_30',  icon: '✨', type: 'unique_plants', threshold: 30,   category: 'variety' },
+  { id: 'unique_50',  icon: '✨', type: 'unique_plants', threshold: 50,   category: 'variety' },
+  { id: 'unique_75',  icon: '✨', type: 'unique_plants', threshold: 75,   category: 'variety' },
+  { id: 'unique_100', icon: '✨', type: 'unique_plants', threshold: 100, category: 'variety' },
   // Weekly goal met
-  { id: 'weekly_goal_1',  icon: '🎯', type: 'weekly_goals_met', threshold: 1,  category: 'milestone' },
-  { id: 'weekly_goal_5',  icon: '🎯', type: 'weekly_goals_met', threshold: 5,  category: 'milestone' },
-  { id: 'weekly_goal_10', icon: '🎯', type: 'weekly_goals_met', threshold: 10, category: 'milestone' },
-  { id: 'weekly_goal_25', icon: '🎯', type: 'weekly_goals_met', threshold: 25, category: 'milestone' },
-  { id: 'weekly_goal_52', icon: '🎯', type: 'weekly_goals_met', threshold: 52, category: 'milestone' },
+  { id: 'weekly_goal_1',   icon: '🎯', type: 'weekly_goals_met', threshold: 1,   category: 'milestone' },
+  { id: 'weekly_goal_5',   icon: '🎯', type: 'weekly_goals_met', threshold: 5,   category: 'milestone' },
+  { id: 'weekly_goal_10',  icon: '🎯', type: 'weekly_goals_met', threshold: 10,  category: 'milestone' },
+  { id: 'weekly_goal_25',  icon: '🎯', type: 'weekly_goals_met', threshold: 25,  category: 'milestone' },
+  { id: 'weekly_goal_52',  icon: '🎯', type: 'weekly_goals_met', threshold: 52,  category: 'milestone' },
+  { id: 'weekly_goal_100', icon: '🎯', type: 'weekly_goals_met', threshold: 100, category: 'milestone' },
+  { id: 'weekly_goal_156', icon: '🎯', type: 'weekly_goals_met', threshold: 156, category: 'milestone' },
   // Per-food best streak
-  { id: 'best_streak_7',  icon: '🏆', type: 'best_food_streak', threshold: 7,  category: 'streak' },
-  { id: 'best_streak_14', icon: '🏆', type: 'best_food_streak', threshold: 14, category: 'streak' },
-  { id: 'best_streak_30', icon: '🏆', type: 'best_food_streak', threshold: 30, category: 'streak' },
+  { id: 'best_streak_7',   icon: '🏆', type: 'best_food_streak', threshold: 7,   category: 'streak' },
+  { id: 'best_streak_14',  icon: '🏆', type: 'best_food_streak', threshold: 14,  category: 'streak' },
+  { id: 'best_streak_30',  icon: '🏆', type: 'best_food_streak', threshold: 30,  category: 'streak' },
+  { id: 'best_streak_60',  icon: '🏆', type: 'best_food_streak', threshold: 60,  category: 'streak' },
+  { id: 'best_streak_90',  icon: '🏆', type: 'best_food_streak', threshold: 90,  category: 'streak' },
 ];
 
 function checkTrophies() {
@@ -267,8 +280,22 @@ function renderTrophies() {
   const grid = document.getElementById('trophiesGrid');
   if (!grid) return;
 
+  const CATS = ['streak', 'total', 'variety', 'milestone'];
+  const shown = [];
+  for (const cat of CATS) {
+    const catDefs = TROPHY_DEFS.filter(t => t.category === cat);
+    const earnedInCat = catDefs.filter(t => earned.includes(t.id));
+    if (earnedInCat.length > 0) {
+      shown.push(earnedInCat[earnedInCat.length - 1]);
+      const nextIdx = catDefs.indexOf(earnedInCat[earnedInCat.length - 1]) + 1;
+      if (nextIdx < catDefs.length) shown.push(catDefs[nextIdx]);
+    } else {
+      shown.push(catDefs[0]);
+    }
+  }
+
   try {
-    const items = TROPHY_DEFS.map(trophy => {
+    const items = shown.map(trophy => {
       const isEarned = earned.includes(trophy.id);
       const progress = getTrophyProgress(trophy);
       const percent = Math.min(100, Math.round((progress / trophy.threshold) * 100));
