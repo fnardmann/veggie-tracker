@@ -133,6 +133,10 @@ const _plantGroupMap = new Map(
 let _suggExpanded = false;
 let _lastSuggTotals = null;
 let _lastSuggFoods = null;
+let _lastRawResults = null;
+let _lastFoodCounts = null;
+let _expandedNutrientKey = null;
+
 window._expandSugg = function () {
   _suggExpanded = true;
   renderNutritionTab(true);
@@ -320,24 +324,8 @@ async function renderNutritionTab(quiet = false) {
     const row = e.target.closest('[data-nutrient-key]');
     if (!row) return;
     const key = row.dataset.nutrientKey;
-
-    // Expand suggestions without rebuilding nutritionTotals (avoids scroll jump)
-    if (!_suggExpanded && _lastSuggTotals) {
-      _suggExpanded = true;
-      renderNutrientSuggestions(_lastSuggTotals, _lastSuggFoods);
-    }
-
-    const headerH = document.querySelector('header')?.offsetHeight ?? 0;
-    const section = document.getElementById('sugg-section-' + key);
-    const target = section || document.getElementById('nutritionSuggestions');
-    if (target) {
-      const targetY = target.getBoundingClientRect().top + window.scrollY - headerH - 8;
-      window.scrollTo({ top: targetY, behavior: 'smooth' });
-      if (section) {
-        section.classList.add('sugg-section--highlight');
-        setTimeout(() => section.classList.remove('sugg-section--highlight'), 1800);
-      }
-    }
+    _expandedNutrientKey = _expandedNutrientKey === key ? null : key;
+    renderAll();
   };
 
   // ── Top sources per nutrient ──
@@ -388,8 +376,110 @@ async function renderNutritionTab(quiet = false) {
 
   document.getElementById('nutritionDGE').innerHTML = `<div class="src-list">${sourceRows}</div>`;
 
+  // ── Expanded nutrient detail (click on progress bar) ──
+  const expandedDetailEl = document.getElementById('nutrientDetail');
+  if (_expandedNutrientKey && results) {
+    const rawResults = results;
+    const foodCountsMap = foodCounts;
+    const key = _expandedNutrientKey;
+    const def = NUTRIENT_DEFS.find(d => d.key === key);
+    const val = totals[key] ?? 0;
+    const ref = (hasAnimal ? ANIMAL_WEEKLY_REF : NUTRIENT_WEEKLY_REF)[key] ?? 0;
+    const pct = ref > 0 ? Math.round((val / ref) * 100) : 0;
+
+    // Build ranked list of logged plants contributing to this nutrient
+    const plantRanked = rawResults
+      .map(({ vegetable, nutrition: n }) => {
+        if (!n || n[key] == null) return null;
+        const count = foodCountsMap.get(vegetable.toLowerCase())?.count ?? 1;
+        return {
+          name: vegetable,
+          amount: +(n[key] * count).toFixed(1),
+          pct: ref > 0 ? Math.round((n[key] * count) / ref * 100) : 0,
+        };
+      })
+      .filter(Boolean)
+      .sort((a, b) => b.amount - a.amount);
+
+    // Top recommendations for this specific nutrient
+    const excludedSet = new Set(getExcludedFoods().map(f => f.toLowerCase()));
+    const loggedSet = new Set(uniqueFoods.map(f => f.toLowerCase()));
+    const seasonCountry = getSeasonalCountry();
+    const seasonMap = seasonCountry !== 'off' ? (SEASONAL_CALENDAR[seasonCountry] ?? {}) : {};
+    const currentMonth = new Date().getMonth() + 1;
+
+    const recScores = Object.entries(NUTRITION_DATA)
+      .filter(([name]) => !loggedSet.has(name) && !excludedSet.has(name))
+      .filter(([name, d]) => d[key] != null)
+      .map(([name, d]) => {
+        const amount = +(d[key] * d.g / 100).toFixed(1);
+        const recPct = ref > 0 ? Math.round(amount / ref * 100) : 0;
+        const inSeason = seasonMap[name]?.includes(currentMonth) ?? false;
+        return { name, amount, pct: recPct, inSeason };
+      })
+      .filter(f => f.pct >= 5)
+      .sort((a, b) => b.pct - a.pct || b.amount - a.amount)
+      .slice(0, 8);
+
+    const loggedChips = plantRanked.length
+      ? plantRanked.map(r => `
+          <div class="nutr-detail-chip">
+            <span class="nutr-detail-chip-name">${esc(tFood(r.name))}</span>
+            <span class="nutr-detail-chip-amt">${fmtVal(r.amount)} ${esc(def.unit)} <em>${r.pct}%</em></span>
+          </div>`).join('')
+      : `<p class="empty" style="margin:0">${t('no_data_week')}</p>`;
+
+    const recChips = recScores.length
+      ? recScores.map(r => `
+          <div class="nutr-detail-chip nutr-detail-chip--rec">
+            <span class="nutr-detail-chip-name">${esc(tFood(r.name))}</span>
+            ${r.inSeason ? '<span class="sugg-season-badge">🌱</span>' : ''}
+            <span class="nutr-detail-chip-amt">${fmtVal(r.amount)} ${esc(def.unit)} <em>+${r.pct}%</em></span>
+          </div>`).join('')
+      : `<p class="empty" style="margin:0">${t('no_suggestions')}</p>`;
+
+    const closeBtn = `<button class="nutr-detail-close" data-key="${key}" title="Close">✕</button>`;
+    expandedDetailEl.innerHTML = `
+      <div class="nutr-detail-panel">
+        <div class="nutr-detail-header">
+          <div class="nutr-detail-title-row">
+            ${closeBtn}
+            <span class="nutr-detail-nutrient">${esc(t('nutrient_' + key))}</span>
+          </div>
+          <div class="nutr-detail-progress">
+            <div class="nutr-bar-track" style="height:10px">
+              <div class="nutr-bar-fill" style="width:${Math.min(100, pct)}%;background:hsl(130,52%,44%)"></div>
+            </div>
+            <span class="nutr-detail-pct">${fmtVal(val)} / ${fmtVal(ref)} ${esc(def.unit)} · <strong>${pct}%</strong></span>
+          </div>
+        </div>
+        <div class="nutr-detail-body">
+          <div class="nutr-detail-section">
+            <p class="nutr-detail-section-label">${esc(t('logged_this_nutrient'))}</p>
+            <div class="nutr-detail-chip-list">${loggedChips}</div>
+          </div>
+          <div class="nutr-detail-divider"></div>
+          <div class="nutr-detail-section">
+            <p class="nutr-detail-section-label">${esc(t('would_improve'))}</p>
+            <div class="nutr-detail-chip-list">${recChips}</div>
+          </div>
+        </div>
+      </div>`;
+
+    expandedDetailEl.querySelector('.nutr-detail-close')?.addEventListener('click', () => {
+      _expandedNutrientKey = null;
+      renderAll();
+    });
+    expandedDetailEl.hidden = false;
+  } else {
+    expandedDetailEl.hidden = true;
+  }
+
   _lastSuggTotals = totals;
   _lastSuggFoods = uniqueFoods;
+  _lastRawResults = results;
+  _lastFoodCounts = foodCounts;
+
   renderNutrientSuggestions(totals, uniqueFoods);
 
   renderFoodDatabase();

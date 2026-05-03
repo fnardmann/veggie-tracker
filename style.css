@@ -851,6 +851,80 @@ main {
   border-color: var(--c-main);
 }
 
+/* ── Nutrient detail panel (expanded from progress bar click) ─────────────── */
+.nutr-detail-panel {
+  border-radius: 10px;
+  border: 1.5px solid var(--c-main);
+  background: var(--c-bg);
+  overflow: hidden;
+}
+.nutr-detail-header {
+  background: var(--c-pale);
+  padding: 12px 14px 10px;
+}
+.nutr-detail-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.nutr-detail-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--c-text2);
+  font-size: .9rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: color .1s, background .1s;
+  font-family: inherit;
+  flex-shrink: 0;
+}
+.nutr-detail-close:hover { color: var(--c-amber); background: #fef0ec; }
+.nutr-detail-nutrient {
+  font-size: .88rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: var(--c-main);
+}
+.nutr-detail-progress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.nutr-detail-progress .nutr-bar-track { flex: 1; }
+.nutr-detail-pct { font-size: .78rem; color: var(--c-text2); white-space: nowrap; }
+.nutr-detail-body { padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+.nutr-detail-section {}
+.nutr-detail-section-label {
+  font-size: .68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--c-text3);
+  margin-bottom: 8px;
+}
+.nutr-detail-divider { height: 1px; background: var(--c-pale); }
+.nutr-detail-chip-list { display: flex; flex-direction: column; gap: 4px; }
+.nutr-detail-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border-radius: 7px;
+  background: var(--c-white);
+  border: 1px solid var(--c-pale);
+}
+.nutr-detail-chip--rec { border-color: var(--c-light); background: #f0faf4; }
+.nutr-detail-chip-name { flex: 1; font-size: .85rem; font-weight: 600; color: var(--c-dark); }
+.nutr-detail-chip-amt {
+  font-size: .75rem;
+  color: var(--c-text2);
+  white-space: nowrap;
+}
+.nutr-detail-chip-amt em { font-style: normal; color: var(--c-text3); }
+
 /* ── Plant Gallery ───────────────────────────────────────────────────────── */
 .daily-cards-wrap {
   display: grid;
