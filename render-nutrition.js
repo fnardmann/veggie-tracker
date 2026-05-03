@@ -327,7 +327,10 @@ async function renderNutritionTab(quiet = false) {
     renderAll();
     if (_expandedNutrientKey) {
       const detailEl = document.getElementById('nutrientDetail');
-      if (detailEl) detailEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      if (detailEl) {
+        detailEl.hidden = false;
+        requestAnimationFrame(() => detailEl.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+      }
     }
   };
 
