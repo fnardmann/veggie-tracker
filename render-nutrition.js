@@ -399,7 +399,8 @@ async function renderNutritionTab(quiet = false) {
         };
       })
       .filter(Boolean)
-      .sort((a, b) => b.amount - a.amount);
+      .sort((a, b) => b.amount - a.amount)
+      .filter(r => r.pct >= 5);
 
     // Top recommendations for this specific nutrient
     const excludedSet = new Set(getExcludedFoods().map(f => f.toLowerCase()));
