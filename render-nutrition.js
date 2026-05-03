@@ -151,7 +151,6 @@ async function renderNutritionTab(quiet = false) {
   if (entries.length === 0 && !hasAnimal) {
     document.getElementById('nutritionTable').innerHTML = empty;
     document.getElementById('nutritionTotals').innerHTML = empty;
-    document.getElementById('nutritionDGE').innerHTML = `<p class="empty">${t('empty_log_sources')}</p>`;
     document.getElementById('nutritionSuggestions').innerHTML = `<p class="empty">${t('empty_log_suggestions')}</p>`;
     renderFoodDatabase();
     return;
