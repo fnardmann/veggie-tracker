@@ -269,12 +269,20 @@ function renderTrophies() {
 
   grid.innerHTML = TROPHY_DEFS.map(t => {
     const isEarned = earned.includes(t.id);
+    const progress = getTrophyProgress(t);
+    const percent = Math.min(100, Math.round((progress / t.threshold) * 100));
     return `
       <div class="trophy-item${isEarned ? ' trophy-item--earned' : ' trophy-item--locked'}" data-id="${esc(t.id)}">
         <div class="trophy-icon">${isEarned ? t.icon : '🔒'}</div>
         <div class="trophy-name">${esc(t('trophy_' + t.id))}</div>
         <div class="trophy-desc">${esc(t('trophy_' + t.id + '_desc'))}</div>
-        ${isEarned ? `<div class="trophy-earned-label">${esc(t('trophy_earned'))}</div>` : `<div class="trophy-progress">${esc(t('trophy_progress', { current: getTrophyProgress(t), target: t.threshold }))}</div>`}
+        ${isEarned
+          ? `<div class="trophy-earned-label">${esc(t('trophy_earned'))}</div>`
+          : `<div class="trophy-progress-wrapper">
+               <div class="trophy-progress-bar"><div class="trophy-progress-bar-fill" style="width:${percent}%"></div></div>
+               <div class="trophy-progress-text">${progress} / ${t.threshold}</div>
+             </div>`
+        }
       </div>`;
   }).join('');
 }
@@ -930,7 +938,7 @@ function renderAll() {
   // Tab-specific renders: only run when that tab is visible
   if (!document.getElementById('tab-nutrition').hidden) renderNutritionTab();
   if (!document.getElementById('tab-gallery').hidden)   { renderWeeklyCards(); renderDailyCards(); }
-  if (!document.getElementById('tab-trophies').hidden)  { renderTrophies(); renderPlantStats(); }
+  if (!document.getElementById('tab-trophies').hidden)  { checkTrophies(); renderTrophies(); renderPlantStats(); }
 }
 
 // ── Export / Import ───────────────────────────────────────────────────────────
