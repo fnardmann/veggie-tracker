@@ -354,9 +354,12 @@ function renderPlantStats() {
     const food = s.name;
     const detail = computeVeggieDetail(food);
     if (!detail) return '';
+    const cp = FOOD_EMOJI[food];
+    const emojiChar = cp ? String.fromCodePoint(parseInt(cp, 16)) : '';
     return `
       <div class="plant-stat-row" data-food="${esc(food)}">
         <div class="plant-stat-header">
+          <span class="plant-stat-emoji">${emojiChar}</span>
           <span class="plant-stat-name">${esc(tFood(food))}</span>
           <span class="plant-stat-meta">
             <span class="plant-stat-total">${detail.total}×</span>
@@ -364,14 +367,6 @@ function renderPlantStats() {
           </span>
         </div>
         <div class="plant-stat-detail">
-          <div class="plant-stat-cell">
-            <div class="plant-stat-val">${fmtDate(detail.first)}</div>
-            <div class="plant-stat-lbl">${t('streak_first')}</div>
-          </div>
-          <div class="plant-stat-cell">
-            <div class="plant-stat-val">${fmtDate(detail.last)}</div>
-            <div class="plant-stat-lbl">${t('col_last')}</div>
-          </div>
           <div class="plant-stat-cell">
             <div class="plant-stat-val">${t(detail.maxStreak === 1 ? 'streak_day' : 'streak_days', { n: detail.maxStreak })}</div>
             <div class="plant-stat-lbl">${t('streak_best')}</div>

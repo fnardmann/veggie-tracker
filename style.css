@@ -1283,20 +1283,28 @@ main {
 
 .plant-stat-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  gap: 8px;
   margin-bottom: 8px;
+}
+
+.plant-stat-emoji {
+  font-size: 1.4rem;
+  line-height: 1;
+  flex-shrink: 0;
 }
 
 .plant-stat-name {
   font-weight: 600;
   font-size: 0.95rem;
+  flex: 1;
 }
 
 .plant-stat-meta {
   display: flex;
   gap: 10px;
   align-items: center;
+  flex-shrink: 0;
 }
 
 .plant-stat-total {
@@ -1311,7 +1319,7 @@ main {
 
 .plant-stat-detail {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 8px;
 }
 
