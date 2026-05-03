@@ -287,12 +287,12 @@ async function renderNutritionTab(quiet = false) {
 
   const progressRef = hasAnimal ? ANIMAL_WEEKLY_REF : NUTRIENT_WEEKLY_REF;
   const progressRows = NUTRIENT_DEFS
-    .filter(({ key }) => progressRef[key])
+    .filter(({ key }) => NUTRIENT_DEFS.find(d => d.key === key)) // show all defined nutrients
     .map(({ key, unit }) => {
-      const val = totals[key];
-      const ref = progressRef[key];
+      const val = totals[key] ?? (key === 'vitd' ? 0 : null);
+      const ref = (progressRef[key] ?? NUTRIENT_WEEKLY_REF[key]) ?? 0;
       if (val == null) return '';
-      const pct = Math.min(1, val / ref);
+      const pct = ref > 0 ? Math.min(1, val / ref) : 0;
       const pctDisplay = Math.round(pct * 100);
       const pace = pacePct / 100;
       const ratio = pace > 0 ? Math.min(pct / pace, 1.4) : 1;
@@ -302,6 +302,7 @@ async function renderNutritionTab(quiet = false) {
       const s = ratio >= 1 ? 52 + (ratio - 1) * 10 : 78;
       const l = ratio >= 1 ? 44 - (ratio - 1) * 8 : 52 - Math.abs(ratio - 0.55) * 6;
       const barColor = `hsl(${h.toFixed(0)},${s.toFixed(0)}%,${l.toFixed(0)}%)`;
+      const hint = key === 'vitd' ? `<p class="nutr-progress-hint">${esc(t('hint_vitd'))}</p>` : '';
       return `
         <div class="nutr-progress-row nutr-progress-row--clickable" data-nutrient-key="${key}">
           <div class="nutr-progress-header">
@@ -312,6 +313,7 @@ async function renderNutritionTab(quiet = false) {
             <div class="nutr-bar-fill" style="width:${pct * 100}%;background:${barColor}"></div>
             <div class="nutr-bar-pace" style="left:${pacePct}%"></div>
           </div>
+          ${hint}
         </div>`;
     }).join('');
 
