@@ -176,12 +176,13 @@ async function renderNutritionTab(quiet = false) {
   }
 
   const rawResults = uniqueFoods.length ? await fetchNutritionForAll(uniqueFoods) : [];
+  console.log('rawResults count:', rawResults.length, 'uniqueFoods:', uniqueFoods.length, 'hasAnimal:', hasAnimal);
+  console.log('rawResults with nutrition:', rawResults.filter(r => r.nutrition).length);
 
   if (!rawResults.some(r => r.nutrition) && !hasAnimal) {
     const noData = `<p class="empty">${t('no_nutrition_data')}</p>`;
     document.getElementById('nutritionTable').innerHTML = noData;
     document.getElementById('nutritionTotals').innerHTML = noData;
-    document.getElementById('nutritionDGE').innerHTML = noData;
     document.getElementById('nutritionSuggestions').innerHTML = noData;
     return;
   }
@@ -333,6 +334,7 @@ async function renderNutritionTab(quiet = false) {
 
   // ── Expanded nutrient detail (click on progress bar) ──
   const expandedDetailEl = document.getElementById('nutrientDetail');
+  console.log('renderNutritionTab:', { _expandedNutrientKey, results: results?.length, NUTRITION_DATA_keys: Object.keys(NUTRITION_DATA).length });
   if (_expandedNutrientKey && results) {
     const rawResults = results;
     const foodCountsMap = foodCounts;

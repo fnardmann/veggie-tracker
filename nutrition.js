@@ -4,11 +4,15 @@ let NUTRITION_DATA = {};
 
 async function loadNutritionData() {
   try {
+    console.log('loadNutritionData: fetching nutrition-data.json');
     const r = await fetch('./nutrition-data.json?' + Date.now(), { cache: 'no-store' });
+    console.log('loadNutritionData: status', r.status, r.statusText);
     if (!r.ok) throw new Error('HTTP ' + r.status);
-    NUTRITION_DATA = await r.json();
+    const json = await r.json();
+    console.log('loadNutritionData: loaded', Object.keys(json).length, 'entries');
+    NUTRITION_DATA = json;
   } catch (e) {
-    console.warn('loadNutritionData failed:', e);
+    console.error('loadNutritionData failed:', e);
     NUTRITION_DATA = {};
   }
 }
