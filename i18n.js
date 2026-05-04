@@ -628,6 +628,7 @@ const TRANSLATIONS = {
     // Detail panel labels
     logged_this_nutrient_de:   'Ihre Pflanzen diese Woche',
     would_improve_de:          'Würde verbessern',
+    sugg_animal_label:         'Auch empfohlen (tierisch)',
     poorplant_b12:    'Plants have none — time for a supplement! 💊',
     poorplant_b12_de:'Pflanzen enthalten kein B12. Nahrungsergänzung und/oder tierische Quellen empfohlen. Beste tierische Quellen: Leber, Austern, Makrele, Eier.',
     poorplant_vitd:   'Plants have almost no vitamin D. Main sources: sun ☀️, fatty fish, eggs. Best plant option: sun-dried mushrooms (gills up, 20 min).',

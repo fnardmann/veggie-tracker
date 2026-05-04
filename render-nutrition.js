@@ -138,6 +138,7 @@ let _lastFoodCounts = null;
 let _expandedNutrientKey = null;
 let _showAllLoggedChips = false;
 let _showAllRecChips = false;
+let _showAllAnimalChips = false;
 
 window._expandSugg = function () {
   _suggExpanded = true;
@@ -417,7 +418,9 @@ async function renderNutritionTab(quiet = false) {
       : '';
 
     const isPlantLimited = def?.requiresAnimal;
-    let animalChips = '';
+    let allAnimalChips = '';
+    let visibleAnimalChips = '';
+    let animalShowMore = '';
     if (isPlantLimited && getAnimalSuggestions()) {
       const refKey = ANIMAL_WEEKLY_REF[key] ?? ref;
       const topAnimal = ANIMAL_FOODS
@@ -427,15 +430,22 @@ async function renderNutritionTab(quiet = false) {
           const apct = refKey > 0 ? Math.round(amount / refKey * 100) : 0;
           return { name: f.name, amount, pct: apct, unit: def.unit };
         })
-        .sort((a, b) => b.pct - a.pct || b.amount - a.amount)
-        .slice(0, 3);
-      animalChips = topAnimal.map(f => `
+        .sort((a, b) => b.pct - a.pct || b.amount - a.amount);
+      allAnimalChips = topAnimal.map(f => `
           <div class="nutr-detail-chip nutr-detail-chip--animal">
             <span class="nutr-detail-chip-name">${esc(tFood(f.name))}</span>
             <span class="nutr-detail-chip-amt">${fmtVal(f.amount)} ${esc(def.unit)} <em>+${f.pct}%</em></span>
           </div>`).join('');
+      visibleAnimalChips = _showAllAnimalChips ? allAnimalChips : (topAnimal.slice(0, 3).map(f => `
+          <div class="nutr-detail-chip nutr-detail-chip--animal">
+            <span class="nutr-detail-chip-name">${esc(tFood(f.name))}</span>
+            <span class="nutr-detail-chip-amt">${fmtVal(f.amount)} ${esc(def.unit)} <em>+${f.pct}%</em></span>
+          </div>`).join(''));
+      if (topAnimal.length > 3) {
+        animalShowMore = `<button class="nutr-detail-show-more" data-show="animal">${_showAllAnimalChips ? t('show_less') : t('show_more')}</button>`;
+      }
     }
-    const poorPlantWarning = isPlantLimited && !val ? `<div class="nutr-detail-warning">${esc(getLang() === 'de' ? t('poorplant_' + key + '_de') : t('poorplant_' + key))}</div>` : '';
+    const poorPlantWarning = isPlantLimited ? `<div class="nutr-detail-warning">${esc(getLang() === 'de' ? t('poorplant_' + key + '_de') : t('poorplant_' + key))}</div>` : '';
 
     const loggedLabel = getLang() === 'de' ? t('logged_this_nutrient_de') : t('logged_this_nutrient');
     const improveLabel = getLang() === 'de' ? t('would_improve_de') : t('would_improve');
@@ -468,10 +478,11 @@ async function renderNutritionTab(quiet = false) {
             <div class="nutr-detail-chip-list">${visibleRecChips}</div>
             ${recShowMore}
           </div>
-          ${animalChips ? `<div class="nutr-detail-divider"></div>
+          ${animalShowMore ? `<div class="nutr-detail-divider"></div>
           <div class="nutr-detail-section">
             <p class="nutr-detail-section-label">${esc(t('sugg_animal_label'))}</p>
-            <div class="nutr-detail-chip-list">${animalChips}</div>
+            <div class="nutr-detail-chip-list">${visibleAnimalChips}</div>
+            ${animalShowMore}
           </div>` : ''}
         </div>
       </div>`;
@@ -480,12 +491,14 @@ async function renderNutritionTab(quiet = false) {
       _expandedNutrientKey = null;
       _showAllLoggedChips = false;
       _showAllRecChips = false;
+      _showAllAnimalChips = false;
       renderAll();
     });
     expandedDetailEl.querySelectorAll('.nutr-detail-show-more').forEach(btn => {
       btn.addEventListener('click', () => {
         if (btn.dataset.show === 'logged') _showAllLoggedChips = !_showAllLoggedChips;
         if (btn.dataset.show === 'rec') _showAllRecChips = !_showAllRecChips;
+        if (btn.dataset.show === 'animal') _showAllAnimalChips = !_showAllAnimalChips;
         renderAll();
       });
     });
