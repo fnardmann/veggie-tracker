@@ -448,7 +448,8 @@ async function renderNutritionTab(quiet = false) {
     }
     const getPoorPlantMsg = (key) => {
       const base = `poorplant_${key}`;
-      const deVal = (TRANSLATIONS.de || {})[base];
+      const suffix = getLang() === 'de' ? '_de' : '';
+      const deVal = (TRANSLATIONS.de || {})[base + suffix];
       return deVal ? deVal : t(base);
     };
     const poorPlantWarning = pct < 20 && hasPoorPlantMsg ? `<div class="nutr-detail-warning">${esc(getPoorPlantMsg(key))}</div>` : '';
