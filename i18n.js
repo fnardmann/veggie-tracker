@@ -1160,7 +1160,7 @@ const FOOD_ALIASES = {
 function tFood(name) {
   if (getLang() !== 'de') return name;
   const title = name.replace(/\b\w/g, c => c.toUpperCase());
-  return FOOD_NAMES_DE[title] ?? name;
+  return FOOD_NAMES_DE[title] ?? title;
 }
 
 // Given a user-typed name (possibly German or aliased), return the English canonical name for storage
