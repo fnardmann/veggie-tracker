@@ -417,11 +417,12 @@ async function renderNutritionTab(quiet = false) {
       ? `<button class="nutr-detail-show-more" data-show="rec">${_showAllRecChips ? t('show_less') : t('show_more')}</button>`
       : '';
 
-    const isPlantLimited = def?.requiresAnimal;
+    const hasPoorPlantMsg = t('poorplant_' + key) !== 'poorplant_' + key;
+    const showAnimal = pct < 20 && hasPoorPlantMsg && getAnimalSuggestions();
     let allAnimalChips = '';
     let visibleAnimalChips = '';
     let animalShowMore = '';
-    if (isPlantLimited && getAnimalSuggestions()) {
+    if (showAnimal) {
       const refKey = ANIMAL_WEEKLY_REF[key] ?? ref;
       const topAnimal = ANIMAL_FOODS
         .filter(f => f.nutrients[key] != null)
@@ -445,7 +446,7 @@ async function renderNutritionTab(quiet = false) {
         animalShowMore = `<button class="nutr-detail-show-more" data-show="animal">${_showAllAnimalChips ? t('show_less') : t('show_more')}</button>`;
       }
     }
-    const poorPlantWarning = isPlantLimited ? `<div class="nutr-detail-warning">${esc(getLang() === 'de' ? t('poorplant_' + key + '_de') : t('poorplant_' + key))}</div>` : '';
+    const poorPlantWarning = pct < 20 && hasPoorPlantMsg ? `<div class="nutr-detail-warning">${esc(getLang() === 'de' ? t('poorplant_' + key + '_de') : t('poorplant_' + key))}</div>` : '';
 
     const loggedLabel = getLang() === 'de' ? t('logged_this_nutrient_de') : t('logged_this_nutrient');
     const improveLabel = getLang() === 'de' ? t('would_improve_de') : t('would_improve');
