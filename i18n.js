@@ -910,7 +910,7 @@ const FOOD_ALIASES = {
 // Translate a stored (English canonical) food name for display
 function tFood(name) {
   if (getLang() !== 'de') return name;
-  const title = name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
+  const title = name.replace(/\b\w/g, c => c.toUpperCase());
   return FOOD_NAMES_DE[title] ?? name;
 }
 
