@@ -446,7 +446,12 @@ async function renderNutritionTab(quiet = false) {
         animalShowMore = `<button class="nutr-detail-show-more" data-show="animal">${_showAllAnimalChips ? t('show_less') : t('show_more')}</button>`;
       }
     }
-    const poorPlantWarning = pct < 20 && hasPoorPlantMsg ? `<div class="nutr-detail-warning">${esc(getLang() === 'de' ? t('poorplant_' + key + '_de') : t('poorplant_' + key))}</div>` : '';
+    const getPoorPlantMsg = (key) => {
+      const base = `poorplant_${key}`;
+      const deVal = (TRANSLATIONS.de || {})[base];
+      return deVal ? deVal : t(base);
+    };
+    const poorPlantWarning = pct < 20 && hasPoorPlantMsg ? `<div class="nutr-detail-warning">${esc(getPoorPlantMsg(key))}</div>` : '';
 
     const loggedLabel = getLang() === 'de' ? t('logged_this_nutrient_de') : t('logged_this_nutrient');
     const improveLabel = getLang() === 'de' ? t('would_improve_de') : t('would_improve');
