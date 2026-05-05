@@ -541,6 +541,7 @@ async function renderNutritionTab(quiet = false) {
   _lastRawResults = results;
   _lastFoodCounts = foodCounts;
 
+  renderNutrientSuggestions(totals, uniqueFoods);
   renderFoodDatabase();
 
   await renderNutrientTrend();
