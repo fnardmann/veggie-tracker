@@ -1074,8 +1074,8 @@ function renderFoodDatabase() {
       if (_foodDbOpen.has(food)) _foodDbOpen.delete(food);
       else _foodDbOpen.add(food);
       renderFoodDatabase();
-});
-  }
+    });
+  });
 }
 
 // ── Excluded foods settings ───────────────────────────────────────────────────
