@@ -772,7 +772,8 @@ function renderNutrientSuggestions(totals, loggedFoodsThisWeek) {
       const today = todayStr();
       const todayCounts = getAnimalCounts()[today] ?? {};
       const weekTotals = weeklyAnimalTotals();
-      const rows = animalScores.map(({ name, portion, covered, nutrients }) => {
+      const topAnimalScores = animalScores.slice(0, 3);
+      const rows = topAnimalScores.map(({ name, portion, covered, nutrients }) => {
         const coveredKeys = new Set(covered.map(c => c.key));
         const countKey = covered.length === 1 ? 'covers_1_gap' : 'covers_n_gaps';
         // Show all of the food's nutrients; highlight gap-covering ones, dim the rest
