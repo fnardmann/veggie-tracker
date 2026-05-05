@@ -834,19 +834,18 @@ function renderNutrientSuggestions(totals, loggedFoodsThisWeek) {
   // so users can track them even when no gap applies (e.g. eggs for breakfast).
   // Foods that cover a gap get chips + badge and are sorted to the top.
   let animalHtml = '';
-  if (getAnimalSuggestions()) {
-    const MIN_COVERAGE = 0.05;
-    const animalGaps = NUTRIENT_DEFS
-      .filter(({ key }) => ANIMAL_WEEKLY_REF[key] && totals[key] != null)
-      .map(({ key, unit }) => ({ key, unit, coverage: (totals[key] ?? 0) / ANIMAL_WEEKLY_REF[key] }))
-      .filter(n => n.coverage < 1);
-    const b12Covered = (totals.b12 ?? 0) >= ANIMAL_WEEKLY_REF.b12;
-    if (!animalGaps.find(n => n.key === 'b12') && !b12Covered) {
-      animalGaps.push({ key: 'b12', unit: 'µg', coverage: (totals.b12 ?? 0) / ANIMAL_WEEKLY_REF.b12 });
-    }
-    const animalScores = ANIMAL_FOODS
-      .filter(food => !excludedSet.has(food.name.toLowerCase()))
-      .map(food => {
+  const MIN_COVERAGE = 0.05;
+  const animalGaps = NUTRIENT_DEFS
+    .filter(({ key }) => ANIMAL_WEEKLY_REF[key] && totals[key] != null)
+    .map(({ key, unit }) => ({ key, unit, coverage: (totals[key] ?? 0) / ANIMAL_WEEKLY_REF[key] }))
+    .filter(n => n.coverage < 1);
+  const b12Covered = (totals.b12 ?? 0) >= ANIMAL_WEEKLY_REF.b12;
+  if (!animalGaps.find(n => n.key === 'b12') && !b12Covered) {
+    animalGaps.push({ key: 'b12', unit: 'µg', coverage: (totals.b12 ?? 0) / ANIMAL_WEEKLY_REF.b12 });
+  }
+  const animalScores = ANIMAL_FOODS
+    .filter(food => !excludedSet.has(food.name.toLowerCase()))
+    .map(food => {
         const covered = animalGaps.map(({ key, unit }) => {
           const amount = food.nutrients[key] ?? 0;
           const ref = ANIMAL_WEEKLY_REF[key];
@@ -858,7 +857,7 @@ function renderNutrientSuggestions(totals, loggedFoodsThisWeek) {
       })
       .sort((a, b) => b.covered.length - a.covered.length || b.totalScore - a.totalScore);
 
-    if (animalScores.length) {
+    if (getAnimalSuggestions() && animalScores.length) {
       const today = todayStr();
       const todayCounts = getAnimalCounts()[today] ?? {};
       const weekTotals = weeklyAnimalTotals();
