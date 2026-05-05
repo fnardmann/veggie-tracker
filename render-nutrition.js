@@ -316,8 +316,9 @@ async function renderNutritionTab(quiet = false) {
     .map(({ key, unit }) => {
       const val = totals[key] ?? (key === 'vitd' ? 0 : null);
       const ref = (progressRef[key] ?? NUTRIENT_WEEKLY_REF[key]) ?? 0;
-      if (val == null) return '';
-      const pct = ref > 0 ? Math.min(1, val / ref) : 0;
+      if (val == null && key !== 'selenium') return '';
+      const safeVal = val ?? 0;
+      const pct = ref > 0 ? Math.min(1, safeVal / ref) : 0;
       const pctDisplay = Math.round(pct * 100);
       const pace = effectivePacePct / 100;
       const ratio = pace > 0 ? Math.min(pct / pace, 1.4) : 1;
@@ -332,7 +333,7 @@ async function renderNutritionTab(quiet = false) {
         <div class="nutr-progress-row nutr-progress-row--clickable" data-nutrient-key="${key}">
           <div class="nutr-progress-header">
             <span class="nutr-progress-label">${esc(t('nutrient_' + key))}${labelSuffix}</span>
-            <span class="nutr-progress-value">${fmtVal(val)} / ${fmtVal(ref)} ${esc(unit)} · <strong>${pctDisplay}%</strong></span>
+            <span class="nutr-progress-value">${fmtVal(safeVal)} / ${fmtVal(ref)} ${esc(unit)} · <strong>${pctDisplay}%</strong></span>
           </div>
           <div class="nutr-bar-track">
             <div class="nutr-bar-fill" style="width:${pct * 100}%;background:${barColor}"></div>
