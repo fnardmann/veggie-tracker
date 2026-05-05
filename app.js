@@ -1363,7 +1363,7 @@ async function init() {
       btn.classList.add('active');
       const pane = document.getElementById('tab-' + btn.dataset.tab);
       pane.hidden = false;
-      if (btn.dataset.tab === 'nutrition') { renderNutritionTab(); renderNutrientFacts(); }
+      if (btn.dataset.tab === 'nutrition') { _weekOffset = 0; renderNutritionTab(); renderNutrientFacts(); }
       if (btn.dataset.tab === 'gallery')   { renderWeeklyCards(); renderDailyCards(); }
       if (btn.dataset.tab === 'trophies')  { checkTrophies(); renderTrophies(); renderPlantStats(); }
       if (btn.dataset.tab === 'settings') {
@@ -1379,6 +1379,25 @@ async function init() {
         renderPortionSettings();
       }
     });
+  });
+
+  // Gear icon → open settings
+  document.getElementById('settingsGear')?.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-pane').forEach(p => { p.hidden = true; });
+    document.querySelector('[data-tab="settings"]')?.classList.add('active');
+    const pane = document.getElementById('tab-settings');
+    if (pane) pane.hidden = false;
+    goalInput.value = getGoal();
+    dailyGoalInput.value = getDailyGoal();
+    emojiStyleSelect.value = getEmojiStyle();
+    renderEmojiPreview(getEmojiStyle());
+    foodFactsToggle.checked = getFoodFacts();
+    funFactsToggle.checked = getNutrientFacts();
+    animalSuggestionsToggle.checked = getAnimalSuggestions();
+    seasonalCountrySelect.value = getSeasonalCountry();
+    advancedPortionsToggle.checked = getAdvancedPortions();
+    renderPortionSettings();
   });
 
   initCardModal();

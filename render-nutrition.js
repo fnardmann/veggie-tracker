@@ -139,6 +139,7 @@ let _expandedNutrientKey = null;
 let _showAllLoggedChips = false;
 let _showAllRecChips = false;
 let _showAllAnimalChips = false;
+let _weekOffset = 0; // 0=current week, -1=previous, -2=two weeks ago, etc.
 
 window._expandSugg = function () {
   _suggExpanded = true;
@@ -146,10 +147,23 @@ window._expandSugg = function () {
 };
 
 async function renderNutritionTab(quiet = false) {
-  const entries = thisWeekEntries();
-  const animalWeekTotals = weeklyAnimalTotals();
+  const today = todayStr();
+  const ws0 = getWeekStart(today);
+  const wsOffset = addDays(ws0, _weekOffset * 7);
+  const entries = entriesInRange(getData().entries, wsOffset, addDays(wsOffset, 6));
+  const animalWeekTotals = _weekOffset === 0 ? weeklyAnimalTotals() : {};
   const hasAnimal = Object.keys(animalWeekTotals).length > 0;
   const empty = `<p class="empty">${t('empty_log_nutrition')}</p>`;
+
+  // Always render week navigation
+  const weekNavEl = document.getElementById('weekNavTotals');
+  const prevBtn = document.getElementById('prevWeekTotals');
+  const nextBtn = document.getElementById('nextWeekTotals');
+  const navLabel = document.getElementById('weekNavTotalsLabel');
+  weekNavEl.hidden = false;
+  prevBtn.disabled = false; // always allow going back
+  nextBtn.disabled = false;
+  navLabel.textContent = _weekOffset === 0 ? t('this_week') : fmtWeekRange(wsOffset);
 
   if (entries.length === 0 && !hasAnimal) {
     document.getElementById('nutritionTable').innerHTML = empty;
@@ -848,6 +862,7 @@ async function renderNutrientTrend() {
 
   const datasets = defs.map((def, idx) => {
     const color = CHART_COLORS[idx % CHART_COLORS.length];
+    const weeklyRef = NUTRIENT_WEEKLY_REF[def.key] ?? 1;
     const totals = weeks.map((_, i) => {
       const we = weekEntries[i];
       if (!we.length) return null;
@@ -858,7 +873,7 @@ async function renderNutrientTrend() {
         const n = foodNutrition.get(food);
         if (n?.[def.key] != null) sum = (sum ?? 0) + n[def.key] * count;
       }
-      return sum != null ? +(sum.toFixed(1)) : null;
+      return sum != null ? +((sum / weeklyRef) * 100).toFixed(1) : null;
     });
     return {
       data: totals,
@@ -872,7 +887,7 @@ async function renderNutrientTrend() {
       fill: false,
       tension: 0.35,
       spanGaps: true,
-      label: `${t('nutrient_' + def.key)} (${def.unit})`,
+      label: `${t('nutrient_' + def.key)} (%)`,
     };
   });
 
@@ -890,12 +905,12 @@ async function renderNutrientTrend() {
         legend: { display: true, position: 'top', labels: { font: { size: 11 }, boxWidth: 14, padding: 8 } },
         tooltip: {
           callbacks: {
-            label: ctx => ctx.raw != null ? `${defs[ctx.datasetIndex]?.label}: ${ctx.raw} ${defs[ctx.datasetIndex]?.unit}` : t('tooltip_no_data'),
+            label: ctx => ctx.raw != null ? `${defs[ctx.datasetIndex]?.label}: ${ctx.raw}%` : t('tooltip_no_data'),
           },
         },
       },
       scales: {
-        y: { beginAtZero: true, grid: { color: '#f0f5f2' } },
+        y: { beginAtZero: true, grid: { color: '#f0f5f2' }, ticks: { callback: v => v + '%' } },
         x: { grid: { display: false }, ticks: { font: { size: 9 }, maxRotation: 45 } },
       },
     },
@@ -1049,6 +1064,15 @@ function renderFoodDatabase() {
       else _foodDbOpen.add(food);
       renderFoodDatabase();
     });
+  });
+
+  // Week navigation
+  document.getElementById('prevWeekTotals')?.addEventListener('click', () => {
+    _weekOffset++;
+    renderNutritionTab();
+  });
+  document.getElementById('nextWeekTotals')?.addEventListener('click', () => {
+    if (_weekOffset > 0) { _weekOffset--; renderNutritionTab(); }
   });
 }
 

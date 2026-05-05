@@ -32,6 +32,7 @@
       <div class="header-stats">
         <div class="stat-pill" id="headerDailyStreak"></div>
         <div class="stat-pill" id="headerWeeklyStreak"></div>
+        <button id="settingsGear" class="settings-gear-btn" aria-label="Settings">⚙️</button>
       </div>
     </div>
     <nav class="tab-nav">
@@ -39,7 +40,6 @@
       <button class="tab-btn" data-tab="gallery" data-i18n="tab_gallery">Gallery</button>
       <button class="tab-btn" data-tab="nutrition" data-i18n="tab_nutrition">Nutrition</button>
       <button class="tab-btn" data-tab="trophies" data-i18n="tab_trophies">Trophies</button>
-      <button class="tab-btn" data-tab="settings" data-i18n="tab_settings">Settings</button>
     </nav>
   </header>
 
@@ -351,6 +351,11 @@
         <div class="nutrition-header">
           <h2 data-i18n="nutrition_totals_heading">This Week — vs. Recommended</h2>
           <span class="nutrition-note" data-i18n="nutrition_totals_note">% of weekly reference intake · tap a row for details</span>
+        </div>
+        <div class="week-nav" id="weekNavTotals" hidden>
+          <button id="prevWeekTotals" class="week-nav-btn">←</button>
+          <span id="weekNavTotalsLabel"></span>
+          <button id="nextWeekTotals" class="week-nav-btn">→</button>
         </div>
         <div id="nutritionTotals"><p class="empty" data-i18n="empty_log_totals">Log foods to see weekly totals.</p></div>
       </section>
