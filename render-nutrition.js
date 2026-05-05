@@ -336,7 +336,7 @@ async function renderNutritionTab(quiet = false) {
           </div>
           <div class="nutr-bar-track">
             <div class="nutr-bar-fill" style="width:${pct * 100}%;background:${barColor}"></div>
-            ${showPace ? `<div class="nutr-bar-pace" style="left:${pacePct}%"></div>` : ''}
+            ${showPace ? `<div class="nutr-bar-pace" style="left:${(pace * 100).toFixed(1)}%"></div>` : ''}
           </div>
         </div>`;
     }).join('');
