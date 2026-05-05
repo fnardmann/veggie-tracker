@@ -157,15 +157,7 @@ async function renderNutritionTab(quiet = false) {
 
   // Always render week navigation
   const weekNavEl = document.getElementById('weekNavTotals');
-  const prevBtn = document.getElementById('prevWeekTotals');
-  const nextBtn = document.getElementById('nextWeekTotals');
   const navLabel = document.getElementById('weekNavTotalsLabel');
-  weekNavEl.hidden = false;
-  prevBtn.disabled = false;
-  nextBtn.disabled = _weekOffset >= 0;
-  navLabel.textContent = _weekOffset === 0 ? t('this_week') : fmtWeekRange(wsOffset);
-
-  // Set up week navigation (remove old handlers first to avoid duplicates)
   const prevNav = document.getElementById('prevWeekTotals');
   const nextNav = document.getElementById('nextWeekTotals');
   const newPrev = prevNav.cloneNode(true);
@@ -174,6 +166,11 @@ async function renderNutritionTab(quiet = false) {
   nextNav.parentNode.replaceChild(newNext, nextNav);
   newPrev.addEventListener('click', () => { _weekOffset--; renderNutritionTab(); });
   newNext.addEventListener('click', () => { if (_weekOffset < 0) { _weekOffset++; renderNutritionTab(); } });
+
+  weekNavEl.hidden = false;
+  newPrev.disabled = false;
+  newNext.disabled = _weekOffset >= 0;
+  navLabel.textContent = _weekOffset === 0 ? t('this_week') : fmtWeekRange(wsOffset);
 
   if (entries.length === 0 && !hasAnimal) {
     document.getElementById('nutritionTable').innerHTML = empty;
@@ -330,18 +327,17 @@ async function renderNutritionTab(quiet = false) {
       const s = ratio >= 1 ? 52 + (ratio - 1) * 10 : 78;
       const l = ratio >= 1 ? 44 - (ratio - 1) * 8 : 52 - Math.abs(ratio - 0.55) * 6;
       const barColor = `hsl(${h.toFixed(0)},${s.toFixed(0)}%,${l.toFixed(0)}%)`;
-      const hint = key === 'vitd' ? `<p class="nutr-progress-hint">☀️</p>` : '';
+      const labelSuffix = key === 'vitd' ? ' ☀️' : '';
       return `
         <div class="nutr-progress-row nutr-progress-row--clickable" data-nutrient-key="${key}">
           <div class="nutr-progress-header">
-            <span class="nutr-progress-label">${esc(t('nutrient_' + key))}</span>
+            <span class="nutr-progress-label">${esc(t('nutrient_' + key))}${labelSuffix}</span>
             <span class="nutr-progress-value">${fmtVal(val)} / ${fmtVal(ref)} ${esc(unit)} · <strong>${pctDisplay}%</strong></span>
           </div>
           <div class="nutr-bar-track">
             <div class="nutr-bar-fill" style="width:${pct * 100}%;background:${barColor}"></div>
             ${showPace ? `<div class="nutr-bar-pace" style="left:${pacePct}%"></div>` : ''}
           </div>
-          ${hint}
         </div>`;
     }).join('');
 
