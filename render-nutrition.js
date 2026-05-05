@@ -577,6 +577,7 @@ function renderNutrientSuggestions(totals, loggedFoodsThisWeek) {
   const excludedSet = new Set(getExcludedFoods().map(f => f.toLowerCase()));
 
   let plantHtml = '';
+  let foodScores = [];
 
   if (!gapNutrients.length) {
     plantHtml = `<p class="empty">${t('sugg_all_covered')}</p>`;
@@ -606,7 +607,6 @@ function renderNutrientSuggestions(totals, loggedFoodsThisWeek) {
 
     // Merge foods that belong to the same plant group into one entry
     const seenGroups = new Map();
-    const foodScores = [];
     for (const food of rawScores) {
       const group = _plantGroupMap.get(food.name);
       if (group) {
@@ -740,6 +740,96 @@ function renderNutrientSuggestions(totals, loggedFoodsThisWeek) {
     }
   }
 
+  // ── General recommendations (top foods across all gaps) ──
+  const generalRecsLabel = esc(t('sugg_general_label'));
+  const generalPlantLabel = esc(t('sugg_general_plant_label'));
+  const generalAnimalLabel = esc(t('sugg_general_animal_label'));
+
+  // Top plant foods across all gaps (already computed in foodScores)
+  const topPlantGeneral = foodScores.slice(0, 3);
+  const topPlantGeneralExpanded = _suggExpanded ? foodScores : foodScores.slice(0, 3);
+  const plantGeneralHidden = foodScores.length - topPlantGeneralExpanded.length;
+  const renderGeneralPlantRow = ({ name, members, isGroup, covered, inSeason }) => {
+    const displayName = isGroup ? name : name.replace(/\b\w/g, c => c.toUpperCase());
+    const chips = covered.map(({ key, unit, amount }) =>
+      `<span class="sugg-nut-chip">${esc(t('nutrient_' + key))} <em>${amount} ${esc(unit)}</em></span>`
+    ).join('');
+    const groupSub = isGroup
+      ? `<span class="sugg-food-variety">${esc(t('sugg_variety_label'))}: ${members.map(m => esc(tFood(m.replace(/\b\w/g, c => c.toUpperCase())))).join(', ')}</span>`
+      : '';
+    const seasonBadge = inSeason ? `<span class="sugg-season-badge">${esc(t('season_badge'))}</span>` : '';
+    return `
+      <div class="sugg-food-row">
+        <div class="sugg-food-header">
+          <span class="sugg-food-name">${esc(tFood(displayName))}</span>
+          ${seasonBadge}
+        </div>
+        ${groupSub}
+        <div class="sugg-nut-chips">${chips}</div>
+      </div>`;
+  };
+  const generalPlantHtml = topPlantGeneralExpanded.length
+    ? `<div class="sugg-section">
+        <div class="sugg-section-header">
+          <span class="sugg-section-nutrient">${generalPlantLabel}</span>
+        </div>
+        <div class="sugg-food-list">${topPlantGeneralExpanded.map(renderGeneralPlantRow).join('')}</div>
+        ${plantGeneralHidden > 0 ? `<button class="btn-secondary sugg-show-more" onclick="_expandSugg()">${esc(t('sugg_show_more', { n: plantGeneralHidden }))}</button>` : ''}
+      </div>`
+    : '';
+
+  // Top animal foods across all gaps
+  let generalAnimalHtml = '';
+  if (getAnimalSuggestions() && animalScores.length) {
+    const topAnimalGeneral = animalScores.slice(0, 3);
+    const topAnimalGeneralExpanded = animalScores; // all animal scores when expanded
+    const animalGeneralHidden = animalScores.length - 3;
+    const today = todayStr();
+    const todayCounts = getAnimalCounts()[today] ?? {};
+    const weekTotals = weeklyAnimalTotals();
+    const renderGeneralAnimalRow = ({ name, portion, covered, nutrients }) => {
+      const coveredKeys = new Set(covered.map(c => c.key));
+      const chips = Object.entries(nutrients).map(([key, amount]) => {
+        const def = NUTRIENT_DEFS.find(d => d.key === key);
+        if (!def) return '';
+        const cls = coveredKeys.has(key) ? 'sugg-nut-chip' : 'sugg-nut-chip sugg-nut-chip--weak';
+        return `<span class="${cls}">${esc(t('nutrient_' + key))} <em>${+amount.toFixed(1)} ${esc(def.unit)}</em></span>`;
+      }).join('');
+      const todayN = todayCounts[name] ?? 0;
+      const weekN = weekTotals[name] ?? 0;
+      const weekBadge = weekN > 0 ? `<span class="sugg-animal-week">${esc(t('animal_week_count', { n: weekN }))}</span>` : '';
+      const stepper = `
+        <div class="sugg-animal-stepper" data-food="${esc(name)}">
+          <button class="sugg-animal-btn" data-action="dec" aria-label="−" ${todayN === 0 ? 'disabled' : ''}>−</button>
+          <span class="sugg-animal-count">${todayN}</span>
+          <button class="sugg-animal-btn sugg-animal-btn--plus" data-action="inc" aria-label="+">+</button>
+        </div>`;
+      return `
+        <div class="sugg-food-row sugg-food-row--animal">
+          <div class="sugg-food-header">
+            <span class="sugg-food-name">${esc(tFood(name))}</span>
+            <span class="sugg-food-portion">${esc(portion)}</span>
+            ${weekBadge}
+          </div>
+          <div class="sugg-animal-row">
+            <div class="sugg-nut-chips">${chips}</div>
+            ${stepper}
+          </div>
+        </div>`;
+    };
+    generalAnimalHtml = `<div class="sugg-section">
+        <div class="sugg-section-header">
+          <span class="sugg-section-nutrient">${generalAnimalLabel}</span>
+        </div>
+        <div class="sugg-food-list">${(_suggExpanded ? topAnimalGeneralExpanded : topAnimalGeneral).map(renderGeneralAnimalRow).join('')}</div>
+        ${animalGeneralHidden > 0 ? `<button class="btn-secondary sugg-show-more" onclick="_expandSugg()">${esc(t('sugg_show_more', { n: animalGeneralHidden }))}</button>` : ''}
+      </div>`;
+  }
+
+  const generalHtml = (generalPlantHtml || generalAnimalHtml)
+    ? `<div class="sugg-section sugg-section--general">${generalPlantHtml}${generalAnimalHtml}</div>`
+    : '';
+
   // Animal food suggestions. All ANIMAL_FOODS are always shown with a stepper
   // so users can track them even when no gap applies (e.g. eggs for breakfast).
   // Foods that cover a gap get chips + badge and are sorted to the top.
@@ -821,7 +911,7 @@ function renderNutrientSuggestions(totals, loggedFoodsThisWeek) {
     }
   }
 
-  el.innerHTML = plantHtml + animalHtml;
+  el.innerHTML = plantHtml + animalHtml + generalHtml;
 
   el.querySelectorAll('.sugg-animal-stepper').forEach(stepper => {
     const food = stepper.dataset.food;
