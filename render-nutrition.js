@@ -165,6 +165,16 @@ async function renderNutritionTab(quiet = false) {
   nextBtn.disabled = _weekOffset >= 0;
   navLabel.textContent = _weekOffset === 0 ? t('this_week') : fmtWeekRange(wsOffset);
 
+  // Set up week navigation (remove old handlers first to avoid duplicates)
+  const prevNav = document.getElementById('prevWeekTotals');
+  const nextNav = document.getElementById('nextWeekTotals');
+  const newPrev = prevNav.cloneNode(true);
+  prevNav.parentNode.replaceChild(newPrev, prevNav);
+  const newNext = nextNav.cloneNode(true);
+  nextNav.parentNode.replaceChild(newNext, nextNav);
+  newPrev.addEventListener('click', () => { _weekOffset--; renderNutritionTab(); });
+  newNext.addEventListener('click', () => { if (_weekOffset < 0) { _weekOffset++; renderNutritionTab(); } });
+
   if (entries.length === 0 && !hasAnimal) {
     document.getElementById('nutritionTable').innerHTML = empty;
     document.getElementById('nutritionTotals').innerHTML = empty;
@@ -299,6 +309,7 @@ async function renderNutritionTab(quiet = false) {
   const dow = new Date().getDay(); // 0=Sun
   const dayOfWeek = dow === 0 ? 7 : dow; // Mon=1 … Sun=7
   const pacePct = (dayOfWeek / 7) * 100;
+  const showPace = _weekOffset === 0; // only show pace marker for current week
 
   const progressRef = hasAnimal ? ANIMAL_WEEKLY_REF : NUTRIENT_WEEKLY_REF;
   const progressRows = NUTRIENT_DEFS
@@ -326,7 +337,7 @@ async function renderNutritionTab(quiet = false) {
           </div>
           <div class="nutr-bar-track">
             <div class="nutr-bar-fill" style="width:${pct * 100}%;background:${barColor}"></div>
-            <div class="nutr-bar-pace" style="left:${pacePct}%"></div>
+            ${showPace ? `<div class="nutr-bar-pace" style="left:${pacePct}%"></div>` : ''}
           </div>
           ${hint}
         </div>`;
@@ -1063,17 +1074,8 @@ function renderFoodDatabase() {
       if (_foodDbOpen.has(food)) _foodDbOpen.delete(food);
       else _foodDbOpen.add(food);
       renderFoodDatabase();
-    });
-  });
-
-  // Week navigation
-  document.getElementById('prevWeekTotals')?.addEventListener('click', () => {
-    _weekOffset--;
-    renderNutritionTab();
-  });
-  document.getElementById('nextWeekTotals')?.addEventListener('click', () => {
-    if (_weekOffset < 0) { _weekOffset++; renderNutritionTab(); }
-  });
+});
+  }
 }
 
 // ── Excluded foods settings ───────────────────────────────────────────────────

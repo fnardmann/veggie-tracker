@@ -1,6 +1,6 @@
 'use strict';
 
-const CACHE = 'veggie-tracker-v76';
+const CACHE = 'veggie-tracker-v77';
 const ASSETS = [
   './',
   './index.html',
