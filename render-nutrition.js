@@ -308,8 +308,10 @@ async function renderNutritionTab(quiet = false) {
 
   const dow = new Date().getDay(); // 0=Sun
   const dayOfWeek = dow === 0 ? 7 : dow; // Mon=1 … Sun=7
-  const pacePct = (dayOfWeek / 7) * 100;
+  const currPacePct = (dayOfWeek / 7) * 100;
   const showPace = _weekOffset === 0; // only show pace marker for current week
+  const isPastWeek = _weekOffset < 0;
+  const effectivePacePct = isPastWeek ? 100 : currPacePct; // past weeks assumed complete
 
   const progressRef = hasAnimal ? ANIMAL_WEEKLY_REF : NUTRIENT_WEEKLY_REF;
   const progressRows = NUTRIENT_DEFS
@@ -320,7 +322,7 @@ async function renderNutritionTab(quiet = false) {
       if (val == null) return '';
       const pct = ref > 0 ? Math.min(1, val / ref) : 0;
       const pctDisplay = Math.round(pct * 100);
-      const pace = pacePct / 100;
+      const pace = effectivePacePct / 100;
       const ratio = pace > 0 ? Math.min(pct / pace, 1.4) : 1;
       const h = ratio >= 1
         ? 130 + (ratio - 1) * 15
@@ -921,7 +923,7 @@ async function renderNutrientTrend() {
         },
       },
       scales: {
-        y: { beginAtZero: true, grid: { color: '#f0f5f2' }, ticks: { callback: v => v + '%' } },
+        y: { beginAtZero: true, max: 100, grid: { color: '#f0f5f2' }, ticks: { callback: v => v + '%' } },
         x: { grid: { display: false }, ticks: { font: { size: 9 }, maxRotation: 45 } },
       },
     },
