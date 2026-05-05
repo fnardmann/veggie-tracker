@@ -17,7 +17,7 @@ async function loadNutritionData() {
   }
 }
 
-const NUTRITION_CACHE_KEY = 'veggie-nutrition-v1';
+const NUTRITION_CACHE_KEY = 'veggie-nutrition-v2';
 const NUTRITION_CACHE_TTL = 30 * 24 * 60 * 60 * 1000; // 30 days
 
 // Single source of truth for every tracked nutrient.

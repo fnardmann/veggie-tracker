@@ -161,8 +161,8 @@ async function renderNutritionTab(quiet = false) {
   const nextBtn = document.getElementById('nextWeekTotals');
   const navLabel = document.getElementById('weekNavTotalsLabel');
   weekNavEl.hidden = false;
-  prevBtn.disabled = false; // always allow going back
-  nextBtn.disabled = false;
+  prevBtn.disabled = false;
+  nextBtn.disabled = _weekOffset >= 0;
   navLabel.textContent = _weekOffset === 0 ? t('this_week') : fmtWeekRange(wsOffset);
 
   if (entries.length === 0 && !hasAnimal) {
@@ -1068,11 +1068,11 @@ function renderFoodDatabase() {
 
   // Week navigation
   document.getElementById('prevWeekTotals')?.addEventListener('click', () => {
-    _weekOffset++;
+    _weekOffset--;
     renderNutritionTab();
   });
   document.getElementById('nextWeekTotals')?.addEventListener('click', () => {
-    if (_weekOffset > 0) { _weekOffset--; renderNutritionTab(); }
+    if (_weekOffset < 0) { _weekOffset++; renderNutritionTab(); }
   });
 }
 
