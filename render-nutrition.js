@@ -630,7 +630,6 @@ function renderNutrientSuggestions(totals, loggedFoodsThisWeek) {
       }
     }
 
-    const INITIAL_SHOW = 8;
     const INITIAL_SHOW = 3;
     const visibleScores = _suggExpanded ? foodScores : foodScores.slice(0, INITIAL_SHOW);
     const hiddenCount = foodScores.length - visibleScores.length;
