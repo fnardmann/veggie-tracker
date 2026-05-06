@@ -631,55 +631,13 @@ function renderNutrientSuggestions(totals, loggedFoodsThisWeek) {
     }
 
     const INITIAL_SHOW = 8;
+    const INITIAL_SHOW = 3;
     const visibleScores = _suggExpanded ? foodScores : foodScores.slice(0, INITIAL_SHOW);
     const hiddenCount = foodScores.length - visibleScores.length;
 
     if (!visibleScores.length) {
       plantHtml = `<p class="empty">${t('no_suggestions')}</p>`;
     } else {
-      // Group foods by their top gap nutrient to render superpower sections
-      const sections = [];
-      const assignedFoods = new Set();
-      for (const gap of gapNutrients) {
-        const foods = visibleScores.filter(f => !assignedFoods.has(f.name) && f.covered.some(c => c.key === gap.key));
-        if (!foods.length) continue;
-        foods.forEach(f => assignedFoods.add(f.name));
-        sections.push({ gapKey: gap.key, foods });
-      }
-
-      // For gap nutrients with no scored plant food, add a "poor plant source" fallback section
-      const coveredGapKeys = new Set(sections.map(s => s.gapKey));
-      for (const gap of gapNutrients) {
-        if (coveredGapKeys.has(gap.key)) continue;
-        const ppKey = 'poorplant_' + gap.key;
-        if (t(ppKey) === ppKey) continue; // skip if no translation exists (t() returns raw key as fallback)
-        const def = NUTRIENT_DEFS.find(d => d.key === gap.key);
-        const ref = ANIMAL_WEEKLY_REF[gap.key];
-        // For requiresAnimal nutrients (b12): top 3 from ANIMAL_FOODS, not NUTRITION_DATA
-        const top3 = def?.requiresAnimal
-          ? ANIMAL_FOODS
-              .filter(f => f.nutrients[gap.key] && !excludedSet.has(f.name.toLowerCase()))
-              .map(f => ({
-                name: f.name,
-                amount: +f.nutrients[gap.key].toFixed(2),
-                pct: Math.round(f.nutrients[gap.key] / ref * 100),
-                unit: gap.unit,
-              }))
-              .sort((a, b) => b.amount - a.amount)
-              .slice(0, 3)
-          : Object.entries(NUTRITION_DATA)
-              .filter(([name]) => !loggedSet.has(name) && NUTRITION_DATA[name][gap.key] != null)
-              .map(([name, d]) => {
-                const amount = +(d[gap.key] * d.g / 100).toFixed(2);
-                const pct = Math.round(amount / ref * 100);
-                return { name, amount, pct, unit: gap.unit };
-              })
-              .filter(f => f.amount > 0)
-              .sort((a, b) => b.amount - a.amount)
-              .slice(0, 3);
-        sections.push({ gapKey: gap.key, foods: [], poorPlantSource: true, top3 });
-      }
-
       const renderFoodRow = ({ name, members, isGroup, covered, inSeason }) => {
         const displayName = isGroup ? name : name.replace(/\b\w/g, c => c.toUpperCase());
         const countKey = covered.length === 1 ? 'covers_1_gap' : 'covers_n_gaps';
@@ -704,35 +662,7 @@ function renderNutrientSuggestions(totals, loggedFoodsThisWeek) {
           </div>`;
       };
 
-      plantHtml = sections.map(({ gapKey, foods, poorPlantSource, top3 }) => {
-        const nutrientLabel = esc(t('nutrient_' + gapKey));
-        const factText = esc(t('fact_' + gapKey));
-        const poorPlantMsg = poorPlantSource ? t('poorplant_' + gapKey) : '';
-        const disclaimer = poorPlantMsg
-          ? `<p class="sugg-poor-plant-note">⚠️ ${esc(poorPlantMsg)}</p>`
-          : '';
-        const rows = foods.map(renderFoodRow).join('');
-        const weakRows = (top3 ?? []).map(({ name, amount, pct, unit }) => `
-          <div class="sugg-food-row sugg-food-row--weak">
-            <div class="sugg-food-header">
-              <span class="sugg-food-name">${esc(tFood(name.replace(/\b\w/g, c => c.toUpperCase())))}</span>
-              <span class="sugg-food-badge sugg-food-badge--weak">${pct}${t('pct_per_week')}</span>
-            </div>
-            <div class="sugg-nut-chips">
-              <span class="sugg-nut-chip sugg-nut-chip--weak">${esc(t('nutrient_' + gapKey))} <em>${fmtVal(amount)} ${esc(unit)}</em></span>
-            </div>
-          </div>`).join('');
-        return `
-          <div class="sugg-section" id="sugg-section-${gapKey}">
-            <div class="sugg-section-header">
-              <span class="sugg-section-nutrient">${nutrientLabel}</span>
-              <p class="sugg-section-fact">${factText}</p>
-            </div>
-            ${disclaimer}
-            ${rows ? `<div class="sugg-food-list">${rows}</div>` : ''}
-            ${weakRows ? `<div class="sugg-food-list">${weakRows}</div>` : ''}
-          </div>`;
-      }).join('');
+      plantHtml = visibleScores.map(renderFoodRow).join('');
 
       if (hiddenCount > 0) {
         plantHtml += `<button class="btn-secondary sugg-show-more" onclick="_expandSugg()">${esc(t('sugg_show_more', { n: hiddenCount }))}</button>`;
