@@ -131,6 +131,8 @@ const _plantGroupMap = new Map(
 // ── Nutrition tab rendering ───────────────────────────────────────────────────
 
 let _suggExpanded = false;
+let _plantExpanded = false;
+let _animalExpanded = false;
 let _lastSuggTotals = null;
 let _lastSuggFoods = null;
 let _lastRawResults = null;
@@ -141,8 +143,10 @@ let _showAllRecChips = false;
 let _showAllAnimalChips = false;
 let _weekOffset = 0; // 0=current week, -1=previous, -2=two weeks ago, etc.
 
-window._expandSugg = function () {
-  _suggExpanded = true;
+window._expandSugg = function (type) {
+  if (type === 'plant') _plantExpanded = true;
+  else if (type === 'animal') _animalExpanded = true;
+  else { _plantExpanded = true; _animalExpanded = true; }
   renderNutritionTab(true);
 };
 
@@ -191,7 +195,9 @@ async function renderNutritionTab(quiet = false) {
     .sort((a, b) => tFood(a).localeCompare(tFood(b), getLang()));
 
   if (!quiet) {
-    _suggExpanded = false;
+_suggExpanded = false;
+    _plantExpanded = false;
+    _animalExpanded = false;
     document.getElementById('nutritionTable').innerHTML = `<p class="empty">${t('fetching')}</p>`;
     document.getElementById('nutritionTotals').innerHTML = `<p class="empty">${t('fetching')}</p>`;
   }
@@ -631,7 +637,7 @@ function renderNutrientSuggestions(totals, loggedFoodsThisWeek) {
     }
 
     const INITIAL_SHOW = 3;
-    const visibleScores = _suggExpanded ? foodScores : foodScores.slice(0, INITIAL_SHOW);
+    const visibleScores = _plantExpanded ? foodScores : foodScores.slice(0, INITIAL_SHOW);
     const hiddenCount = foodScores.length - visibleScores.length;
 
     if (!visibleScores.length) {
@@ -666,7 +672,7 @@ function renderNutrientSuggestions(totals, loggedFoodsThisWeek) {
       plantHtml = visibleScores.map(renderFoodRow).join('');
 
       if (hiddenCount > 0) {
-        plantHtml += `<button class="btn-secondary sugg-show-more" onclick="_expandSugg()">${esc(t('sugg_show_more', { n: hiddenCount }))}</button>`;
+        plantHtml += `<button class="btn-secondary sugg-show-more" onclick="_expandSugg('plant')">${esc(t('sugg_show_more', { n: hiddenCount }))}</button>`;
       }
     }
   }
@@ -679,7 +685,7 @@ function renderNutrientSuggestions(totals, loggedFoodsThisWeek) {
   const generalAnimalLabel = esc(t('sugg_general_animal_label'));
 
   const topPlantGeneral = multiGapFoods.slice(0, 3);
-  const topPlantGeneralExpanded = _suggExpanded ? multiGapFoods : multiGapFoods.slice(0, 3);
+  const topPlantGeneralExpanded = _plantExpanded ? multiGapFoods : multiGapFoods.slice(0, 3);
   const plantGeneralHidden = multiGapFoods.length - topPlantGeneralExpanded.length;
   const renderGeneralPlantRow = ({ name, members, isGroup, covered, inSeason }) => {
     const displayName = isGroup ? name : name.replace(/\b\w/g, c => c.toUpperCase());
@@ -706,7 +712,7 @@ function renderNutrientSuggestions(totals, loggedFoodsThisWeek) {
           <span class="sugg-section-nutrient">${generalPlantLabel}</span>
         </div>
         <div class="sugg-food-list">${topPlantGeneralExpanded.map(renderGeneralPlantRow).join('')}</div>
-        ${plantGeneralHidden > 0 ? `<button class="btn-secondary sugg-show-more" onclick="_expandSugg()">${esc(t('sugg_show_more', { n: plantGeneralHidden }))}</button>` : ''}
+        ${plantGeneralHidden > 0 ? `<button class="btn-secondary sugg-show-more" onclick="_expandSugg('plant')">${esc(t('sugg_show_more', { n: plantGeneralHidden }))}</button>` : ''}
       </div>`
     : '';
 
@@ -738,7 +744,7 @@ function renderNutrientSuggestions(totals, loggedFoodsThisWeek) {
   if (getAnimalSuggestions() && animalScores.length) {
     const multiGapAnimals = animalScores.filter(a => a.covered.length >= 2);
     const topAnimalGeneral = multiGapAnimals.slice(0, 3);
-    const topAnimalGeneralExpanded = _suggExpanded ? multiGapAnimals : multiGapAnimals.slice(0, 3);
+    const topAnimalGeneralExpanded = _animalExpanded ? multiGapAnimals : multiGapAnimals.slice(0, 3);
     const animalGeneralHidden = multiGapAnimals.length - topAnimalGeneralExpanded.length;
     const today = todayStr();
     const todayCounts = getAnimalCounts()[today] ?? {};
@@ -777,8 +783,8 @@ function renderNutrientSuggestions(totals, loggedFoodsThisWeek) {
         <div class="sugg-section-header">
           <span class="sugg-section-nutrient">${generalAnimalLabel}</span>
         </div>
-        <div class="sugg-food-list">${(_suggExpanded ? topAnimalGeneralExpanded : topAnimalGeneral).map(renderGeneralAnimalRow).join('')}</div>
-        ${animalGeneralHidden > 0 ? `<button class="btn-secondary sugg-show-more" onclick="_expandSugg()">${esc(t('sugg_show_more', { n: animalGeneralHidden }))}</button>` : ''}
+        <div class="sugg-food-list">${(_animalExpanded ? topAnimalGeneralExpanded : topAnimalGeneral).map(renderGeneralAnimalRow).join('')}</div>
+        ${animalGeneralHidden > 0 ? `<button class="btn-secondary sugg-show-more" onclick="_expandSugg('animal')">${esc(t('sugg_show_more', { n: animalGeneralHidden }))}</button>` : ''}
       </div>`;
   }
 
