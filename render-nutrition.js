@@ -742,7 +742,7 @@ function renderNutrientSuggestions(totals, loggedFoodsThisWeek) {
 
   let generalAnimalHtml = '';
   if (getAnimalSuggestions() && animalScores.length) {
-    const multiGapAnimals = animalScores.filter(a => a.covered.length >= 2);
+    const multiGapAnimals = animalScores.filter(a => a.covered.length >= 1);
     const topAnimalGeneral = multiGapAnimals.slice(0, 3);
     const topAnimalGeneralExpanded = _animalExpanded ? multiGapAnimals : multiGapAnimals.slice(0, 3);
     const animalGeneralHidden = multiGapAnimals.length - topAnimalGeneralExpanded.length;
