@@ -425,7 +425,7 @@ _suggExpanded = false;
         const inSeason = seasonMap[name]?.includes(currentMonth) ?? false;
         return { name, amount, pct: recPct, inSeason };
       })
-      .filter(f => f.pct >= 5)
+      .filter(f => f.pct >= 2)
       .sort((a, b) => b.pct - a.pct || b.amount - a.amount)
       .slice(0, 8);
 
