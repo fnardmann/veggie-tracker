@@ -589,7 +589,7 @@ function renderNutrientSuggestions(totals, loggedFoodsThisWeek) {
     plantHtml = `<p class="empty">${t('sugg_all_covered')}</p>`;
   } else {
 
-    const MIN_COVERAGE = 0.05;
+const MIN_COVERAGE = 0.02;
     const seasonCountry = getSeasonalCountry();
     const seasonMap = seasonCountry !== 'off' ? (SEASONAL_CALENDAR[seasonCountry] ?? {}) : {};
     const currentMonth = new Date().getMonth() + 1;
