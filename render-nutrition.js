@@ -635,7 +635,7 @@ function renderNutrientSuggestions(totals, loggedFoodsThisWeek) {
     const hiddenCount = foodScores.length - visibleScores.length;
 
     if (!visibleScores.length) {
-      plantHtml = `<p class="empty">${t('no_suggestions')}</p>`;
+      plantHtml = '';
     } else {
       const renderFoodRow = ({ name, members, isGroup, covered, inSeason }) => {
         const displayName = isGroup ? name : name.replace(/\b\w/g, c => c.toUpperCase());
@@ -669,14 +669,16 @@ function renderNutrientSuggestions(totals, loggedFoodsThisWeek) {
     }
   }
 
+  const multiGapFoods = foodScores.filter(f => f.covered.length >= 2);
+
   // ── General recommendations (top foods across all gaps) ──
   const generalRecsLabel = esc(t('sugg_general_label'));
   const generalPlantLabel = esc(t('sugg_general_plant_label'));
   const generalAnimalLabel = esc(t('sugg_general_animal_label'));
 
-  const topPlantGeneral = foodScores.slice(0, 3);
-  const topPlantGeneralExpanded = _suggExpanded ? foodScores : foodScores.slice(0, 3);
-  const plantGeneralHidden = foodScores.length - topPlantGeneralExpanded.length;
+  const topPlantGeneral = multiGapFoods.slice(0, 3);
+  const topPlantGeneralExpanded = _suggExpanded ? multiGapFoods : multiGapFoods.slice(0, 3);
+  const plantGeneralHidden = multiGapFoods.length - topPlantGeneralExpanded.length;
   const renderGeneralPlantRow = ({ name, members, isGroup, covered, inSeason }) => {
     const displayName = isGroup ? name : name.replace(/\b\w/g, c => c.toUpperCase());
     const chips = covered.map(({ key, unit, amount }) =>
@@ -732,9 +734,10 @@ function renderNutrientSuggestions(totals, loggedFoodsThisWeek) {
 
   let generalAnimalHtml = '';
   if (getAnimalSuggestions() && animalScores.length) {
-    const topAnimalGeneral = animalScores.slice(0, 3);
-    const topAnimalGeneralExpanded = animalScores;
-    const animalGeneralHidden = animalScores.length - 3;
+    const multiGapAnimals = animalScores.filter(a => a.covered.length >= 2);
+    const topAnimalGeneral = multiGapAnimals.slice(0, 3);
+    const topAnimalGeneralExpanded = _suggExpanded ? multiGapAnimals : multiGapAnimals.slice(0, 3);
+    const animalGeneralHidden = multiGapAnimals.length - topAnimalGeneralExpanded.length;
     const today = todayStr();
     const todayCounts = getAnimalCounts()[today] ?? {};
     const weekTotals = weeklyAnimalTotals();
