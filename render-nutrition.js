@@ -607,7 +607,6 @@ function renderNutrientSuggestions(totals, loggedFoodsThisWeek) {
 
     // Merge foods that belong to the same plant group into one entry
     const seenGroups = new Map();
-    const foodScores = [];
     for (const food of rawScores) {
       const group = _plantGroupMap.get(food.name);
       if (group) {
