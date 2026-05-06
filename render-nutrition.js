@@ -742,10 +742,9 @@ const MIN_COVERAGE = 0.02;
 
   let generalAnimalHtml = '';
   if (getAnimalSuggestions() && animalScores.length) {
-    const multiGapAnimals = animalScores.filter(a => a.covered.length >= 1);
-    const topAnimalGeneral = multiGapAnimals.slice(0, 3);
-    const topAnimalGeneralExpanded = _animalExpanded ? multiGapAnimals : multiGapAnimals.slice(0, 3);
-    const animalGeneralHidden = multiGapAnimals.length - topAnimalGeneralExpanded.length;
+    const topAnimalGeneral = animalScores.slice(0, 3);
+    const topAnimalGeneralExpanded = _animalExpanded ? animalScores : animalScores.slice(0, 3);
+    const animalGeneralHidden = animalScores.length - topAnimalGeneralExpanded.length;
     const today = todayStr();
     const todayCounts = getAnimalCounts()[today] ?? {};
     const weekTotals = weeklyAnimalTotals();
