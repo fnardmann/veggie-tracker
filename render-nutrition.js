@@ -636,6 +636,8 @@ function renderNutrientSuggestions(totals, loggedFoodsThisWeek) {
 
     if (!visibleScores.length) {
       plantHtml = '';
+    } else if (!_expandedNutrientKey) {
+      plantHtml = '';
     } else {
       const renderFoodRow = ({ name, members, isGroup, covered, inSeason }) => {
         const displayName = isGroup ? name : name.replace(/\b\w/g, c => c.toUpperCase());
