@@ -790,7 +790,7 @@ function renderNutrientSuggestions(totals, loggedFoodsThisWeek) {
   // so users can track them even when no gap applies (e.g. eggs for breakfast).
   // Foods that cover a gap get chips + badge and are sorted to the top.
   let animalHtml = '';
-  if (getAnimalSuggestions() && animalScores.length) {
+  if (_expandedNutrientKey && getAnimalSuggestions() && animalScores.length) {
     const today = todayStr();
     const todayCounts = getAnimalCounts()[today] ?? {};
     const weekTotals = weeklyAnimalTotals();
