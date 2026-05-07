@@ -420,7 +420,8 @@ _suggExpanded = false;
       .filter(([name]) => !loggedSet.has(name) && !excludedSet.has(name))
       .filter(([name, d]) => d[key] != null)
       .map(([name, d]) => {
-        const amount = +(d[key] * d.g / 100).toFixed(1);
+        const portionG = portions[name.toLowerCase()] ?? d.g;
+        const amount = +(d[key] * portionG / 100).toFixed(1);
         const recPct = ref > 0 ? Math.round(amount / ref * 100) : 0;
         const inSeason = seasonMap[name]?.includes(currentMonth) ?? false;
         return { name, amount, pct: recPct, inSeason };
@@ -559,6 +560,7 @@ _suggExpanded = false;
 
 function renderNutrientSuggestions(totals, loggedFoodsThisWeek) {
   const el = document.getElementById('nutritionSuggestions');
+  const portions = getPortions();
 
   const dow = new Date().getDay();
   const pace = (dow === 0 ? 7 : dow) / 7;
@@ -599,7 +601,8 @@ const MIN_COVERAGE = 0.02;
       .map(([name, d]) => {
         const covered = gapNutrients
           .map(({ key, unit }) => {
-            const amount = d[key] != null ? +(d[key] * d.g / 100).toFixed(1) : 0;
+            const portionG = portions[name.toLowerCase()] ?? d.g;
+            const amount = d[key] != null ? +(d[key] * portionG / 100).toFixed(1) : 0;
             const pct = amount / (NUTRIENT_WEEKLY_REF[key] ?? ANIMAL_WEEKLY_REF[key]);
             return pct >= MIN_COVERAGE ? { key, unit, amount, pct } : null;
           })
