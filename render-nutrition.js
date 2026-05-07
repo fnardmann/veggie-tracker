@@ -720,7 +720,7 @@ const MIN_COVERAGE = 0.02;
     : '';
 
   // Top animal foods (computed here for use in general recs and animal section)
-  const MIN_COVERAGE = 0.05;
+  const MIN_COVERAGE = 0.02;
   const animalGaps = NUTRIENT_DEFS
     .filter(({ key }) => ANIMAL_WEEKLY_REF[key] && totals[key] != null)
     .map(({ key, unit }) => ({ key, unit, coverage: (totals[key] ?? 0) / ANIMAL_WEEKLY_REF[key] }))
