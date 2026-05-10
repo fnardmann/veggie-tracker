@@ -335,8 +335,9 @@ _suggExpanded = false;
       const l = ratio >= 1 ? 44 - (ratio - 1) * 8 : 52 - Math.abs(ratio - 0.55) * 6;
       const barColor = `hsl(${h.toFixed(0)},${s.toFixed(0)}%,${l.toFixed(0)}%)`;
       const labelSuffix = key === 'vitd' ? ' ☀️' : '';
+      const isExpanded = _expandedNutrientKey === key;
       return `
-        <div class="nutr-progress-row nutr-progress-row--clickable" data-nutrient-key="${key}">
+        <div class="nutr-progress-row nutr-progress-row--clickable${isExpanded ? ' nutr-progress-row--expanded' : ''}" data-nutrient-key="${key}">
           <div class="nutr-progress-header">
             <span class="nutr-progress-label">${esc(t('nutrient_' + key))}${labelSuffix}</span>
             <span class="nutr-progress-value">${fmtVal(safeVal)} / ${fmtVal(ref)} ${esc(unit)} · <strong>${pctDisplay}%</strong></span>

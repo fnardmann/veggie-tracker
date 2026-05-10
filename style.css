@@ -577,6 +577,7 @@ main {
 .nutr-progress-hint { margin: 4px 0 0; font-size: .75rem; color: var(--c-text2); }
 .nutr-progress-row--clickable { cursor: pointer; border-radius: 8px; padding: 6px 4px; margin: -6px -4px; transition: background .15s; }
 .nutr-progress-row--clickable:hover { background: var(--c-bg2); }
+.nutr-progress-row--expanded { background: color-mix(in srgb, var(--c-main) 15%, transparent); }
 @keyframes sugg-highlight { 0%,100% { background: transparent; } 20%,80% { background: color-mix(in srgb, var(--c-main) 18%, transparent); } }
 .sugg-section--highlight { border-radius: 10px; animation: sugg-highlight 1.8s ease; }
 .nutrition-scroll { overflow-x: auto; }
