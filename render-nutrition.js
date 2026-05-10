@@ -679,14 +679,6 @@ const MIN_COVERAGE = 0.02;
       if (hiddenCount > 0) {
         plantHtml += `<button class="btn-secondary sugg-show-more" onclick="_expandSugg('plant')">${esc(t('sugg_show_more', { n: hiddenCount }))}</button>`;
       }
-
-      const suggLabel = _expandedNutrientKey ? t('sugg_vit_specific', { vit: esc(t('nutrient_' + _expandedNutrientKey)) }) : '';
-      plantHtml = suggLabel ? `<div class="sugg-section">
-        <div class="sugg-section-header">
-          <span class="sugg-section-nutrient">${suggLabel}</span>
-        </div>
-        <div class="sugg-food-list">${plantHtml}</div>
-      </div>` : plantHtml;
     }
   }
 
@@ -800,7 +792,7 @@ const MIN_COVERAGE = 0.02;
       </div>`;
   }
 
-  const generalHtml = (!_expandedNutrientKey && (generalPlantHtml || generalAnimalHtml))
+  const generalHtml = (generalPlantHtml || generalAnimalHtml)
     ? `<div class="sugg-section sugg-section--general">${generalPlantHtml}${generalAnimalHtml}</div>`
     : '';
 
