@@ -650,47 +650,7 @@ const MIN_COVERAGE = 0.02;
     } else if (!_expandedNutrientKey) {
       plantHtml = '';
     } else {
-      const renderFoodRow = ({ name, members, isGroup, covered, inSeason }) => {
-        const displayName = isGroup ? name : name.replace(/\b\w/g, c => c.toUpperCase());
-        const countKey = covered.length === 1 ? 'covers_1_gap' : 'covers_n_gaps';
-        const chips = covered.map(({ key, unit, amount }) =>
-          `<span class="sugg-nut-chip">${esc(t('nutrient_' + key))} <em>${amount} ${esc(unit)}</em></span>`
-        ).join('');
-        const groupSub = isGroup
-          ? `<span class="sugg-food-variety">${esc(t('sugg_variety_label'))}: ${members.map(m => esc(tFood(m.replace(/\b\w/g, c => c.toUpperCase())))).join(', ')}</span>`
-          : '';
-        const seasonBadge = inSeason
-          ? `<span class="sugg-season-badge">${esc(t('season_badge'))}</span>`
-          : '';
-        return `
-          <div class="sugg-food-row">
-            <div class="sugg-food-header">
-              <span class="sugg-food-name">${esc(tFood(displayName))}</span>
-              ${seasonBadge}
-              <span class="sugg-food-badge">${t(countKey, { n: covered.length })}</span>
-            </div>
-            ${groupSub}
-            <div class="sugg-nut-chips">${chips}</div>
-          </div>`;
-      };
-
-      const vitFoodScores = foodScores.filter(f => f.covered.length >= 2);
-      const vitVisible = _plantExpanded ? vitFoodScores : vitFoodScores.slice(0, INITIAL_SHOW);
-      const vitHidden = vitFoodScores.length - vitVisible.length;
-
-      const rowsHtml = vitVisible.map(renderFoodRow).join('');
-      const showMoreBtn = vitHidden > 0
-        ? `<button class="btn-secondary sugg-show-more" onclick="_expandSugg('plant')">${esc(t('sugg_show_more', { n: vitHidden }))}</button>`
-        : '';
-      const vitLabel = _expandedNutrientKey ? t('sugg_vit_specific', { vit: esc(t('nutrient_' + _expandedNutrientKey)) }) : '';
-      plantHtml = vitLabel
-        ? `<div class="sugg-section">
-            <div class="sugg-section-header">
-              <span class="sugg-section-nutrient">${vitLabel}</span>
-            </div>
-            <div class="sugg-food-list">${rowsHtml}${showMoreBtn}</div>
-          </div>`
-        : rowsHtml + showMoreBtn;
+      plantHtml = '';
     }
   }
 
@@ -817,7 +777,9 @@ const MIN_COVERAGE = 0.02;
     const todayCounts = getAnimalCounts()[today] ?? {};
     const weekTotals = weeklyAnimalTotals();
     const topAnimalScores = animalScores.slice(0, 3);
-    const rows = topAnimalScores.map(({ name, portion, covered, nutrients }) => {
+    const animalVisible = _animalExpanded ? animalScores : topAnimalScores;
+    const animalHidden = animalScores.length - animalVisible.length;
+    const rows = animalVisible.map(({ name, portion, covered, nutrients }) => {
       const coveredKeys = new Set(covered.map(c => c.key));
       const countKey = covered.length === 1 ? 'covers_1_gap' : 'covers_n_gaps';
       const chips = Object.entries(nutrients).map(([key, amount]) => {
@@ -854,12 +816,16 @@ const MIN_COVERAGE = 0.02;
           </div>
         </div>`;
     }).join('');
+    const showMoreBtn = animalHidden > 0
+      ? `<button class="btn-secondary sugg-show-more" onclick="_expandSugg('animal')">${esc(t('sugg_show_more', { n: animalHidden }))}</button>`
+      : '';
     animalHtml = `
       <div class="sugg-section sugg-section--animal">
         <div class="sugg-section-header">
           <span class="sugg-section-nutrient">${esc(t('sugg_animal_label'))}</span>
         </div>
         <div class="sugg-food-list">${rows}</div>
+        ${showMoreBtn}
       </div>`;
   }
 
