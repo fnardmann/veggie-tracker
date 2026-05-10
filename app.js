@@ -974,6 +974,7 @@ function renderAll() {
   renderHistory();
   // Tab-specific renders: only run when that tab is visible
   if (!document.getElementById('tab-nutrition').hidden) renderNutritionTab();
+  renderNutrientFacts();
   if (!document.getElementById('tab-gallery').hidden)   { renderWeeklyCards(); renderDailyCards(); }
   if (!document.getElementById('tab-trophies').hidden)  { checkTrophies(); renderTrophies(); renderPlantStats(); }
 }

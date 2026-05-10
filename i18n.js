@@ -681,6 +681,10 @@ sugg_animal_label:            'Also recommended (animal)',
     chart_unique:               'Einzigartige Pflanzen',
     nutrition_per_food_heading: 'Diese Woche — pro Lebensmittel',
     nutrition_per_food_note:    'pro typische Portion · statische Daten + Open Food Facts',
+    season_badge:                '🌱 In Saison',
+    covers_1_gap:               'deckt 1 Lücke',
+    covers_n_gaps:              'deckt {n} Lücken',
+    sugg_all_covered:           'Alle Nährstoffziele diese Woche erreicht!',
   },
 };
 
