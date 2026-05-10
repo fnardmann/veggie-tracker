@@ -1,0 +1,15 @@
+{
+  "name": "veggie-tracker",
+  "version": "1.0.0",
+  "description": "Eat 30 different plants every week",
+  "scripts": {
+    "test": "playwright test",
+    "test:unit": "vitest run",
+    "test:unit:watch": "vitest",
+    "serve": "npx serve . -p 3000"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.40.0",
+    "vitest": "^1.2.0"
+  }
+}
