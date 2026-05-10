@@ -1564,6 +1564,7 @@ main {
 /* ── Food database lookup ─────────────────────────────────────────────────── */
 .food-db-search { margin-bottom: 12px; }
 #foodDbList { display: flex; flex-direction: column; gap: 4px; }
+.food-db-show-all { margin-top: 8px; }
 .food-db-row {
   border: 1px solid var(--c-pale);
   border-radius: var(--radius-s);

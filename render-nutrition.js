@@ -1032,6 +1032,7 @@ function renderPortionSettings() {
 // ── Food database lookup ─────────────────────────────────────────────────────
 
 let _foodDbOpen = new Set();
+let _foodDbShowAll = false;
 
 function renderFoodDatabase() {
   const list = document.getElementById('foodDbList');
@@ -1052,7 +1053,7 @@ function renderFoodDatabase() {
     return;
   }
 
-  const MAX_VISIBLE = filter ? 30 : 15;
+  const MAX_VISIBLE = _foodDbShowAll ? foods.length : (filter ? 30 : 15);
   const visible = foods.slice(0, MAX_VISIBLE);
   const hidden = foods.length - visible.length;
 
@@ -1097,7 +1098,7 @@ function renderFoodDatabase() {
       </div>
       ${detailHtml}
     </div>`;
-  }).join('') + (hidden > 0 ? `<p class="food-db-more-hint">${t('food_db_more_results', { n: hidden })}</p>` : '');
+  }).join('') + (_foodDbShowAll ? `<button class="btn-secondary food-db-show-all" id="foodDbShowAll">${t('show_less')}</button>` : (hidden > 0 ? `<button class="btn-secondary food-db-show-all" id="foodDbShowAll">${t('sugg_show_more', { n: hidden })}</button>` : ''));
 
   list.querySelectorAll('.food-db-row-main').forEach(row => {
     row.addEventListener('click', () => {
@@ -1107,6 +1108,14 @@ function renderFoodDatabase() {
       renderFoodDatabase();
     });
   });
+
+  const showAllBtn = document.getElementById('foodDbShowAll');
+  if (showAllBtn) {
+    showAllBtn.addEventListener('click', () => {
+      _foodDbShowAll = !_foodDbShowAll;
+      renderFoodDatabase();
+    });
+  }
 }
 
 // ── Excluded foods settings ───────────────────────────────────────────────────
