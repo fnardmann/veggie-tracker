@@ -354,7 +354,8 @@ _suggExpanded = false;
     const row = e.target.closest('[data-nutrient-key]');
     if (!row) return;
     const key = row.dataset.nutrientKey;
-    _expandedNutrientKey = _expandedNutrientKey === key ? null : key;
+    const currentKey = _expandedNutrientKey;
+    _expandedNutrientKey = currentKey === key ? null : key;
     renderAll();
     if (_expandedNutrientKey) {
       const detailEl = document.getElementById('nutrientDetail');
@@ -790,7 +791,7 @@ const MIN_COVERAGE = 0.02;
       </div>`;
   }
 
-  const generalHtml = (generalPlantHtml || generalAnimalHtml)
+  const generalHtml = (!_expandedNutrientKey && (generalPlantHtml || generalAnimalHtml))
     ? `<div class="sugg-section sugg-section--general">${generalPlantHtml}${generalAnimalHtml}</div>`
     : '';
 
