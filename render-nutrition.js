@@ -650,38 +650,7 @@ const MIN_COVERAGE = 0.02;
     } else if (!_expandedNutrientKey) {
       plantHtml = '';
     } else {
-      const renderFoodRow = ({ name, members, isGroup, covered, inSeason }) => {
-        const displayName = isGroup ? name : name.replace(/\b\w/g, c => c.toUpperCase());
-        const countKey = covered.length === 1 ? 'covers_1_gap' : 'covers_n_gaps';
-        const chips = covered.map(({ key, unit, amount }) =>
-          `<span class="sugg-nut-chip">${esc(t('nutrient_' + key))} <em>${amount} ${esc(unit)}</em></span>`
-        ).join('');
-        const groupSub = isGroup
-          ? `<span class="sugg-food-variety">${esc(t('sugg_variety_label'))}: ${members.map(m => esc(tFood(m.replace(/\b\w/g, c => c.toUpperCase())))).join(', ')}</span>`
-          : '';
-        const seasonBadge = inSeason
-          ? `<span class="sugg-season-badge">${esc(t('season_badge'))}</span>`
-          : '';
-        return `
-          <div class="sugg-food-row">
-            <div class="sugg-food-header">
-              <span class="sugg-food-name">${esc(tFood(displayName))}</span>
-              ${seasonBadge}
-              <span class="sugg-food-badge">${t(countKey, { n: covered.length })}</span>
-            </div>
-            ${groupSub}
-            <div class="sugg-nut-chips">${chips}</div>
-          </div>`;
-      };
-
-      const vitFoodScores = foodScores.filter(f => f.covered.length >= 2);
-      const vitVisible = _plantExpanded ? vitFoodScores : vitFoodScores.slice(0, INITIAL_SHOW);
-      const vitHidden = vitFoodScores.length - vitVisible.length;
-      const rowsHtml = vitVisible.map(renderFoodRow).join('');
-      const showMoreBtn = vitHidden > 0
-        ? `<button class="btn-secondary sugg-show-more" onclick="_expandSugg('plant')">${esc(t('sugg_show_more', { n: vitHidden }))}</button>`
-        : '';
-      plantHtml = rowsHtml + showMoreBtn;
+      plantHtml = '';
     }
   }
 
@@ -795,7 +764,7 @@ const MIN_COVERAGE = 0.02;
       </div>`;
   }
 
-  const generalHtml = (generalPlantHtml || generalAnimalHtml)
+  const generalHtml = (!_expandedNutrientKey && (generalPlantHtml || generalAnimalHtml))
     ? `<div class="sugg-section sugg-section--general">${generalPlantHtml}${generalAnimalHtml}</div>`
     : '';
 
