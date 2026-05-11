@@ -764,7 +764,7 @@ const MIN_COVERAGE = 0.02;
       </div>`;
   }
 
-  const generalHtml = (!_expandedNutrientKey && (generalPlantHtml || generalAnimalHtml))
+  const generalHtml = (generalPlantHtml || generalAnimalHtml)
     ? `<div class="sugg-section sugg-section--general">${generalPlantHtml}${generalAnimalHtml}</div>`
     : '';
 
