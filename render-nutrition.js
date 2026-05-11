@@ -764,7 +764,7 @@ const MIN_COVERAGE = 0.02;
       </div>`;
   }
 
-  const generalHtml = (generalPlantHtml || generalAnimalHtml)
+  const generalHtml = (!_expandedNutrientKey && (generalPlantHtml || generalAnimalHtml))
     ? `<div class="sugg-section sugg-section--general">${generalPlantHtml}${generalAnimalHtml}</div>`
     : '';
 
@@ -829,7 +829,7 @@ const MIN_COVERAGE = 0.02;
       </div>`;
   }
 
-  el.innerHTML = plantHtml + animalHtml + generalHtml;
+  el.innerHTML = plantHtml + generalHtml;
 
   el.querySelectorAll('.sugg-animal-stepper').forEach(stepper => {
     const food = stepper.dataset.food;
