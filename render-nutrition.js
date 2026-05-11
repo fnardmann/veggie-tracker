@@ -322,7 +322,7 @@ _suggExpanded = false;
     .map(({ key, unit }) => {
       const val = totals[key] ?? (key === 'vitd' ? 0 : null);
       const ref = (progressRef[key] ?? NUTRIENT_WEEKLY_REF[key]) ?? 0;
-      if (val == null && key !== 'selenium') return '';
+      if (val == null && key !== 'selenium' && key !== 'b12') return '';
       const safeVal = val ?? 0;
       const pct = ref > 0 ? Math.min(1, safeVal / ref) : 0;
       const pctDisplay = Math.round(pct * 100);
