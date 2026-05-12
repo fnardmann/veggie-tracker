@@ -1326,9 +1326,7 @@ async function init() {
   document.getElementById('excludedFoodAdd').addEventListener('click', () => {
     const val = excludedInput.value.trim();
     if (!val) return;
-    const canonical = allExcludableNames.find(f =>
-      f.toLowerCase() === val.toLowerCase() || tFood(f).toLowerCase() === val.toLowerCase()
-    ) ?? val;
+    const canonical = canonicalFood(val);
     const current = getExcludedFoods();
     if (!current.some(f => f.toLowerCase() === canonical.toLowerCase())) {
       setExcludedFoods([...current, canonical]);

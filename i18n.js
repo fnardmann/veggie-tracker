@@ -1058,6 +1058,7 @@ const FOOD_ALIASES = {
     'maiskolben':        'Sweet Corn',
     'sonnenblumenkern':  'Sunflower Seeds',
     'kürbiskern':        'Pumpkin Seeds',
+    'hänchenleber':     'Chicken Liver',
   },
   en: {
     // already existing variants
