@@ -156,6 +156,7 @@ async function renderNutritionTab(quiet = false) {
   const wsOffset = addDays(ws0, _weekOffset * 7);
   const entries = entriesInRange(getData().entries, wsOffset, addDays(wsOffset, 6));
   const animalWeekTotals = _weekOffset === 0 ? weeklyAnimalTotals() : {};
+  console.log('DEBUG week:', { _weekOffset, animalWeekTotals, hasAnimal });
   const hasAnimal = Object.keys(animalWeekTotals).length > 0;
   const empty = `<p class="empty">${t('empty_log_nutrition')}</p>`;
 
@@ -411,6 +412,36 @@ _suggExpanded = false;
       ? `<button class="nutr-detail-show-more" data-show="logged">${_showAllLoggedChips ? t('show_less') : t('show_more')}</button>`
       : '';
 
+    // Build ranked list of logged animal foods contributing to this nutrient
+    console.log('DEBUG animalRanked:', { animalWeekTotals, key, ref, hasAnimal, _weekOffset, ANIMAL_FOODS_names: ANIMAL_FOODS.map(f => f.name) });
+    const animalRanked = Object.entries(animalWeekTotals)
+      .map(([name, count]) => {
+        const food = ANIMAL_FOODS.find(f => f.name.toLowerCase() === name.toLowerCase());
+        if (!food || food.nutrients[key] == null) return null;
+        const amount = +(food.nutrients[key] * count).toFixed(1);
+        const pct = ref > 0 ? Math.round((food.nutrients[key] * count) / ref * 100) : 0;
+        return { name: food.name, amount, pct };
+      })
+      .filter(Boolean)
+      .filter(r => r.pct >= 1)
+      .sort((a, b) => b.amount - a.amount);
+    console.log('DEBUG animalRanked result:', animalRanked);
+    const allAnimalLoggedChips = animalRanked.length
+      ? animalRanked.map(r => `
+          <div class="nutr-detail-chip nutr-detail-chip--animal">
+            <span class="nutr-detail-chip-name">${esc(tFood(r.name))}</span>
+            <span class="nutr-detail-chip-amt">${fmtVal(r.amount)} ${esc(def.unit)} <em>${r.pct}%</em></span>
+          </div>`).join('')
+      : '';
+    const visibleAnimalLoggedChips = _showAllLoggedChips ? allAnimalLoggedChips : (animalRanked.length ? animalRanked.slice(0, 3).map(r => `
+          <div class="nutr-detail-chip nutr-detail-chip--animal">
+            <span class="nutr-detail-chip-name">${esc(tFood(r.name))}</span>
+            <span class="nutr-detail-chip-amt">${fmtVal(r.amount)} ${esc(def.unit)} <em>${r.pct}%</em></span>
+          </div>`).join('') : '');
+    const animalLoggedShowMore = animalRanked.length > 3
+      ? `<button class="nutr-detail-show-more" data-show="animal-logged">${_showAllLoggedChips ? t('show_less') : t('show_more')}</button>`
+      : '';
+
     // Top recommendations for this specific nutrient
     const excludedSet = new Set(getExcludedFoods().map(f => f.toLowerCase()));
     const loggedSet = new Set(uniqueFoods.map(f => f.toLowerCase()));
@@ -509,8 +540,8 @@ _suggExpanded = false;
         <div class="nutr-detail-body">
           <div class="nutr-detail-section">
             <p class="nutr-detail-section-label">${esc(loggedLabel)}</p>
-            <div class="nutr-detail-chip-list">${visibleLoggedChips}</div>
-            ${loggedShowMore}
+            <div class="nutr-detail-chip-list">${visibleLoggedChips}${visibleAnimalLoggedChips ? visibleAnimalLoggedChips : ''}</div>
+            ${loggedShowMore || animalLoggedShowMore}
           </div>
           <div class="nutr-detail-divider"></div>
           <div class="nutr-detail-section">
@@ -536,7 +567,7 @@ _suggExpanded = false;
     });
     expandedDetailEl.querySelectorAll('.nutr-detail-show-more').forEach(btn => {
       btn.addEventListener('click', () => {
-        if (btn.dataset.show === 'logged') _showAllLoggedChips = !_showAllLoggedChips;
+        if (btn.dataset.show === 'logged' || btn.dataset.show === 'animal-logged') _showAllLoggedChips = !_showAllLoggedChips;
         if (btn.dataset.show === 'rec') _showAllRecChips = !_showAllRecChips;
         if (btn.dataset.show === 'animal') _showAllAnimalChips = !_showAllAnimalChips;
         renderAll();
@@ -601,6 +632,7 @@ const MIN_COVERAGE = 0.02;
     const rawScores = Object.entries(NUTRITION_DATA)
       .filter(([name]) => !loggedSet.has(name) && !excludedSet.has(name))
       .map(([name, d]) => {
+        const nutrientOrder = new Map(NUTRIENT_DEFS.map((n, i) => [n.key, i]));
         const covered = gapNutrients
           .map(({ key, unit }) => {
             const portionG = portions[name.toLowerCase()] ?? d.g;
@@ -608,7 +640,8 @@ const MIN_COVERAGE = 0.02;
             const pct = amount / (NUTRIENT_WEEKLY_REF[key] ?? ANIMAL_WEEKLY_REF[key]);
             return pct >= MIN_COVERAGE ? { key, unit, amount, pct } : null;
           })
-          .filter(Boolean);
+          .filter(Boolean)
+          .sort((a, b) => (nutrientOrder.get(a.key) ?? 99) - (nutrientOrder.get(b.key) ?? 99));
         const inSeason = seasonMap[name]?.includes(currentMonth) ?? false;
         const baseScore = covered.reduce((s, n) => s + n.pct, 0);
         return { name, covered, totalScore: inSeason ? baseScore * 1.3 : baseScore, inSeason };
