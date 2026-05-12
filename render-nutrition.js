@@ -156,7 +156,6 @@ async function renderNutritionTab(quiet = false) {
   const wsOffset = addDays(ws0, _weekOffset * 7);
   const entries = entriesInRange(getData().entries, wsOffset, addDays(wsOffset, 6));
   const animalWeekTotals = _weekOffset === 0 ? weeklyAnimalTotals() : {};
-  console.log('DEBUG week:', { _weekOffset, animalWeekTotals, hasAnimal });
   const hasAnimal = Object.keys(animalWeekTotals).length > 0;
   const empty = `<p class="empty">${t('empty_log_nutrition')}</p>`;
 
@@ -413,7 +412,6 @@ _suggExpanded = false;
       : '';
 
     // Build ranked list of logged animal foods contributing to this nutrient
-    console.log('DEBUG animalRanked:', { animalWeekTotals, key, ref, hasAnimal, _weekOffset, ANIMAL_FOODS_names: ANIMAL_FOODS.map(f => f.name) });
     const animalRanked = Object.entries(animalWeekTotals)
       .map(([name, count]) => {
         const food = ANIMAL_FOODS.find(f => f.name.toLowerCase() === name.toLowerCase());
@@ -425,7 +423,6 @@ _suggExpanded = false;
       .filter(Boolean)
       .filter(r => r.pct >= 1)
       .sort((a, b) => b.amount - a.amount);
-    console.log('DEBUG animalRanked result:', animalRanked);
     const allAnimalLoggedChips = animalRanked.length
       ? animalRanked.map(r => `
           <div class="nutr-detail-chip nutr-detail-chip--animal">
