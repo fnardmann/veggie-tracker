@@ -440,7 +440,7 @@ _suggExpanded = false;
       : '';
 
     // Top recommendations for this specific nutrient
-    const excludedSet = new Set(getExcludedFoods().map(f => f.toLowerCase()));
+  const excludedSet = new Set(getExcludedFoods().map(f => canonicalFood(f).toLowerCase()));
     const loggedSet = new Set(uniqueFoods.map(f => f.toLowerCase()));
     const seasonCountry = getSeasonalCountry();
     const seasonMap = seasonCountry !== 'off' ? (SEASONAL_CALENDAR[seasonCountry] ?? {}) : {};
@@ -612,7 +612,7 @@ function renderNutrientSuggestions(totals, loggedFoodsThisWeek) {
     .sort((a, b) => a.coverage - b.coverage);
 
   const loggedSet = new Set(loggedFoodsThisWeek.map(f => f.toLowerCase()));
-  const excludedSet = new Set(getExcludedFoods().map(f => f.toLowerCase()));
+  const excludedSet = new Set(getExcludedFoods().map(f => canonicalFood(f).toLowerCase()));
 
   let plantHtml = '';
   let foodScores = [];
@@ -680,33 +680,7 @@ const MIN_COVERAGE = 0.02;
     } else if (!_expandedNutrientKey) {
       plantHtml = '';
     } else {
-      const renderRow = ({ name, members, isGroup, covered, inSeason }) => {
-        const displayName = isGroup ? name : name.replace(/\b\w/g, c => c.toUpperCase());
-        const chips = covered.map(({ key, unit, amount }) =>
-          `<span class="sugg-nut-chip">${esc(t('nutrient_' + key))} <em>${amount} ${esc(unit)}</em></span>`
-        ).join('');
-        const groupSub = isGroup
-          ? `<span class="sugg-food-variety">${esc(t('sugg_variety_label'))}: ${members.map(m => esc(tFood(m.replace(/\b\w/g, c => c.toUpperCase())))).join(', ')}</span>`
-          : '';
-        const seasonBadge = inSeason ? `<span class="sugg-season-badge">${esc(t('season_badge'))}</span>` : '';
-        return `
-          <div class="sugg-food-row">
-            <div class="sugg-food-header">
-              <span class="sugg-food-name">${esc(tFood(displayName))}</span>
-              ${seasonBadge}
-            </div>
-            ${groupSub}
-            <div class="sugg-nut-chips">${chips}</div>
-          </div>`;
-      };
-      plantHtml = `
-        <div class="sugg-section">
-          <div class="sugg-section-header">
-            <span class="sugg-section-nutrient">${esc(t('sugg_plant_label'))}</span>
-          </div>
-          <div class="sugg-food-list">${visibleScores.map(renderRow).join('')}</div>
-          ${hiddenCount > 0 ? `<button class="btn-secondary sugg-show-more" onclick="_expandSugg('plant')">${esc(t('sugg_show_more', { n: hiddenCount }))}</button>` : ''}
-        </div>`;
+      plantHtml = ''; // plant suggestions go in vitamin detail panel, not here
     }
   }
 
@@ -718,8 +692,7 @@ const MIN_COVERAGE = 0.02;
   const generalAnimalLabel = esc(t('sugg_general_animal_label'));
 
   const topPlantGeneral = multiGapFoods.slice(0, 3);
-  const topPlantGeneralExpanded = _plantExpanded ? multiGapFoods : multiGapFoods.slice(0, 3);
-  const plantGeneralHidden = multiGapFoods.length - topPlantGeneralExpanded.length;
+  const plantGeneralHidden = 0;
   const renderGeneralPlantRow = ({ name, members, isGroup, covered, inSeason }) => {
     const displayName = isGroup ? name : name.replace(/\b\w/g, c => c.toUpperCase());
     const chips = covered.map(({ key, unit, amount }) =>
@@ -739,13 +712,12 @@ const MIN_COVERAGE = 0.02;
         <div class="sugg-nut-chips">${chips}</div>
       </div>`;
   };
-  const generalPlantHtml = topPlantGeneralExpanded.length
+  const generalPlantHtml = topPlantGeneral.length
     ? `<div class="sugg-section">
         <div class="sugg-section-header">
           <span class="sugg-section-nutrient">${generalPlantLabel}</span>
         </div>
-        <div class="sugg-food-list">${topPlantGeneralExpanded.map(renderGeneralPlantRow).join('')}</div>
-        ${plantGeneralHidden > 0 ? `<button class="btn-secondary sugg-show-more" onclick="_expandSugg('plant')">${esc(t('sugg_show_more', { n: plantGeneralHidden }))}</button>` : ''}
+        <div class="sugg-food-list">${topPlantGeneral.map(renderGeneralPlantRow).join('')}</div>
       </div>`
     : '';
 
