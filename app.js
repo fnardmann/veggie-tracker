@@ -1014,13 +1014,7 @@ function importData(file) {
       }
       current.entries.sort((a, b) => b.date.localeCompare(a.date));
       if (imported.animalCounts && typeof imported.animalCounts === 'object') {
-        current.animalCounts ??= {};
-        for (const [date, counts] of Object.entries(imported.animalCounts)) {
-          current.animalCounts[date] ??= {};
-          for (const [food, n] of Object.entries(counts)) {
-            current.animalCounts[date][food] = Math.max(current.animalCounts[date][food] ?? 0, n);
-          }
-        }
+        current.animalCounts = imported.animalCounts;
       }
       saveData(current);
       if (imported.portions && typeof imported.portions === 'object') {
