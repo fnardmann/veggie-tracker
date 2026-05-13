@@ -982,7 +982,16 @@ function renderAll() {
 // ── Export / Import ───────────────────────────────────────────────────────────
 
 function exportData() {
-  const payload = { ...getData(), portions: getPortions(), settings: getSettings() };
+  const data = getData();
+  const payload = {
+    version: 1,
+    entries: data.entries,
+    animalCounts: data.animalCounts ?? {},
+    portions: getPortions(),
+    settings: getSettings(),
+    lang: localStorage.getItem(LANG_KEY) || 'en',
+    trophies: getEarnedTrophies(),
+  };
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -1021,6 +1030,17 @@ function importData(file) {
       if (imported.settings && typeof imported.settings === 'object') {
         const merged = { ...getSettings(), ...imported.settings };
         saveSettings(merged);
+      }
+      if (imported.lang && typeof imported.lang === 'string') {
+        setLang(imported.lang);
+      }
+      if (imported.trophies && Array.isArray(imported.trophies)) {
+        const current = getEarnedTrophies();
+        const earned = new Set(current.map(t => t.id));
+        for (const t of imported.trophies) {
+          if (!earned.has(t.id)) current.push(t);
+        }
+        saveEarnedTrophies(current);
       }
       renderAll();
     } catch {

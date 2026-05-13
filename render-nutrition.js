@@ -357,6 +357,7 @@ _suggExpanded = false;
     const key = row.dataset.nutrientKey;
     const currentKey = _expandedNutrientKey;
     _expandedNutrientKey = currentKey === key ? null : key;
+    if (_expandedNutrientKey) _plantExpanded = false;
     renderAll();
     if (_expandedNutrientKey) {
       const detailEl = document.getElementById('nutrientDetail');
