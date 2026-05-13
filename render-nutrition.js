@@ -357,7 +357,7 @@ _suggExpanded = false;
     const key = row.dataset.nutrientKey;
     const currentKey = _expandedNutrientKey;
     _expandedNutrientKey = currentKey === key ? null : key;
-    if (_expandedNutrientKey) _plantExpanded = false;
+    if (_expandedNutrientKey) { _plantExpanded = false; _animalExpanded = false; _showAllLoggedChips = false; _showAllRecChips = false; _showAllAnimalChips = false; }
     renderAll();
     if (_expandedNutrientKey) {
       const detailEl = document.getElementById('nutrientDetail');
@@ -370,7 +370,6 @@ _suggExpanded = false;
 
   // ── Expanded nutrient detail (click on progress bar) ──
   const expandedDetailEl = document.getElementById('nutrientDetail');
-  console.log('renderNutritionTab:', { _expandedNutrientKey, results: results?.length, NUTRITION_DATA_keys: Object.keys(NUTRITION_DATA).length });
   if (_expandedNutrientKey && results) {
     const rawResults = results;
     const foodCountsMap = foodCounts;
@@ -681,7 +680,33 @@ const MIN_COVERAGE = 0.02;
     } else if (!_expandedNutrientKey) {
       plantHtml = '';
     } else {
-      plantHtml = '';
+      const renderRow = ({ name, members, isGroup, covered, inSeason }) => {
+        const displayName = isGroup ? name : name.replace(/\b\w/g, c => c.toUpperCase());
+        const chips = covered.map(({ key, unit, amount }) =>
+          `<span class="sugg-nut-chip">${esc(t('nutrient_' + key))} <em>${amount} ${esc(unit)}</em></span>`
+        ).join('');
+        const groupSub = isGroup
+          ? `<span class="sugg-food-variety">${esc(t('sugg_variety_label'))}: ${members.map(m => esc(tFood(m.replace(/\b\w/g, c => c.toUpperCase())))).join(', ')}</span>`
+          : '';
+        const seasonBadge = inSeason ? `<span class="sugg-season-badge">${esc(t('season_badge'))}</span>` : '';
+        return `
+          <div class="sugg-food-row">
+            <div class="sugg-food-header">
+              <span class="sugg-food-name">${esc(tFood(displayName))}</span>
+              ${seasonBadge}
+            </div>
+            ${groupSub}
+            <div class="sugg-nut-chips">${chips}</div>
+          </div>`;
+      };
+      plantHtml = `
+        <div class="sugg-section">
+          <div class="sugg-section-header">
+            <span class="sugg-section-nutrient">${esc(t('sugg_plant_label'))}</span>
+          </div>
+          <div class="sugg-food-list">${visibleScores.map(renderRow).join('')}</div>
+          ${hiddenCount > 0 ? `<button class="btn-secondary sugg-show-more" onclick="_expandSugg('plant')">${esc(t('sugg_show_more', { n: hiddenCount }))}</button>` : ''}
+        </div>`;
     }
   }
 
