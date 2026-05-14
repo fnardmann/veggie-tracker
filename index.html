@@ -274,17 +274,19 @@
       </section>
 
       <section class="card settings-card">
-        <h2 data-i18n="settings_animal_sugg_heading">Animal Food Suggestions</h2>
+        <h2 data-i18n="settings_animal_sugg_heading">Diet Mode</h2>
         <div class="settings-row">
           <div class="settings-info">
-            <p class="settings-title" data-i18n="settings_animal_sugg_title">Suggest animal foods</p>
-            <p class="settings-desc" data-i18n="settings_animal_sugg_desc">When nutrients are low, also suggest animal foods (eggs, fish, dairy).</p>
+            <p class="settings-title" data-i18n="settings_animal_sugg_title">Show recommendations for</p>
+            <p class="settings-desc" data-i18n="settings_animal_sugg_desc">Filter suggestions based on your diet.</p>
           </div>
           <div class="settings-control">
-            <label class="toggle-label">
-              <input type="checkbox" id="animalSuggestionsToggle">
-              <span class="toggle-slider"></span>
-            </label>
+            <select id="dietModeSelect" class="settings-select">
+              <option value="omni" data-i18n="diet_omni">Omnivore (all foods)</option>
+              <option value="pescetarian" data-i18n="diet_pescetarian">Pescetarian (no meat)</option>
+              <option value="vegetarian" data-i18n="diet_vegetarian">Vegetarian (no meat/fish)</option>
+              <option value="vegan" data-i18n="diet_vegan">Vegan (no animal foods)</option>
+            </select>
           </div>
         </div>
       </section>

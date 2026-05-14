@@ -1295,13 +1295,14 @@ async function init() {
   // Initial render
   renderNutrientFacts();
 
-  // Settings: animal food suggestions toggle
-  const animalSuggestionsToggle = document.getElementById('animalSuggestionsToggle');
-  animalSuggestionsToggle.checked = getAnimalSuggestions();
-  animalSuggestionsToggle.addEventListener('change', () => {
-    const s = getSettings();
-    s.animalSuggestions = animalSuggestionsToggle.checked;
-    saveSettings(s);
+  // Settings: diet mode select
+  const dietModeSelect = document.getElementById('dietModeSelect');
+  dietModeSelect.value = getDietMode();
+  dietModeSelect.addEventListener('change', () => {
+    const val = dietModeSelect.value;
+    setDietMode(val);
+    window.__dietMode = val;
+    if (window.__setDietMode) window.__setDietMode(val);
     if (!document.getElementById('tab-nutrition').hidden) renderNutritionTab(true);
   });
 
@@ -1386,7 +1387,7 @@ async function init() {
         renderEmojiPreview(getEmojiStyle());
         foodFactsToggle.checked = getFoodFacts();
         funFactsToggle.checked = getNutrientFacts();
-        animalSuggestionsToggle.checked = getAnimalSuggestions();
+        dietModeSelect.value = getDietMode();
         seasonalCountrySelect.value = getSeasonalCountry();
         advancedPortionsToggle.checked = getAdvancedPortions();
         renderPortionSettings();
@@ -1407,7 +1408,7 @@ async function init() {
     renderEmojiPreview(getEmojiStyle());
     foodFactsToggle.checked = getFoodFacts();
     funFactsToggle.checked = getNutrientFacts();
-    animalSuggestionsToggle.checked = getAnimalSuggestions();
+    dietModeSelect.value = getDietMode();
     seasonalCountrySelect.value = getSeasonalCountry();
     advancedPortionsToggle.checked = getAdvancedPortions();
     renderPortionSettings();

@@ -29,6 +29,8 @@ function getExcludedFoods()    { return getSettings().excludedFoods    ?? []; }
 function setExcludedFoods(arr) { const s = getSettings(); s.excludedFoods = arr; saveSettings(s); }
 function getTrendVitamins() { return getSettings().trendVitamins ?? ['vitc', 'b12', 'vitd']; }
 function setTrendVitamins(arr) { const s = getSettings(); s.trendVitamins = arr; saveSettings(s); }
+function getDietMode() { return getSettings().dietMode ?? 'omni'; }
+function setDietMode(mode) { const s = getSettings(); s.dietMode = mode; saveSettings(s); }
 
 // ── Plant entries ────────────────────────────────────────────────────────────
 

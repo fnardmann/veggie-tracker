@@ -16,6 +16,24 @@ function portionUnit(food) {
   return NUTRITION_DATA[food.toLowerCase()]?.unit ?? 'g';
 }
 
+function getDietMode() { return window.__dietMode || _dietMode; } // called from app.js on init
+
+window.__setDietMode = function(m) { _dietMode = m; };
+
+function isAnimalFoodExcludedByDiet(name) {
+  const mode = _dietMode;
+  if (mode === 'omni') return false;
+  const lower = name.toLowerCase();
+  if (mode === 'pescetarian') {
+    return ['chicken', 'beef', 'pork', 'schweinefleisch', 'chicken liver'].includes(lower);
+  }
+  if (mode === 'vegetarian') {
+    return ['chicken', 'beef', 'pork', 'schweinefleisch', 'salmon', 'tuna', 'sardines', 'mackerel', 'chicken liver', 'oysters'].includes(lower);
+  }
+  if (mode === 'vegan') return true;
+  return false;
+}
+
 // ── Animal foods ──────────────────────────────────────────────────────────────
 // Nutrient amounts are per listed portion (not per 100g).
 
@@ -142,6 +160,7 @@ let _showAllLoggedChips = false;
 let _showAllRecChips = false;
 let _showAllAnimalChips = false;
 let _weekOffset = 0; // 0=current week, -1=previous, -2=two weeks ago, etc.
+let _dietMode = 'omni';
 
 window._expandSugg = function (type) {
   if (type === 'plant') _plantExpanded = true;
@@ -151,6 +170,7 @@ window._expandSugg = function (type) {
 };
 
 async function renderNutritionTab(quiet = false) {
+  _dietMode = window.__dietMode || _dietMode;
   const today = todayStr();
   const ws0 = getWeekStart(today);
   const wsOffset = addDays(ws0, _weekOffset * 7);
@@ -479,7 +499,7 @@ _suggExpanded = false;
       : '';
 
     const hasPoorPlantMsg = t('poorplant_' + key) !== 'poorplant_' + key;
-    const showAnimal = pct < 20 && hasPoorPlantMsg && getAnimalSuggestions();
+    const showAnimal = pct < 20 && hasPoorPlantMsg && _dietMode !== 'vegan';
     let allAnimalChips = '';
     let visibleAnimalChips = '';
     let animalShowMore = '';
@@ -733,6 +753,7 @@ const MIN_COVERAGE = 0.02;
   }
   const animalScores = ANIMAL_FOODS
     .filter(food => !excludedSet.has(food.name.toLowerCase()))
+    .filter(food => !isAnimalFoodExcludedByDiet(food.name))
     .map(food => {
       const covered = animalGaps.map(({ key, unit }) => {
         const amount = food.nutrients[key] ?? 0;
@@ -746,7 +767,7 @@ const MIN_COVERAGE = 0.02;
     .sort((a, b) => b.covered.length - a.covered.length || b.totalScore - a.totalScore);
 
   let generalAnimalHtml = '';
-  if (getAnimalSuggestions() && animalScores.length) {
+  if (_dietMode !== 'vegan' && animalScores.length) {
     const topAnimalGeneral = animalScores.slice(0, 3);
     const topAnimalGeneralExpanded = _animalExpanded ? animalScores : animalScores.slice(0, 3);
     const animalGeneralHidden = animalScores.length - topAnimalGeneralExpanded.length;
@@ -800,7 +821,7 @@ const MIN_COVERAGE = 0.02;
   // so users can track them even when no gap applies (e.g. eggs for breakfast).
   // Foods that cover a gap get chips + badge and are sorted to the top.
   let animalHtml = '';
-  if (_expandedNutrientKey && getAnimalSuggestions() && animalScores.length) {
+  if (_expandedNutrientKey && _dietMode !== 'vegan' && animalScores.length) {
     const today = todayStr();
     const todayCounts = getAnimalCounts()[today] ?? {};
     const weekTotals = weeklyAnimalTotals();
