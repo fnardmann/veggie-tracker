@@ -712,7 +712,8 @@ const MIN_COVERAGE = 0.02;
   const generalAnimalLabel = esc(t('sugg_general_animal_label'));
 
   const topPlantGeneral = multiGapFoods.slice(0, 3);
-  const plantGeneralHidden = 0;
+  const topPlantGeneralExpanded = _plantExpanded ? multiGapFoods : multiGapFoods.slice(0, 3);
+  const plantGeneralHidden = multiGapFoods.length - topPlantGeneralExpanded.length;
   const renderGeneralPlantRow = ({ name, members, isGroup, covered, inSeason }) => {
     const displayName = isGroup ? name : name.replace(/\b\w/g, c => c.toUpperCase());
     const chips = covered.map(({ key, unit, amount }) =>
@@ -732,12 +733,13 @@ const MIN_COVERAGE = 0.02;
         <div class="sugg-nut-chips">${chips}</div>
       </div>`;
   };
-  const generalPlantHtml = topPlantGeneral.length
+  const generalPlantHtml = topPlantGeneralExpanded.length
     ? `<div class="sugg-section">
         <div class="sugg-section-header">
           <span class="sugg-section-nutrient">${generalPlantLabel}</span>
         </div>
-        <div class="sugg-food-list">${topPlantGeneral.map(renderGeneralPlantRow).join('')}</div>
+        <div class="sugg-food-list">${topPlantGeneralExpanded.map(renderGeneralPlantRow).join('')}</div>
+        ${plantGeneralHidden > 0 ? `<button class="btn-secondary sugg-show-more" onclick="_expandSugg('plant')">${esc(t('sugg_show_more', { n: plantGeneralHidden }))}</button>` : ''}
       </div>`
     : '';
 
