@@ -129,7 +129,7 @@ const PLANT_GROUPS = [
   { label: 'Broccoli',      members: ['broccoli', 'tenderstem broccoli', 'purple sprouting broccoli'] },
   { label: 'Cabbage',       members: ['cabbage', 'red cabbage', 'savoy cabbage', 'white cabbage'] },
   { label: 'Mushrooms',     members: ['mushroom', 'oyster mushroom', 'portobello', 'shiitake'] },
-  { label: 'Beans',         members: ['black beans', 'butter beans', 'cannellini beans', 'kidney beans', 'pinto beans', 'mung beans', 'broad beans'] },
+  { label: 'Beans',         members: ['black beans', 'butter beans', 'cannellini beans', 'kidney beans', 'pinto beans', 'mung beans', 'broad beans', 'soybeans'] },
   { label: 'Onion family',  members: ['onion', 'red onion', 'shallot', 'spring onion'] },
   { label: 'Asparagus',     members: ['asparagus', 'green asparagus'] },
   { label: 'Pak Choi',      members: ['pak choi', 'bok choy'] },
