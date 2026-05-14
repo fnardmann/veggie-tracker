@@ -1017,6 +1017,11 @@ function importData(file) {
         current.animalCounts = imported.animalCounts;
       }
       saveData(current);
+      // Clean up any dates that now have empty counts
+      const ac = current.animalCounts;
+      for (const date of Object.keys(ac)) {
+        if (Object.keys(ac[date]).length === 0) delete ac[date];
+      }
       if (imported.portions && typeof imported.portions === 'object') {
         const merged = { ...getPortions(), ...imported.portions };
         localStorage.setItem(PORTION_KEY, JSON.stringify(merged));
@@ -1030,9 +1035,16 @@ function importData(file) {
       }
       if (imported.trophies && Array.isArray(imported.trophies)) {
         const current = getEarnedTrophies();
-        const earned = new Set(current.map(t => t.id));
+        const earned = new Map(current.map(t => [t.id, t]));
         for (const t of imported.trophies) {
-          if (!earned.has(t.id)) current.push(t);
+          if (earned.has(t.id)) {
+            const existing = earned.get(t.id);
+            if (t.earnedDate && (!existing.earnedDate || t.earnedDate > existing.earnedDate)) {
+              existing.earnedDate = t.earnedDate;
+            }
+          } else {
+            current.push(t);
+          }
         }
         saveEarnedTrophies(current);
       }
@@ -1299,10 +1311,7 @@ async function init() {
   const dietModeSelect = document.getElementById('dietModeSelect');
   dietModeSelect.value = getDietMode();
   dietModeSelect.addEventListener('change', () => {
-    const val = dietModeSelect.value;
-    setDietMode(val);
-    window.__dietMode = val;
-    if (window.__setDietMode) window.__setDietMode(val);
+    setDietMode(dietModeSelect.value);
     if (!document.getElementById('tab-nutrition').hidden) renderNutritionTab(true);
   });
 

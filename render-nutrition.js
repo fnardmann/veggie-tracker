@@ -16,9 +16,7 @@ function portionUnit(food) {
   return NUTRITION_DATA[food.toLowerCase()]?.unit ?? 'g';
 }
 
-function getDietMode() { return window.__dietMode || _dietMode; } // called from app.js on init
-
-window.__setDietMode = function(m) { _dietMode = m; };
+function getDietMode() { return _dietMode; }
 
 function isAnimalFoodExcludedByDiet(name) {
   const mode = _dietMode;
@@ -129,7 +127,7 @@ const PLANT_GROUPS = [
   { label: 'Broccoli',      members: ['broccoli', 'tenderstem broccoli', 'purple sprouting broccoli'] },
   { label: 'Cabbage',       members: ['cabbage', 'red cabbage', 'savoy cabbage', 'white cabbage'] },
   { label: 'Mushrooms',     members: ['mushroom', 'oyster mushroom', 'portobello', 'shiitake'] },
-  { label: 'Beans',         members: ['black beans', 'butter beans', 'cannellini beans', 'kidney beans', 'pinto beans', 'mung beans', 'broad beans', 'soybeans'] },
+{ label: 'Beans', members: ['black beans', 'butter beans', 'cannellini beans', 'kidney beans', 'pinto beans', 'mung beans', 'broad beans', 'soybeans', 'sojabohnen'] },
   { label: 'Onion family',  members: ['onion', 'red onion', 'shallot', 'spring onion'] },
   { label: 'Asparagus',     members: ['asparagus', 'green asparagus'] },
   { label: 'Pak Choi',      members: ['pak choi', 'bok choy'] },
@@ -170,7 +168,7 @@ window._expandSugg = function (type) {
 };
 
 async function renderNutritionTab(quiet = false) {
-  _dietMode = window.__dietMode || _dietMode;
+  _dietMode = getDietMode();
   const today = todayStr();
   const ws0 = getWeekStart(today);
   const wsOffset = addDays(ws0, _weekOffset * 7);

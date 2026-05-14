@@ -1046,6 +1046,7 @@ const FOOD_ALIASES = {
     'linsen':            'Lentils',
     'kichererbse':       'Chickpeas',
     'sojabohne':         'Soybeans',
+    'sojabohnen':        'Soybeans',
     // alternative / informal names
     'pilz':              'Mushroom',
     'pilze':             'Mushroom',
