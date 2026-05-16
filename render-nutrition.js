@@ -598,7 +598,7 @@ _suggExpanded = false;
 
   renderNutrientSuggestions(totals, uniqueFoods);
   renderFoodDatabase();
-
+  console.log('about to call renderNutrientTrend, entries.length=', entries.length, 'hasAnimal=', hasAnimal);
   await renderNutrientTrend();
 }
 
@@ -929,18 +929,37 @@ async function renderNutrientTrend() {
   const selected = getTrendVitamins();
   const defs = NUTRIENT_DEFS.filter(d => selected.includes(d.key));
 
+  const animalCountsPerWeek = weeks.map(({ ws, we }) => {
+    const ac = getAnimalCounts();
+    const weekTotals = {};
+    for (const [date, counts] of Object.entries(ac)) {
+      if (date >= ws && date <= we) {
+        for (const [food, n] of Object.entries(counts)) {
+          weekTotals[food] = (weekTotals[food] ?? 0) + n;
+        }
+      }
+    }
+    return weekTotals;
+  });
+
   const datasets = defs.map((def, idx) => {
     const color = CHART_COLORS[idx % CHART_COLORS.length];
-    const weeklyRef = NUTRIENT_WEEKLY_REF[def.key] ?? 1;
+    const weeklyRef = (NUTRIENT_WEEKLY_REF[def.key] ?? ANIMAL_WEEKLY_REF[def.key]) ?? 1;
     const totals = weeks.map((_, i) => {
       const we = weekEntries[i];
-      if (!we.length) return null;
-      const counts = new Map();
-      for (const e of we) counts.set(e.vegetable.toLowerCase(), (counts.get(e.vegetable.toLowerCase()) ?? 0) + 1);
+      const animalTotals = animalCountsPerWeek[i];
       let sum = null;
-      for (const [food, count] of counts) {
-        const n = foodNutrition.get(food);
-        if (n?.[def.key] != null) sum = (sum ?? 0) + n[def.key] * count;
+      if (we.length) {
+        const counts = new Map();
+        for (const e of we) counts.set(e.vegetable.toLowerCase(), (counts.get(e.vegetable.toLowerCase()) ?? 0) + 1);
+        for (const [food, count] of counts) {
+          const n = foodNutrition.get(food);
+          if (n?.[def.key] != null) sum = (sum ?? 0) + n[def.key] * count;
+        }
+      }
+      for (const [foodName, count] of Object.entries(animalTotals)) {
+        const food = ANIMAL_FOODS.find(f => f.name === foodName);
+        if (food?.nutrients?.[def.key] != null) sum = (sum ?? 0) + food.nutrients[def.key] * count;
       }
       return sum != null ? +((sum / weeklyRef) * 100).toFixed(1) : null;
     });
