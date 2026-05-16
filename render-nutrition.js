@@ -396,11 +396,13 @@ _suggExpanded = false;
     const val = totals[key] ?? 0;
     const ref = (hasAnimal ? ANIMAL_WEEKLY_REF : NUTRIENT_WEEKLY_REF)[key] ?? 0;
     const pct = ref > 0 ? Math.round((val / ref) * 100) : 0;
+    const excludedSet = new Set(getExcludedFoods().map(f => canonicalFood(f).toLowerCase()));
 
     // Build ranked list of logged plants contributing to this nutrient
     const plantRanked = rawResults
       .map(({ vegetable, nutrition: n }) => {
         if (!n || n[key] == null) return null;
+        if (excludedSet.has(vegetable.toLowerCase())) return null;
         const count = foodCountsMap.get(vegetable.toLowerCase())?.count ?? 1;
         return {
           name: vegetable,
@@ -432,6 +434,7 @@ _suggExpanded = false;
     // Build ranked list of logged animal foods contributing to this nutrient
     const animalRanked = Object.entries(animalWeekTotals)
       .map(([name, count]) => {
+        if (excludedSet.has(name.toLowerCase())) return null;
         const food = ANIMAL_FOODS.find(f => f.name.toLowerCase() === name.toLowerCase());
         if (!food || food.nutrients[key] == null) return null;
         const amount = +(food.nutrients[key] * count).toFixed(1);
@@ -458,7 +461,6 @@ _suggExpanded = false;
       : '';
 
     // Top recommendations for this specific nutrient
-  const excludedSet = new Set(getExcludedFoods().map(f => canonicalFood(f).toLowerCase()));
     const loggedSet = new Set(uniqueFoods.map(f => f.toLowerCase()));
     const seasonCountry = getSeasonalCountry();
     const seasonMap = seasonCountry !== 'off' ? (SEASONAL_CALENDAR[seasonCountry] ?? {}) : {};
@@ -504,7 +506,7 @@ _suggExpanded = false;
     if (showAnimal) {
       const refKey = ANIMAL_WEEKLY_REF[key] ?? ref;
       const topAnimal = ANIMAL_FOODS
-        .filter(f => f.nutrients[key] != null)
+        .filter(f => !excludedSet.has(f.name.toLowerCase()) && f.nutrients[key] != null)
         .map(f => {
           const amount = +(f.nutrients[key] * 1).toFixed(1);
           const apct = refKey > 0 ? Math.round(amount / refKey * 100) : 0;
@@ -598,7 +600,6 @@ _suggExpanded = false;
 
   renderNutrientSuggestions(totals, uniqueFoods);
   renderFoodDatabase();
-  console.log('about to call renderNutrientTrend, entries.length=', entries.length, 'hasAnimal=', hasAnimal);
   await renderNutrientTrend();
 }
 
